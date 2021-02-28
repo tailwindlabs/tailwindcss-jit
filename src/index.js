@@ -150,7 +150,6 @@ function generateRules(tailwindConfig, candidates, context) {
     componentMap,
     utilityMap,
     variantMap,
-    screenVariantMap,
     classCache,
     notClassCache,
     postCssNodeCache,
@@ -347,11 +346,7 @@ function rebootTemplateWatcher(context) {
   }
 }
 
-function buildPluginApi(
-  tailwindConfig,
-  context,
-  { variantList, variantMap, screenVariantList, screenVariantMap, offsets }
-) {
+function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offsets }) {
   return {
     addBase(nodes) {
       for (let node of nodes) {
@@ -365,10 +360,6 @@ function buildPluginApi(
       addVariant(variantName, applyVariant, options = {}) {
         insertInto(variantList, variantName, options)
         variantMap.set(variantName, applyVariant)
-      },
-      addScreenVariant(variantName, applyVariant, options = {}) {
-        insertInto(screenVariantList, variantName, options)
-        screenVariantMap.set(variantName, applyVariant)
       },
       addComponents(components) {
         let offset = offsets.components++
@@ -446,8 +437,6 @@ function applyVariant(variant, matches, { variantMap }) {
 function registerPlugins(tailwindConfig, plugins, context) {
   let variantList = []
   let variantMap = new Map()
-  let screenVariantList = []
-  let screenVariantMap = new Map()
   let offsets = {
     components: 0n,
     utilities: 0n,
@@ -456,8 +445,6 @@ function registerPlugins(tailwindConfig, plugins, context) {
   let pluginApi = buildPluginApi(tailwindConfig, context, {
     variantList,
     variantMap,
-    screenVariantList,
-    screenVariantMap,
     offsets,
   })
 
@@ -475,36 +462,24 @@ function registerPlugins(tailwindConfig, plugins, context) {
   let highestOffset =
     offsets.utilities > offsets.components ? offsets.utilities : offsets.components
   let reservedBits = BigInt(highestOffset.toString(2).length)
+
+  context.layerOrder = {
+    base: (1n << reservedBits) << 0n,
+    components: (1n << reservedBits) << 1n,
+    utilities: (1n << reservedBits) << 2n,
+  }
+
+  reservedBits += 3n
   context.variantOrder = variantList.reduce(
     (map, variant, i) => map.set(variant, (1n << BigInt(i)) << reservedBits),
     new Map()
   )
 
-  // Figure out the numbers for layers
-  let variantReservedBits = BigInt([...context.variantOrder.values()].pop().toString(2).length)
-
-  context.layerOrder = {
-    base: (1n << variantReservedBits) << 0n,
-    components: (1n << variantReservedBits) << 1n,
-    utilities: (1n << variantReservedBits) << 2n,
-  }
-
-  let screenReservedBits = variantReservedBits + 3n
-  context.screenVariantOrder = screenVariantList.reduce(
-    (map, variant, i) => map.set(variant, (1n << BigInt(i)) << screenReservedBits),
-    new Map()
-  )
-
-  context.minimumScreen = [...context.screenVariantOrder.values()].shift()
+  context.minimumScreen = [...context.variantOrder.values()].shift()
 
   // Build variantMap
   for (let [variantName, variantFunction] of variantMap.entries()) {
     let sort = context.variantOrder.get(variantName)
-    context.variantMap.set(variantName, [sort, variantFunction])
-  }
-
-  for (let [variantName, variantFunction] of screenVariantMap.entries()) {
-    let sort = context.screenVariantOrder.get(variantName)
     context.variantMap.set(variantName, [sort, variantFunction])
   }
 }
