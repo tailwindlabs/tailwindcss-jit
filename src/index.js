@@ -36,8 +36,7 @@ function touch(filename) {
 // not too important for subsequent builds. The faster the better though — if we can speed
 // up these regexes by 50% that could cut initial build time by like 20%.
 
-function getClassCandidates(content, contentMatchCache, candidates) {
-  let seen = new Set()
+function getClassCandidates(content, contentMatchCache, candidates, seen) {
   for (let line of content.split('\n')) {
     line = line.trim()
 
@@ -744,10 +743,11 @@ module.exports = (pluginOptions = {}) => {
 
             // Find potential classes in changed files
             let candidates = new Set()
+            let seen = new Set()
 
             for (let file of context.changedFiles) {
               let content = fs.readFileSync(file, 'utf8')
-              getClassCandidates(content, contentMatchCache, candidates)
+              getClassCandidates(content, contentMatchCache, candidates, seen)
             }
 
             // ---
