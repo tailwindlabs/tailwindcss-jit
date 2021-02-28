@@ -315,7 +315,6 @@ function insertInto(list, value, { before = [] } = {}) {
 
 function cleanupContext(context) {
   if (context.watcher) {
-    // console.log('Cleaning up old watcher')
     context.watcher.close()
   }
   contextMap.delete(context.configHash)
@@ -671,6 +670,12 @@ module.exports = (pluginOptions = {}) => {
   return {
     postcssPlugin: 'tailwindcss-jit',
     plugins: [
+      env.DEBUG &&
+        function (root) {
+          console.log('\n')
+          console.time('JIT TOTAL')
+          return root
+        },
       function (root, result) {
         function registerDependency(fileName) {
           result.messages.push({
@@ -751,10 +756,12 @@ module.exports = (pluginOptions = {}) => {
             let candidates = new Set()
             let seen = new Set()
 
+            env.DEBUG && console.time('Reading changed files')
             for (let file of context.changedFiles) {
               let content = fs.readFileSync(file, 'utf8')
               getClassCandidates(content, contentMatchCache, candidates, seen)
             }
+            env.DEBUG && console.timeEnd('Reading changed files')
 
             // ---
 
@@ -762,11 +769,13 @@ module.exports = (pluginOptions = {}) => {
 
             let classCacheCount = context.classCache.size
 
+            env.DEBUG && console.time('Generate rules')
             let { utilities, components } = generateRules(
               context.tailwindConfig,
               candidates,
               context
             )
+            env.DEBUG && console.timeEnd('Generate rules')
 
             // We only ever add to the classCache, so if it didn't grow, there is nothing new.
             if (context.classCache.size !== classCacheCount) {
@@ -778,10 +787,12 @@ module.exports = (pluginOptions = {}) => {
                 context.utilityRuleCache.add(rule)
               }
 
+              env.DEBUG && console.time('Build stylesheet')
               context.stylesheetCache = buildStylesheet(
                 [...context.componentRuleCache, ...context.utilityRuleCache],
                 context
               )
+              env.DEBUG && console.timeEnd('Build stylesheet')
             }
 
             let {
@@ -818,12 +829,14 @@ module.exports = (pluginOptions = {}) => {
 
             // ---
 
-            // console.log('Changed files: ', context.changedFiles.size)
-            // console.log('Potential classes: ', candidates.size)
-            // console.log('Active contexts: ', contextMap.size)
-            // console.log('Active sources:', sourceContextMap.size)
-            // console.log('Context source size: ', contextSources.size)
-            // console.log('Content match entries', contentMatchCache.size)
+            if (env.DEBUG) {
+              console.log('Changed files: ', context.changedFiles.size)
+              console.log('Potential classes: ', candidates.size)
+              console.log('Active contexts: ', contextMap.size)
+              console.log('Active sources:', sourceContextMap.size)
+              console.log('Context source size: ', contextSources.size)
+              console.log('Content match entries', contentMatchCache.size)
+            }
 
             // Clear the cache for the changed files
             context.changedFiles.clear()
@@ -831,6 +844,12 @@ module.exports = (pluginOptions = {}) => {
           evaluateTailwindFunctions(context.tailwindConfig),
         ]).process(root, { from: undefined })
       },
+      env.DEBUG &&
+        function (root) {
+          console.timeEnd('JIT TOTAL')
+          console.log('\n')
+          return root
+        },
     ],
   }
 }
