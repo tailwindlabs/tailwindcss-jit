@@ -56,6 +56,7 @@
 - [x] Avoid memory leak in contentMatchCache (every time a file is saved with different content this cache grows)
 - [x] Figure out when to clear caches
 - [x] Test with Laravel mix
+- [x] Unify variants and screen variants
 
 #### Next
 
