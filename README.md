@@ -18,7 +18,7 @@ These are all things we're actively working on, but aren't ready yet in this cur
 
 - Custom CSS is not processed, can't use `@apply`, `@layer`, `@screen`, etc.
 - User plugins are not supported
-- Can't use complex media queries
+- Can't use complex media queries  (only basic min-width is supported)
 - Container is very naive, doesn't support complex options Tailwind normally supports
 - No prefix support
 - No !important support
@@ -26,7 +26,7 @@ These are all things we're actively working on, but aren't ready yet in this cur
 
 ---
 
-#### **To Dos:**
+#### To Dos
 
 - [x] Get our data structure rendering to CSS, perhaps rework data structure if needed
 - [x] Solve for a candidate that has multiple rules with different order numbers
@@ -97,9 +97,6 @@ These are all things we're actively working on, but aren't ready yet in this cur
 - [ ] Refactor plugins to an abstraction that handles negative values, transformThemeValue, etc.
 - [ ] Factor the code in a responsible way
 - [ ] Put plugins in deliberate order
-
-===
-
 - [ ] Include vendor prefixes for modern browsers by default so autoprefixer is only needed in production?
 - [ ] Cache Preflight styles? They only change when the config changes (default font family, border color, etc.)
 - [ ] Collapse media queries
