@@ -484,6 +484,10 @@ function isObject(value) {
   return typeof value === 'object' && value !== null
 }
 
+function isPlainObject(value) {
+  return isObject(value) && !Array.isArray(value)
+}
+
 function isEmpty(obj) {
   return Object.keys(obj).length === 0
 }
@@ -687,6 +691,8 @@ module.exports = (pluginOptions = {}) => {
         return postcss([
           // substituteTailwindAtRules
           function (root) {
+            let applyCandidates = new Set()
+
             // Make sure this file contains Tailwind directives. If not, we can save
             // a lot of work and bail early. Also we don't have to register our touch
             // file as a dependency since the output of this CSS does not depend on
@@ -717,6 +723,15 @@ module.exports = (pluginOptions = {}) => {
               if (rule.params === 'screens') {
                 layerNodes.screens = rule
               }
+            })
+
+            // Collect all @apply rules and candidates
+            let applies = []
+            root.walkAtRules('apply', (rule) => {
+              for (let util of rule.params.split(/[\s\t\n]+/g)) {
+                applyCandidates.add(util)
+              }
+              applies.push(rule)
             })
 
             if (!foundTailwind) {
@@ -767,6 +782,113 @@ module.exports = (pluginOptions = {}) => {
               candidates,
               context
             )
+
+            // Start the @apply process if we have rules with @apply in them
+            if (applies.length > 0) {
+              // Fill up some caches!
+              generateRules(context.tailwindConfig, applyCandidates, context)
+
+              /**
+               * When we have an apply like this:
+               *
+               * .abc {
+               *    @apply hover:font-bold;
+               * }
+               *
+               * What we essentially will do is resolve to this:
+               *
+               * .abc {
+               *    @apply .hover\:font-bold:hover {
+               *      font-weight: 500;
+               *    }
+               * }
+               *
+               * Notice that the to-be-applied class is `.hover\:font-bold:hover` and that the utility candidate was `hover:font-bold`.
+               * What happens in this function is that we prepend a `.` and escape the candidate.
+               * This will result in `.hover\:font-bold`
+               * Which means that we can replace `.hover\:font-bold` with `.abc` in `.hover\:font-bold:hover` resulting in `.abc:hover`
+               */
+              // TODO: Should we use postcss-selector-parser for this instead?
+              function replaceSelector(selector, utilitySelector, candidate) {
+                return selector
+                  .split(/\s*,\s*/g)
+                  .map((s) => utilitySelector.replace(`.${escape(candidate)}`, s))
+                  .join(', ')
+              }
+
+              function updateSelectors(rule, apply, candidate) {
+                return rule.map(([selector, rule]) => {
+                  if (!isPlainObject(rule)) {
+                    return [selector, updateSelectors(rule, apply, candidate)]
+                  }
+                  return [replaceSelector(apply.parent.selector, selector, candidate), rule]
+                })
+              }
+
+              for (let apply of applies) {
+                let siblings = []
+                let applyCandidates = apply.params.split(/[\s\t\n]+/g)
+                for (let applyCandidate of applyCandidates) {
+                  // TODO: Check for user css rules?
+                  if (!context.classCache.has(applyCandidate)) {
+                    throw new Error('Utility does not exist!')
+                  }
+
+                  let [layerName, rules] = context.classCache.get(applyCandidate)
+                  for (let [sort, [selector, rule]] of rules) {
+                    // Nested rules...
+                    if (!isPlainObject(rule)) {
+                      siblings.push([
+                        sort,
+                        toPostCssNode(
+                          [selector, updateSelectors(rule, apply, applyCandidate)],
+                          context.postCssNodeCache
+                        ),
+                      ])
+                    } else {
+                      let appliedSelector = replaceSelector(
+                        apply.parent.selector,
+                        selector,
+                        applyCandidate
+                      )
+
+                      if (appliedSelector !== apply.parent.selector) {
+                        siblings.push([
+                          sort,
+                          toPostCssNode(
+                            [
+                              replaceSelector(apply.parent.selector, selector, applyCandidate),
+                              rule,
+                            ],
+                            context.postCssNodeCache
+                          ),
+                        ])
+                        continue
+                      }
+
+                      // Add declarations directly
+                      for (let property in rule) {
+                        apply.before(postcss.decl({ prop: property, value: rule[property] }))
+                      }
+                    }
+                  }
+                }
+
+                // Inject the rules, sorted, correctly
+                for (let [sort, sibling] of siblings.sort(([a], [z]) => Math.sign(Number(z - a)))) {
+                  // `apply.parent` is refering to the node at `.abc` in: .abc { @apply mt-2 }
+                  apply.parent.after(sibling)
+                }
+
+                // If there are left-over declarations, just remove the @apply
+                if (apply.parent.nodes.length > 1) {
+                  apply.remove()
+                } else {
+                  // The node is empty, drop the full node
+                  apply.parent.remove()
+                }
+              }
+            }
             env.DEBUG && console.timeEnd('Generate rules')
 
             // We only ever add to the classCache, so if it didn't grow, there is nothing new.

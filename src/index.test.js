@@ -11,6 +11,7 @@ function run(input, config = {}) {
 
 test('it works', () => {
   let config = {
+    darkMode: 'class',
     purge: [path.resolve(__dirname, './index.test.html')],
   }
 
@@ -19,6 +20,35 @@ test('it works', () => {
     .theme-test {
       font-family: theme('fontFamily.sans');
       color: theme('colors.blue.500');
+    }
+    .apply-test {
+      @apply mt-6 bg-pink-500 hover:font-bold focus:hover:font-bold sm:bg-green-500 sm:focus:even:bg-pink-200;
+    }
+    .apply-components {
+      @apply container mx-auto;
+    }
+    .drop-empty-rules {
+      @apply hover:font-bold;
+    }
+    .apply-group {
+      @apply group-hover:font-bold;
+    }
+    .apply-dark-mode {
+      @apply dark:font-bold;
+    }
+    .apply-with-existing:hover {
+      @apply font-normal sm:bg-green-500;
+    }
+    .multiple, .selectors {
+      @apply font-bold group-hover:font-normal;
+    }
+    .nested {
+      .example {
+        @apply font-bold hover:font-normal;
+      }
+    }
+    .crazy-example {
+      @apply sm:motion-safe:group-active:focus:opacity-10;
     }
     @tailwind components;
     @tailwind utilities;
