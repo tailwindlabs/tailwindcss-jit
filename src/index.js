@@ -10,10 +10,15 @@ const LRU = require('quick-lru')
 
 const resolveConfig = require('tailwindcss/resolveConfig')
 const escape = require('tailwindcss/lib/util/escapeClassName').default
-const getAllConfigs = require('tailwindcss/lib/util/getAllConfigs').default
 const evaluateTailwindFunctions = require('tailwindcss/lib/lib/evaluateTailwindFunctions').default
 
 const corePlugins = require('./corePlugins')
+
+let env = {
+  TAILWIND_MODE: process.env.TAILWIND_MODE,
+  NODE_ENV: process.env.NODE_ENV,
+  DEBUG: process.env.DEBUG !== undefined,
+}
 
 // ---
 
@@ -36,8 +41,7 @@ function touch(filename) {
 // not too important for subsequent builds. The faster the better though — if we can speed
 // up these regexes by 50% that could cut initial build time by like 20%.
 
-function getClassCandidates(content, contentMatchCache, candidates) {
-  let seen = new Set()
+function getClassCandidates(content, contentMatchCache, candidates, seen) {
   for (let line of content.split('\n')) {
     line = line.trim()
 
@@ -146,14 +150,7 @@ function* candidatePermutations(prefix, modifier = '') {
 }
 
 function generateRules(tailwindConfig, candidates, context) {
-  let {
-    componentMap,
-    utilityMap,
-    variantMap,
-    classCache,
-    notClassCache,
-    postCssNodeCache,
-  } = context
+  let { componentMap, utilityMap, classCache, notClassCache, postCssNodeCache } = context
 
   let layers = {
     components: [],
@@ -310,7 +307,6 @@ function insertInto(list, value, { before = [] } = {}) {
 
 function cleanupContext(context) {
   if (context.watcher) {
-    // console.log('Cleaning up old watcher')
     context.watcher.close()
   }
   contextMap.delete(context.configHash)
@@ -318,13 +314,13 @@ function cleanupContext(context) {
 }
 
 function rebootTemplateWatcher(context) {
-  if (process.env.TAILWIND_MODE === 'build') {
+  if (env.TAILWIND_MODE === 'build') {
     return
   }
 
   if (
-    process.env.TAILWIND_MODE === 'watch' ||
-    (process.env.TAILWIND_MODE === undefined && process.env.NODE_ENV === 'development')
+    env.TAILWIND_MODE === 'watch' ||
+    (env.TAILWIND_MODE === undefined && env.NODE_ENV === 'development')
   ) {
     context.touchFile = context.touchFile !== null ? context.touchFile : tmp.fileSync()
 
@@ -338,7 +334,7 @@ function rebootTemplateWatcher(context) {
         touch(context.touchFile.name)
       })
 
-      context.watcher.on('change', (path, stats) => {
+      context.watcher.on('change', (path) => {
         context.changedFiles.add('./' + path)
         touch(context.touchFile.name)
       })
@@ -448,7 +444,7 @@ function registerPlugins(tailwindConfig, plugins, context) {
     offsets,
   })
 
-  for (let pluginName in corePlugins) {
+  for (let pluginName in plugins) {
     let plugin = corePlugins[pluginName]
     if (Array.isArray(plugin)) {
       for (let pluginItem of plugin) {
@@ -666,6 +662,12 @@ module.exports = (pluginOptions = {}) => {
   return {
     postcssPlugin: 'tailwindcss-jit',
     plugins: [
+      env.DEBUG &&
+        function (root) {
+          console.log('\n')
+          console.time('JIT TOTAL')
+          return root
+        },
       function (root, result) {
         function registerDependency(fileName) {
           result.messages.push({
@@ -744,11 +746,14 @@ module.exports = (pluginOptions = {}) => {
 
             // Find potential classes in changed files
             let candidates = new Set()
+            let seen = new Set()
 
+            env.DEBUG && console.time('Reading changed files')
             for (let file of context.changedFiles) {
               let content = fs.readFileSync(file, 'utf8')
-              getClassCandidates(content, contentMatchCache, candidates)
+              getClassCandidates(content, contentMatchCache, candidates, seen)
             }
+            env.DEBUG && console.timeEnd('Reading changed files')
 
             // ---
 
@@ -756,11 +761,13 @@ module.exports = (pluginOptions = {}) => {
 
             let classCacheCount = context.classCache.size
 
+            env.DEBUG && console.time('Generate rules')
             let { utilities, components } = generateRules(
               context.tailwindConfig,
               candidates,
               context
             )
+            env.DEBUG && console.timeEnd('Generate rules')
 
             // We only ever add to the classCache, so if it didn't grow, there is nothing new.
             if (context.classCache.size !== classCacheCount) {
@@ -772,10 +779,12 @@ module.exports = (pluginOptions = {}) => {
                 context.utilityRuleCache.add(rule)
               }
 
+              env.DEBUG && console.time('Build stylesheet')
               context.stylesheetCache = buildStylesheet(
                 [...context.componentRuleCache, ...context.utilityRuleCache],
                 context
               )
+              env.DEBUG && console.timeEnd('Build stylesheet')
             }
 
             let {
@@ -812,12 +821,14 @@ module.exports = (pluginOptions = {}) => {
 
             // ---
 
-            // console.log('Changed files: ', context.changedFiles.size)
-            // console.log('Potential classes: ', candidates.size)
-            // console.log('Active contexts: ', contextMap.size)
-            // console.log('Active sources:', sourceContextMap.size)
-            // console.log('Context source size: ', contextSources.size)
-            // console.log('Content match entries', contentMatchCache.size)
+            if (env.DEBUG) {
+              console.log('Changed files: ', context.changedFiles.size)
+              console.log('Potential classes: ', candidates.size)
+              console.log('Active contexts: ', contextMap.size)
+              console.log('Active sources:', sourceContextMap.size)
+              console.log('Context source size: ', contextSources.size)
+              console.log('Content match entries', contentMatchCache.size)
+            }
 
             // Clear the cache for the changed files
             context.changedFiles.clear()
@@ -825,6 +836,12 @@ module.exports = (pluginOptions = {}) => {
           evaluateTailwindFunctions(context.tailwindConfig),
         ]).process(root, { from: undefined })
       },
+      env.DEBUG &&
+        function (root) {
+          console.timeEnd('JIT TOTAL')
+          console.log('\n')
+          return root
+        },
     ],
   }
 }
