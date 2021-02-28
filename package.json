@@ -12,6 +12,7 @@
     "trailingComma": "es5"
   },
   "dependencies": {
+    "chokidar": "^3.5.1",
     "fast-glob": "^3.2.5",
     "object-hash": "^2.1.1",
     "postcss-selector-parser": "^6.0.4",
