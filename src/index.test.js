@@ -42,6 +42,9 @@ test('it works', () => {
     .multiple, .selectors {
       @apply font-bold group-hover:font-normal;
     }
+    .list {
+      @apply space-x-4;
+    }
     .nested {
       .example {
         @apply font-bold hover:font-normal;
