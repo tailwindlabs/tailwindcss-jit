@@ -1,0 +1,39 @@
+{
+  "name": "@tailwindcss/jit",
+  "version": "0.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "dependencies": {
+    "fast-glob": "^3.2.5",
+    "object-hash": "^2.1.1",
+    "postcss-selector-parser": "^6.0.4",
+    "quick-lru": "^5.1.1",
+    "tailwindcss": "^2.0.3",
+    "tmp": "^0.2.1"
+  },
+  "peerDependencies": {
+    "postcss": "^8.2.6"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.2.4",
+    "jest": "^26.6.3",
+    "postcss": "^8.2.6",
+    "postcss-cli": "^8.3.1",
+    "prettier": "^2.2.1"
+  },
+  "browserslist": [
+    "> 1%",
+    "not edge <= 18",
+    "not safari <= 13",
+    "not ie 11",
+    "not op_mini all"
+  ]
+}
