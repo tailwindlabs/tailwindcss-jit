@@ -10,7 +10,6 @@ const LRU = require('quick-lru')
 
 const resolveConfig = require('tailwindcss/resolveConfig')
 const escape = require('tailwindcss/lib/util/escapeClassName').default
-const getAllConfigs = require('tailwindcss/lib/util/getAllConfigs').default
 const evaluateTailwindFunctions = require('tailwindcss/lib/lib/evaluateTailwindFunctions').default
 
 const corePlugins = require('./corePlugins')
@@ -151,14 +150,7 @@ function* candidatePermutations(prefix, modifier = '') {
 }
 
 function generateRules(tailwindConfig, candidates, context) {
-  let {
-    componentMap,
-    utilityMap,
-    variantMap,
-    classCache,
-    notClassCache,
-    postCssNodeCache,
-  } = context
+  let { componentMap, utilityMap, classCache, notClassCache, postCssNodeCache } = context
 
   let layers = {
     components: [],
@@ -342,7 +334,7 @@ function rebootTemplateWatcher(context) {
         touch(context.touchFile.name)
       })
 
-      context.watcher.on('change', (path, stats) => {
+      context.watcher.on('change', (path) => {
         context.changedFiles.add('./' + path)
         touch(context.touchFile.name)
       })
@@ -452,7 +444,7 @@ function registerPlugins(tailwindConfig, plugins, context) {
     offsets,
   })
 
-  for (let pluginName in corePlugins) {
+  for (let pluginName in plugins) {
     let plugin = corePlugins[pluginName]
     if (Array.isArray(plugin)) {
       for (let pluginItem of plugin) {
