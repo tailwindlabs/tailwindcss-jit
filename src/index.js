@@ -15,6 +15,12 @@ const evaluateTailwindFunctions = require('tailwindcss/lib/lib/evaluateTailwindF
 
 const corePlugins = require('./corePlugins')
 
+let env = {
+  TAILWIND_MODE: process.env.TAILWIND_MODE,
+  NODE_ENV: process.env.NODE_ENV,
+  DEBUG: process.env.DEBUG !== undefined,
+}
+
 // ---
 
 // This is used to trigger rebuilds. Just updating the timestamp
@@ -317,13 +323,13 @@ function cleanupContext(context) {
 }
 
 function rebootTemplateWatcher(context) {
-  if (process.env.TAILWIND_MODE === 'build') {
+  if (env.TAILWIND_MODE === 'build') {
     return
   }
 
   if (
-    process.env.TAILWIND_MODE === 'watch' ||
-    (process.env.TAILWIND_MODE === undefined && process.env.NODE_ENV === 'development')
+    env.TAILWIND_MODE === 'watch' ||
+    (env.TAILWIND_MODE === undefined && env.NODE_ENV === 'development')
   ) {
     context.touchFile = context.touchFile !== null ? context.touchFile : tmp.fileSync()
 
