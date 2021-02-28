@@ -60,6 +60,7 @@
 
 #### Next
 
+- [ ] Fix bug with focus:ring-2, we need to add the universal selector still not just strip it out, otherwise it's never added
 - [ ] Add support for plugin API
 - [ ] Make existing official plugins work
 - [ ] Rebuild when config dependencies change
@@ -74,6 +75,7 @@
 - [ ] Support purge safelist (just add entries to candidate list, regexes will be harder though)
 - [ ] Incorporate 'transformThemeValue' properly (mostly important for `theme` function which already works, but also need it to support array syntax for things like box shadow in someone's config)
 - [ ] Support "dynamic" components
+- [ ] Support "dynamic" variants (like group-2, etc.)
 - [ ] Refactor plugins to an abstraction that handles negative values, transformThemeValue, etc.
 - [ ] Factor the code in a responsible way
 - [ ] Put plugins in deliberate order
