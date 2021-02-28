@@ -1,6 +1,6 @@
 {
   "name": "@tailwindcss/jit",
-  "version": "0.0.0",
+  "version": "0.0.0-c5ce40c7f",
   "main": "src/index.js",
   "scripts": {
     "test": "jest"
