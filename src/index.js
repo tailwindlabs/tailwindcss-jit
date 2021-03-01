@@ -691,8 +691,6 @@ module.exports = (pluginOptions = {}) => {
         return postcss([
           // substituteTailwindAtRules
           function (root) {
-            let applyCandidates = new Set()
-
             // Make sure this file contains Tailwind directives. If not, we can save
             // a lot of work and bail early. Also we don't have to register our touch
             // file as a dependency since the output of this CSS does not depend on
@@ -723,15 +721,6 @@ module.exports = (pluginOptions = {}) => {
               if (rule.params === 'screens') {
                 layerNodes.screens = rule
               }
-            })
-
-            // Collect all @apply rules and candidates
-            let applies = []
-            root.walkAtRules('apply', (rule) => {
-              for (let util of rule.params.split(/[\s\t\n]+/g)) {
-                applyCandidates.add(util)
-              }
-              applies.push(rule)
             })
 
             if (!foundTailwind) {
@@ -782,6 +771,83 @@ module.exports = (pluginOptions = {}) => {
               candidates,
               context
             )
+            env.DEBUG && console.timeEnd('Generate rules')
+
+            // We only ever add to the classCache, so if it didn't grow, there is nothing new.
+            if (context.classCache.size !== classCacheCount) {
+              for (let rule of components) {
+                context.componentRuleCache.add(rule)
+              }
+
+              for (let rule of utilities) {
+                context.utilityRuleCache.add(rule)
+              }
+
+              env.DEBUG && console.time('Build stylesheet')
+              context.stylesheetCache = buildStylesheet(
+                [...context.componentRuleCache, ...context.utilityRuleCache],
+                context
+              )
+              env.DEBUG && console.timeEnd('Build stylesheet')
+            }
+
+            let {
+              components: componentNodes,
+              utilities: utilityNodes,
+              screens: screenNodes,
+            } = context.stylesheetCache
+
+            // ---
+
+            // Replace any Tailwind directives with generated CSS
+
+            if (layerNodes.base) {
+              layerNodes.base.before([...context.baseRules])
+              layerNodes.base.remove()
+            }
+
+            if (layerNodes.components) {
+              layerNodes.components.before([...componentNodes])
+              layerNodes.components.remove()
+            }
+
+            if (layerNodes.utilities) {
+              layerNodes.utilities.before([...utilityNodes])
+              layerNodes.utilities.remove()
+            }
+
+            if (layerNodes.screens) {
+              layerNodes.screens.before([...screenNodes])
+              layerNodes.screens.remove()
+            } else {
+              root.append([...screenNodes])
+            }
+
+            // ---
+
+            if (env.DEBUG) {
+              console.log('Changed files: ', context.changedFiles.size)
+              console.log('Potential classes: ', candidates.size)
+              console.log('Active contexts: ', contextMap.size)
+              console.log('Active sources:', sourceContextMap.size)
+              console.log('Context source size: ', contextSources.size)
+              console.log('Content match entries', contentMatchCache.size)
+            }
+
+            // Clear the cache for the changed files
+            context.changedFiles.clear()
+          },
+          function (root) {
+            let applyCandidates = new Set()
+
+            // Collect all @apply rules and candidates
+            let applies = []
+            root.walkAtRules('apply', (rule) => {
+              for (let util of rule.params.split(/[\s\t\n]+/g)) {
+                applyCandidates.add(util)
+              }
+              applies.push(rule)
+            })
 
             // Start the @apply process if we have rules with @apply in them
             if (applies.length > 0) {
@@ -889,71 +955,6 @@ module.exports = (pluginOptions = {}) => {
                 }
               }
             }
-            env.DEBUG && console.timeEnd('Generate rules')
-
-            // We only ever add to the classCache, so if it didn't grow, there is nothing new.
-            if (context.classCache.size !== classCacheCount) {
-              for (let rule of components) {
-                context.componentRuleCache.add(rule)
-              }
-
-              for (let rule of utilities) {
-                context.utilityRuleCache.add(rule)
-              }
-
-              env.DEBUG && console.time('Build stylesheet')
-              context.stylesheetCache = buildStylesheet(
-                [...context.componentRuleCache, ...context.utilityRuleCache],
-                context
-              )
-              env.DEBUG && console.timeEnd('Build stylesheet')
-            }
-
-            let {
-              components: componentNodes,
-              utilities: utilityNodes,
-              screens: screenNodes,
-            } = context.stylesheetCache
-
-            // ---
-
-            // Replace any Tailwind directives with generated CSS
-
-            if (layerNodes.base) {
-              layerNodes.base.before([...context.baseRules])
-              layerNodes.base.remove()
-            }
-
-            if (layerNodes.components) {
-              layerNodes.components.before([...componentNodes])
-              layerNodes.components.remove()
-            }
-
-            if (layerNodes.utilities) {
-              layerNodes.utilities.before([...utilityNodes])
-              layerNodes.utilities.remove()
-            }
-
-            if (layerNodes.screens) {
-              layerNodes.screens.before([...screenNodes])
-              layerNodes.screens.remove()
-            } else {
-              root.append([...screenNodes])
-            }
-
-            // ---
-
-            if (env.DEBUG) {
-              console.log('Changed files: ', context.changedFiles.size)
-              console.log('Potential classes: ', candidates.size)
-              console.log('Active contexts: ', contextMap.size)
-              console.log('Active sources:', sourceContextMap.size)
-              console.log('Context source size: ', contextSources.size)
-              console.log('Content match entries', contentMatchCache.size)
-            }
-
-            // Clear the cache for the changed files
-            context.changedFiles.clear()
           },
           evaluateTailwindFunctions(context.tailwindConfig),
         ]).process(root, { from: undefined })
