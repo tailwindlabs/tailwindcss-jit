@@ -1118,13 +1118,7 @@ module.exports = (pluginOptions = {}) => {
                       if (appliedSelector !== apply.parent.selector) {
                         siblings.push([
                           sort,
-                          toPostCssNode(
-                            [
-                              replaceSelector(apply.parent.selector, selector, applyCandidate),
-                              rule,
-                            ],
-                            context.postCssNodeCache
-                          ),
+                          toPostCssNode([appliedSelector, rule], context.postCssNodeCache),
                         ])
                         continue
                       }
