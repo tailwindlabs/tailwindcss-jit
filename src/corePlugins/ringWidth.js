@@ -10,21 +10,25 @@ function safeCall(callback, defaultValue) {
   }
 }
 
-let ringReset = ['*']
-
 module.exports = function ({ jit: { theme, addUtilities } }) {
   let ringColorDefault = (([r, g, b]) => {
     return `rgba(${r}, ${g}, ${b}, ${theme.ringOpacity?.DEFAULT ?? '0.5'})`
   })(safeCall(() => toRgba(theme.ringOpacity?.DEFAULT), ['147', '197', '253']))
 
-  ringReset[1] = {
-    '--tw-ring-inset': 'var(--tw-empty,/*!*/ /*!*/)',
-    '--tw-ring-offset-width': theme.ringOffsetWidth?.DEFAULT ?? '0px',
-    '--tw-ring-offset-color': theme.ringOffsetColor?.DEFAULT ?? '#fff',
-    '--tw-ring-color': ringColorDefault,
-    '--tw-ring-offset-shadow': '0 0 #0000',
-    '--tw-ring-shadow': '0 0 #0000',
-  }
+  let ringReset = [
+    '*',
+    {
+      '--tw-ring-inset': 'var(--tw-empty,/*!*/ /*!*/)',
+      '--tw-ring-offset-width': theme.ringOffsetWidth?.DEFAULT ?? '0px',
+      '--tw-ring-offset-color': theme.ringOffsetColor?.DEFAULT ?? '#fff',
+      '--tw-ring-color': ringColorDefault,
+      '--tw-ring-offset-shadow': '0 0 #0000',
+      '--tw-ring-shadow': '0 0 #0000',
+    },
+    {
+      respectVariants: false,
+    },
+  ]
 
   addUtilities({
     ring: [

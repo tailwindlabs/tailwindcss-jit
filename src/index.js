@@ -412,6 +412,13 @@ function applyVariant(variant, matches, { variantMap }) {
     let result = []
 
     for (let [sort, rule] of matches) {
+      let [, , options = {}] = rule
+
+      if (options.respectVariants === false) {
+        result.push([sort, rule])
+        continue
+      }
+
       let ruleWithVariant = applyThisVariant(rule)
 
       if (ruleWithVariant === null) {
