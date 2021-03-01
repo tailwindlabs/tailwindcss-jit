@@ -4,6 +4,105 @@
     'Segoe UI Symbol', 'Noto Color Emoji';
   color: #3b82f6;
 }
+.apply-test {
+  margin-top: 1.5rem;
+  --tw-bg-opacity: 1;
+  background-color: rgba(236, 72, 153, var(--tw-bg-opacity));
+}
+.apply-test:hover {
+  font-weight: 700;
+}
+.apply-test:focus:hover {
+  font-weight: 700;
+}
+@media (min-width: 640px) {
+  .apply-test {
+    --tw-bg-opacity: 1;
+    background-color: rgba(16, 185, 129, var(--tw-bg-opacity));
+  }
+}
+@media (min-width: 640px) {
+  .apply-test:focus:nth-child(even) {
+    --tw-bg-opacity: 1;
+    background-color: rgba(251, 207, 232, var(--tw-bg-opacity));
+  }
+}
+.apply-components {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+@media (min-width: 1536px) {
+  .apply-components {
+    max-width: 1536px;
+  }
+}
+@media (min-width: 1280px) {
+  .apply-components {
+    max-width: 1280px;
+  }
+}
+@media (min-width: 1024px) {
+  .apply-components {
+    max-width: 1024px;
+  }
+}
+@media (min-width: 768px) {
+  .apply-components {
+    max-width: 768px;
+  }
+}
+@media (min-width: 640px) {
+  .apply-components {
+    max-width: 640px;
+  }
+}
+.drop-empty-rules:hover {
+  font-weight: 700;
+}
+.group:hover .apply-group {
+  font-weight: 700;
+}
+.dark .apply-dark-mode {
+  font-weight: 700;
+}
+.apply-with-existing:hover {
+  font-weight: 400;
+}
+@media (min-width: 640px) {
+  .apply-with-existing:hover {
+    --tw-bg-opacity: 1;
+    background-color: rgba(16, 185, 129, var(--tw-bg-opacity));
+  }
+}
+.multiple,
+.selectors {
+  font-weight: 700;
+}
+.group:hover .multiple,
+.group:hover .selectors {
+  font-weight: 400;
+}
+.list > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 0;
+  margin-right: calc(1rem * var(--tw-space-x-reverse));
+  margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
+}
+.nested {
+  .example {
+    font-weight: 700;
+  }
+  .example:hover {
+    font-weight: 400;
+  }
+}
+@media (min-width: 640px) {
+  @media (prefers-reduced-motion: no-preference) {
+    .group:active .crazy-example:focus {
+      opacity: 0.1;
+    }
+  }
+}
 .container {
   width: 100%;
 }
