@@ -13,6 +13,35 @@ test('it works', () => {
   let config = {
     darkMode: 'class',
     purge: [path.resolve(__dirname, './index.test.html')],
+    corePlugins: {
+      preflight: false,
+    },
+    plugins: [
+      require('@tailwindcss/aspect-ratio'),
+      function ({ addUtilities, addBase, theme }) {
+        addBase({
+          h1: {
+            fontSize: theme('fontSize.2xl'),
+            fontWeight: theme('fontWeight.bold'),
+            '&:first-child': {
+              marginTop: '0px',
+            },
+          },
+        })
+
+        addUtilities(
+          {
+            '.filter-none': {
+              filter: 'none',
+            },
+            '.filter-grayscale': {
+              filter: 'grayscale(100%)',
+            },
+          },
+          ['responsive', 'hover']
+        )
+      },
+    ],
   }
 
   return run(
@@ -53,6 +82,7 @@ test('it works', () => {
     .crazy-example {
       @apply sm:motion-safe:group-active:focus:opacity-10;
     }
+    @tailwind base;
     @tailwind components;
     @tailwind utilities;
   `,

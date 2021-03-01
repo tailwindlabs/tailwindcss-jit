@@ -7,10 +7,16 @@ const chokidar = require('chokidar')
 const fastGlob = require('fast-glob')
 const hash = require('object-hash')
 const LRU = require('quick-lru')
+const dlv = require('dlv')
+const Node = require('postcss/lib/node')
+const selectorParser = require('postcss-selector-parser')
 
 const resolveConfig = require('tailwindcss/resolveConfig')
 const escape = require('tailwindcss/lib/util/escapeClassName').default
 const evaluateTailwindFunctions = require('tailwindcss/lib/lib/evaluateTailwindFunctions').default
+const parseObjectStyles = require('tailwindcss/lib/util/parseObjectStyles').default
+const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const prefixSelector = require('tailwindcss/lib/util/prefixSelector').default
 
 const corePlugins = require('./corePlugins')
 
@@ -342,13 +348,175 @@ function rebootTemplateWatcher(context) {
   }
 }
 
+function parseLegacyStyles(styles) {
+  if (!Array.isArray(styles)) {
+    return parseLegacyStyles([styles])
+  }
+
+  return styles.flatMap((style) => (style instanceof Node ? style : parseObjectStyles(style)))
+}
+
+function getClasses(selector) {
+  let parser = selectorParser((selectors) => {
+    let allClasses = []
+    selectors.walkClasses((classNode) => {
+      allClasses.push(classNode.value)
+    })
+    return allClasses
+  })
+  return parser.transformSync(selector)
+}
+
+function toPath(value) {
+  if (Array.isArray(value)) {
+    return value
+  }
+
+  let inBrackets = false
+  let parts = []
+  let chunk = ''
+
+  for (let i = 0; i < value.length; i++) {
+    let char = value[i]
+    if (char === '[') {
+      inBrackets = true
+      parts.push(chunk)
+      chunk = ''
+      continue
+    }
+    if (char === ']' && inBrackets) {
+      inBrackets = false
+      parts.push(chunk)
+      chunk = ''
+      continue
+    }
+    if (char === '.' && !inBrackets && chunk.length > 0) {
+      parts.push(chunk)
+      chunk = ''
+      continue
+    }
+    chunk = chunk + char
+  }
+
+  if (chunk.length > 0) {
+    parts.push(chunk)
+  }
+
+  return parts
+}
+
+// { .foo { color: black } }
+// => [ ['foo', ['.foo', { color: 'black' }] ]
+function toStaticRuleArray(legacyStyles) {
+  return parseLegacyStyles(legacyStyles).flatMap((node) => {
+    let nodeMap = new Map()
+    let classes = getClasses(node.selector)
+    return classes.map((c) => {
+      if (!nodeMap.has(node)) {
+        let decls = Object.fromEntries(
+          node.nodes.map(({ prop, value }) => {
+            return [prop, value]
+          })
+        )
+        nodeMap.set(node, [node.selector, decls])
+      }
+      return [c, nodeMap.get(node)]
+    })
+  })
+}
+
 function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offsets }) {
+  function getConfigValue(path, defaultValue) {
+    return path ? dlv(tailwindConfig, path, defaultValue) : tailwindConfig
+  }
+
+  function applyConfiguredPrefix(selector) {
+    return prefixSelector(config.prefix, selector)
+  }
+
   return {
-    addBase(nodes) {
+    // Classic plugin API
+    addVariant() {
+      throw new Error(`Variant plugins aren't supported yet`)
+    },
+    postcss,
+    prefix: applyConfiguredPrefix,
+    e: escape,
+    config: getConfigValue,
+    theme(path, defaultValue) {
+      const [pathRoot, ...subPaths] = toPath(path)
+      const value = getConfigValue(['theme', pathRoot, ...subPaths], defaultValue)
+      return transformThemeValue(pathRoot)(value)
+    },
+    corePlugins: (path) => {
+      if (Array.isArray(tailwindConfig.corePlugins)) {
+        return tailwindConfig.corePlugins.includes(path)
+      }
+
+      return getConfigValue(['corePlugins', path], true)
+    },
+    variants: (path, defaultValue) => {
+      if (Array.isArray(tailwindConfig.variants)) {
+        return tailwindConfig.variants
+      }
+
+      return getConfigValue(['variants', path], defaultValue)
+    },
+    addBase(styles) {
+      let nodes = parseLegacyStyles(styles)
       for (let node of nodes) {
         context.baseRules.add(node)
       }
     },
+    addComponents(components, options) {
+      let defaultOptions = {
+        variants: [],
+        respectPrefix: true,
+        respectImportant: false,
+        respectVariants: true,
+      }
+
+      options = Object.assign(
+        {},
+        defaultOptions,
+        Array.isArray(options) ? { variants: options } : options
+      )
+
+      for (let [identifier, tuple] of toStaticRuleArray(components)) {
+        let offset = offsets.components++
+
+        if (context.componentMap.has(identifier)) {
+          context.componentMap.get(identifier).push([offset, tuple])
+        } else {
+          context.componentMap.set(identifier, [[offset, tuple]])
+        }
+      }
+    },
+    addUtilities(utilities, options) {
+      let defaultOptions = {
+        variants: [],
+        respectPrefix: true,
+        respectImportant: true,
+        respectVariants: true,
+      }
+
+      options = Object.assign(
+        {},
+        defaultOptions,
+        Array.isArray(options) ? { variants: options } : options
+      )
+
+      for (let [identifier, tuple] of toStaticRuleArray(utilities)) {
+        let offset = offsets.utilities++
+
+        if (context.utilityMap.has(identifier)) {
+          context.utilityMap.get(identifier).push([offset, tuple])
+        } else {
+          context.utilityMap.set(identifier, [[offset, tuple]])
+        }
+      }
+    },
+    // ---
     jit: {
       e: escape,
       config: tailwindConfig,
@@ -451,8 +619,7 @@ function registerPlugins(tailwindConfig, plugins, context) {
     offsets,
   })
 
-  for (let pluginName in plugins) {
-    let plugin = corePlugins[pluginName]
+  for (let plugin of plugins) {
     if (Array.isArray(plugin)) {
       for (let pluginItem of plugin) {
         pluginItem(pluginApi)
@@ -585,11 +752,34 @@ function setupContext(tailwindConfig, configHash, configPath) {
       screens: [],
     },
   }
-
   contextMap.set(configHash, context)
 
   rebootTemplateWatcher(context)
-  registerPlugins(context.tailwindConfig, corePlugins, context)
+
+  let corePluginList = Object.entries(corePlugins)
+    .map(([name, plugin]) => {
+      // TODO: Make variants a real core plugin so we don't special case it
+      if (name === 'variants') {
+        return plugin
+      }
+
+      if (!tailwindConfig.corePlugins.includes(name)) {
+        return null
+      }
+
+      return plugin
+    })
+    .filter(Boolean)
+
+  let userPlugins = tailwindConfig.plugins.map((plugin) => {
+    if (plugin.__isOptionsFunction) {
+      plugin = plugin()
+    }
+
+    return typeof plugin === 'function' ? plugin : plugin.handler
+  })
+
+  registerPlugins(context.tailwindConfig, [...corePluginList, ...userPlugins], context)
 
   return context
 }

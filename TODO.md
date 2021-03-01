@@ -58,18 +58,26 @@
 - [x] Test with Laravel mix
 - [x] Unify variants and screen variants
 
+#### Feb 28
+
+- [x] Basic @apply support
+
+### Mar 1
+
+- [x] Fix bug with focus:ring-2, we need to add the universal selector still not just strip it out, otherwise it's never added
+- [x] Fix cache miss when fetching context for config
+- [x] Make existing official plugins work
+- [x] Add support for classic plugin API
+
 #### Next
 
-- [ ] Fix bug with focus:ring-2, we need to add the universal selector still not just strip it out, otherwise it's never added
-- [ ] Add support for plugin API
-- [ ] Make existing official plugins work
 - [ ] Rebuild when config dependencies change
 - [ ] Support container configuration options
 - [ ] Support complex screens configuration
 - [ ] Make prefixes work
 - [ ] Make important work
 - [ ] Make separator work
-- [ ] Make @apply work
+- [ ] Support @apply with custom CSS
 - [ ] Add support for custom CSS that supports variants (anything in @layer?)
 - [ ] Support square brackets for arbitrary values
 - [ ] Support purge safelist (just add entries to candidate list, regexes will be harder though)
