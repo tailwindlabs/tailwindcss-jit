@@ -14,6 +14,7 @@ const selectorParser = require('postcss-selector-parser')
 const resolveConfig = require('tailwindcss/resolveConfig')
 const escape = require('tailwindcss/lib/util/escapeClassName').default
 const evaluateTailwindFunctions = require('tailwindcss/lib/lib/evaluateTailwindFunctions').default
+const substituteScreenAtRules = require('tailwindcss/lib/lib/substituteScreenAtRules').default
 const parseObjectStyles = require('tailwindcss/lib/util/parseObjectStyles').default
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const prefixSelector = require('tailwindcss/lib/util/prefixSelector').default
@@ -1153,6 +1154,7 @@ module.exports = (pluginOptions = {}) => {
             }
           },
           evaluateTailwindFunctions(context.tailwindConfig),
+          substituteScreenAtRules(context.tailwindConfig),
         ]).process(root, { from: undefined })
       },
       env.DEBUG &&

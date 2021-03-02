@@ -50,6 +50,11 @@ test('it works', () => {
       font-family: theme('fontFamily.sans');
       color: theme('colors.blue.500');
     }
+    @screen lg {
+      .screen-test {
+        color: purple;
+      }
+    }
     .apply-test {
       @apply mt-6 bg-pink-500 hover:font-bold focus:hover:font-bold sm:bg-green-500 sm:focus:even:bg-pink-200;
     }

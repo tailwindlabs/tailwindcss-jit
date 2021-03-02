@@ -4,6 +4,11 @@
     'Segoe UI Symbol', 'Noto Color Emoji';
   color: #3b82f6;
 }
+@media (min-width: 1024px) {
+  .screen-test {
+    color: purple;
+  }
+}
 .apply-test {
   margin-top: 1.5rem;
   --tw-bg-opacity: 1;
