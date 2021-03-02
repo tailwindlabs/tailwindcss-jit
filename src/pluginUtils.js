@@ -1,4 +1,5 @@
 const selectorParser = require('postcss-selector-parser')
+const postcss = require('postcss')
 
 function updateAllClasses(selectors, updateClass) {
   let parser = selectorParser((selectors) => {
@@ -154,7 +155,7 @@ function transformLastClasses(transformClass, wrap = null) {
   }
 }
 
-function asValue(modifier, lookup = {}, validate = () => true) {
+function asValue(modifier, lookup = {}, { validate = () => true, transform = (v) => v } = {}) {
   let value = lookup[modifier]
 
   if (value !== undefined) {
@@ -171,13 +172,15 @@ function asValue(modifier, lookup = {}, validate = () => true) {
     return undefined
   }
 
-  return value
+  return transform(value)
 }
 
 function asUnit(modifier, units, lookup = {}) {
-  return asValue(modifier, lookup, (value) => {
-    let pattern = new RegExp(`.+(${units.join('|')})$`, 'g')
-    return value.match(pattern) !== null
+  return asValue(modifier, lookup, {
+    validate: (value) => {
+      let pattern = new RegExp(`.+(${units.join('|')})$`, 'g')
+      return value.match(pattern) !== null
+    },
   })
 }
 
@@ -201,14 +204,26 @@ module.exports = {
     }
   },
   asValue,
+  asList(modifier, lookup = {}) {
+    return asValue(modifier, lookup, {
+      transform: (value) => {
+        return postcss.list
+          .comma(value)
+          .map((v) => v.replace(/,/g, ', '))
+          .join(' ')
+      },
+    })
+  },
   asColor(modifier, lookup = {}) {
-    return asValue(modifier, lookup, (value) => {
-      try {
-        toRgba(value)
-        return true
-      } catch (e) {
-        return false
-      }
+    return asValue(modifier, lookup, {
+      validate: (value) => {
+        try {
+          toRgba(value)
+          return true
+        } catch (e) {
+          return false
+        }
+      },
     })
   },
   asAngle(modifier, lookup = {}) {

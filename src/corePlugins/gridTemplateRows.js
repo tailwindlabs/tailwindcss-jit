@@ -1,12 +1,11 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asList } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     'grid-rows': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('gridTemplateRows')
-        let value = transformValue(theme.gridTemplateRows[modifier])
+        let value = asList(modifier, theme.gridTemplateRows)
 
         if (value === undefined) {
           return []
