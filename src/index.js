@@ -337,13 +337,13 @@ function rebootTemplateWatcher(context) {
         ignoreInitial: true,
       })
 
-      context.watcher.on('add', (path) => {
-        context.changedFiles.add('./' + path)
+      context.watcher.on('add', (file) => {
+        context.changedFiles.add(path.resolve('.', file))
         touch(context.touchFile.name)
       })
 
-      context.watcher.on('change', (path) => {
-        context.changedFiles.add('./' + path)
+      context.watcher.on('change', (file) => {
+        context.changedFiles.add(path.resolve('.', file))
         touch(context.touchFile.name)
       })
     })
