@@ -1,6 +1,7 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const toRgba = require('tailwindcss/lib/util/withAlphaVariable').toRgba
+const { asLength } = require('../pluginUtils')
 
 function safeCall(callback, defaultValue) {
   try {
@@ -33,12 +34,9 @@ module.exports = function ({ jit: { theme, addUtilities } }) {
   addUtilities({
     ring: [
       (modifier, { theme }) => {
-        modifier = modifier === '' ? 'DEFAULT' : modifier
+        let value = asLength(modifier, theme['ringWidth'])
 
-        let transformValue = transformThemeValue('ringWidth')
-        let value = transformValue(theme.ringWidth[modifier])
-
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 

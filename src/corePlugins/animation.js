@@ -13,6 +13,7 @@ module.exports = function ({ jit: { theme, addUtilities } }) {
             return [key, value]
           }),
         ],
+        { respectVariants: false },
       ]
     })
   )

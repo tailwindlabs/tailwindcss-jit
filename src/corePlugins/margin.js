@@ -1,9 +1,12 @@
+const { asLength } = require('../pluginUtils')
+
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     m: [
       (modifier, { theme, candidate }) => {
-        let value = theme.margin[modifier]
-        if (modifier === '' || value === undefined) {
+        let value = asLength(modifier, theme['margin'])
+
+        if (value === undefined) {
           return []
         }
 
@@ -14,9 +17,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     mx: [
       (modifier, { theme, candidate }) => {
-        let value = theme.margin[modifier]
+        let value = asLength(modifier, theme['margin'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -25,9 +28,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     my: [
       (modifier, { theme, candidate }) => {
-        let value = theme.margin[modifier]
+        let value = asLength(modifier, theme['margin'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -53,9 +56,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     mr: [
       (modifier, { theme, candidate }) => {
-        let value = theme.margin[modifier]
+        let value = asLength(modifier, theme['margin'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -64,9 +67,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     mb: [
       (modifier, { theme, candidate }) => {
-        let value = theme.margin[modifier]
+        let value = asLength(modifier, theme['margin'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -75,9 +78,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     ml: [
       (modifier, { theme, candidate }) => {
-        let value = theme.margin[modifier]
+        let value = asLength(modifier, theme['margin'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 

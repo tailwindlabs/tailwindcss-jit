@@ -1,12 +1,11 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asValue } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     'ring-opacity': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('ringOpacity')
-        let value = transformValue(theme.ringOpacity[modifier])
+        let value = asValue(modifier, theme['ringOpacity'])
 
         if (value === undefined) {
           return []

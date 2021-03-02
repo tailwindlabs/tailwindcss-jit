@@ -1,12 +1,11 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asLength } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     'ring-offset': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('ringOffsetWidth')
-        let value = transformValue(theme.ringOffsetWidth[modifier])
+        let value = asLength(modifier, theme['ringOffsetWidth'])
 
         if (value === undefined) {
           return []

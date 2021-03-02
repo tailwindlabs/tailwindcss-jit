@@ -1,12 +1,11 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asValue } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     'flex-grow': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('flexGrow')
-        let value = transformValue(theme.flexGrow[modifier])
+        let value = asValue(modifier, theme.flexGrow)
 
         if (value === undefined) {
           return []

@@ -1,15 +1,17 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asValue } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     order: [
       (modifier, { theme }) => {
-        if (modifier === '' || theme.order[modifier] === undefined) {
+        let value = asValue(modifier, theme.order)
+
+        if (value === undefined) {
           return []
         }
 
-        return [[nameClass('order', modifier), { order: theme.order[modifier] }]]
+        return [[nameClass('order', modifier), { order: value }]]
       },
     ],
   })
