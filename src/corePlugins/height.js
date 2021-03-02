@@ -8,6 +8,10 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
       (modifier, { theme }) => {
         let value = asLength(modifier, theme['height'])
 
+        if (value === undefined) {
+          return []
+        }
+
         return [[nameClass('h', modifier), { height: value }]]
       },
     ],
