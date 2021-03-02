@@ -6,6 +6,7 @@ let shadowReset = [
   {
     '--tw-shadow': '0 0 #0000',
   },
+  { respectVariants: false },
 ]
 
 module.exports = function ({ jit: { theme, addUtilities } }) {

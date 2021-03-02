@@ -107,9 +107,9 @@ function transformAllClasses(transformClass, wrap = null) {
 
       let variantSelector = updateAllClasses(selector, transformClass)
 
-      if (variantSelector === selector) {
-        return null
-      }
+      // if (variantSelector === selector) {
+      //   return null
+      // }
 
       return [variantSelector, rules]
     })
@@ -135,9 +135,9 @@ function transformLastClasses(transformClass, wrap = null) {
 
       let variantSelector = updateLastClasses(selector, transformClass)
 
-      if (variantSelector === selector) {
-        return null
-      }
+      // if (variantSelector === selector) {
+      //   return null
+      // }
 
       return [variantSelector, rules]
     })
