@@ -46,6 +46,21 @@ test('it works', () => {
 
   return run(
     `
+    @layer utilities {
+      .custom-util {
+        background: #abcdef;
+      }
+    }
+    @layer components {
+      .custom-component {
+        background: #123456;
+      }
+    }
+    @layer base {
+      div {
+        background: #654321;
+      }
+    }
     .theme-test {
       font-family: theme('fontFamily.sans');
       color: theme('colors.blue.500');

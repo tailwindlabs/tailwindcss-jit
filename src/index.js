@@ -866,6 +866,14 @@ module.exports = (pluginOptions = {}) => {
     return context
   }
 
+  let foundTailwind = false
+  let layerNodes = {
+    base: null,
+    components: null,
+    utilities: null,
+    screens: null,
+  }
+
   return {
     postcssPlugin: 'tailwindcss-jit',
     plugins: [
@@ -898,14 +906,6 @@ module.exports = (pluginOptions = {}) => {
             // a lot of work and bail early. Also we don't have to register our touch
             // file as a dependency since the output of this CSS does not depend on
             // the source of any templates. Think Vue <style> blocks for example.
-            let foundTailwind = false
-            let layerNodes = {
-              base: null,
-              components: null,
-              utilities: null,
-              screens: null,
-            }
-
             root.walkAtRules('tailwind', (rule) => {
               foundTailwind = true
 
@@ -1006,22 +1006,18 @@ module.exports = (pluginOptions = {}) => {
 
             if (layerNodes.base) {
               layerNodes.base.before([...context.baseRules])
-              layerNodes.base.remove()
             }
 
             if (layerNodes.components) {
               layerNodes.components.before([...componentNodes])
-              layerNodes.components.remove()
             }
 
             if (layerNodes.utilities) {
               layerNodes.utilities.before([...utilityNodes])
-              layerNodes.utilities.remove()
             }
 
             if (layerNodes.screens) {
               layerNodes.screens.before([...screenNodes])
-              layerNodes.screens.remove()
             } else {
               root.append([...screenNodes])
             }
@@ -1039,6 +1035,33 @@ module.exports = (pluginOptions = {}) => {
 
             // Clear the cache for the changed files
             context.changedFiles.clear()
+          },
+          function (root) {
+            if (!foundTailwind) {
+              return root
+            }
+
+            root.walkAtRules('layer', (rule) => {
+              let layerName = rule.params
+              layerNodes[layerName].append(rule.nodes)
+              rule.remove()
+            })
+
+            for (let layerName in layerNodes) {
+              let node = layerNodes[layerName]
+
+              if (node === null) {
+                continue
+              }
+
+              if (node.nodes === undefined) {
+                node.remove()
+                continue
+              }
+
+              node.before(node.nodes)
+              node.remove()
+            }
           },
           function (root) {
             let applyCandidates = new Set()
