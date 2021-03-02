@@ -3,6 +3,7 @@ const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').
 const flattenColorPalette = require('tailwindcss/lib/util/flattenColorPalette').default
 const withAlphaVariable = require('tailwindcss/lib/util/withAlphaVariable').default
 const toColorValue = require('tailwindcss/lib/util/toColorValue').default
+const { asColor } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   let colorPalette = flattenColorPalette(theme.stroke)
@@ -10,11 +11,13 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     stroke: [
       (modifier, { theme }) => {
-        if (modifier === '' || colorPalette[modifier] === undefined) {
+        let value = asColor(modifier, colorPalette)
+
+        if (value === undefined) {
           return []
         }
 
-        return [[nameClass('stroke', modifier), { stroke: toColorValue(colorPalette[modifier]) }]]
+        return [[nameClass('stroke', modifier), { stroke: toColorValue(value) }]]
       },
     ],
   })

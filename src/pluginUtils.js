@@ -154,6 +154,35 @@ function transformLastClasses(transformClass, wrap = null) {
   }
 }
 
+function asValue(modifier, lookup = {}, validate = () => true) {
+  let value = lookup[modifier]
+
+  if (value !== undefined) {
+    return value
+  }
+
+  if (modifier[0] !== '[' || modifier[modifier.length - 1] !== ']') {
+    return undefined
+  }
+
+  value = modifier.slice(1, -1)
+
+  if (!validate(value)) {
+    return undefined
+  }
+
+  return value
+}
+
+function asUnit(modifier, units, lookup = {}) {
+  return asValue(modifier, lookup, (value) => {
+    let pattern = new RegExp(`.+(${units.join('|')})$`, 'g')
+    return value.match(pattern) !== null
+  })
+}
+
+const { toRgba } = require('tailwindcss/lib/util/withAlphaVariable')
+
 module.exports = {
   updateAllClasses,
   updateLastClasses,
@@ -170,5 +199,44 @@ module.exports = {
         }, {})
       )
     }
+  },
+  asValue,
+  asColor(modifier, lookup = {}) {
+    return asValue(modifier, lookup, (value) => {
+      try {
+        toRgba(value)
+        return true
+      } catch (e) {
+        return false
+      }
+    })
+  },
+  asAngle(modifier, lookup = {}) {
+    return asUnit(modifier, ['deg', 'grad', 'rad', 'turn'], lookup)
+  },
+  asLength(modifier, lookup = {}) {
+    return asUnit(
+      modifier,
+      [
+        'cm',
+        'mm',
+        'Q',
+        'in',
+        'pc',
+        'pt',
+        'px',
+        'em',
+        'ex',
+        'ch',
+        'rem',
+        'lh',
+        'vw',
+        'vh',
+        'vmin',
+        'vmax',
+        '%',
+      ],
+      lookup
+    )
   },
 }

@@ -1,12 +1,12 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asLength } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     'space-x': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('space')
-        let value = transformValue(theme.space[modifier])
+        let value = asLength(modifier, theme['space'])
 
         if (value === undefined) {
           return []
@@ -26,8 +26,7 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'space-y': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('space')
-        let value = transformValue(theme.space[modifier])
+        let value = asLength(modifier, theme['space'])
 
         if (value === undefined) {
           return []

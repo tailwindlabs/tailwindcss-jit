@@ -1,13 +1,13 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asLength } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     p: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('padding')
-        let value = transformValue(theme.padding[modifier])
-        if (modifier === '' || value === undefined) {
+        let value = asLength(modifier, theme['padding'])
+
+        if (value === undefined) {
           return []
         }
 
@@ -18,10 +18,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     px: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('padding')
-        let value = transformValue(theme.padding[modifier])
+        let value = asLength(modifier, theme['padding'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -30,10 +29,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     py: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('padding')
-        let value = transformValue(theme.padding[modifier])
+        let value = asLength(modifier, theme['padding'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -44,10 +42,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     pt: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('padding')
-        let value = transformValue(theme.padding[modifier])
+        let value = asLength(modifier, theme['padding'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -56,10 +53,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     pr: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('padding')
-        let value = transformValue(theme.padding[modifier])
+        let value = asLength(modifier, theme['padding'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -68,10 +64,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     pb: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('padding')
-        let value = transformValue(theme.padding[modifier])
+        let value = asLength(modifier, theme['padding'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -80,10 +75,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     pl: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('padding')
-        let value = transformValue(theme.padding[modifier])
+        let value = asLength(modifier, theme['padding'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 

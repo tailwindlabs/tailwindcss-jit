@@ -1,12 +1,12 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asLength } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     'max-w': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('maxWidth')
-        let value = transformValue(theme.maxWidth[modifier])
+        let value = asLength(modifier, theme['maxWidth'])
 
         if (value === undefined) {
           return []

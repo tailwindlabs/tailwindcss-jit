@@ -1,27 +1,29 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asLength } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     rounded: [
       (modifier, { theme }) => {
-        if (modifier === '' || theme.borderRadius[modifier] === undefined) {
+        let value = asLength(modifier, theme['borderRadius'])
+
+        if (value === undefined) {
           return []
         }
 
-        return [[nameClass('rounded', modifier), { 'border-radius': theme.borderRadius[modifier] }]]
+        return [[nameClass('rounded', modifier), { 'border-radius': value }]]
       },
     ],
   })
   addUtilities({
     'rounded-t': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderRadius')
-        let value = transformValue(theme.borderRadius[modifier])
+        let value = asLength(modifier, theme['borderRadius'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
+
         return [
           [
             nameClass('rounded-t', modifier),
@@ -32,10 +34,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'rounded-r': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderRadius')
-        let value = transformValue(theme.borderRadius[modifier])
+        let value = asLength(modifier, theme['borderRadius'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -49,10 +50,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'rounded-b': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderRadius')
-        let value = transformValue(theme.borderRadius[modifier])
+        let value = asLength(modifier, theme['borderRadius'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -66,10 +66,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'rounded-l': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderRadius')
-        let value = transformValue(theme.borderRadius[modifier])
+        let value = asLength(modifier, theme['borderRadius'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -85,10 +84,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     'rounded-tl': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderRadius')
-        let value = transformValue(theme.borderRadius[modifier])
+        let value = asLength(modifier, theme['borderRadius'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -97,10 +95,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'rounded-tr': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderRadius')
-        let value = transformValue(theme.borderRadius[modifier])
+        let value = asLength(modifier, theme['borderRadius'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -109,10 +106,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'rounded-br': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderRadius')
-        let value = transformValue(theme.borderRadius[modifier])
+        let value = asLength(modifier, theme['borderRadius'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -121,10 +117,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'rounded-bl': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderRadius')
-        let value = transformValue(theme.borderRadius[modifier])
+        let value = asLength(modifier, theme['borderRadius'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 

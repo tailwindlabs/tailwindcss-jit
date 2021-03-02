@@ -3,6 +3,7 @@ const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').
 const flattenColorPalette = require('tailwindcss/lib/util/flattenColorPalette').default
 const withAlphaVariable = require('tailwindcss/lib/util/withAlphaVariable').default
 const toColorValue = require('tailwindcss/lib/util/toColorValue').default
+const { asColor } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   let colorPalette = flattenColorPalette(theme.textColor)
@@ -10,7 +11,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     text: [
       (modifier, { theme }) => {
-        if (modifier === '' || colorPalette[modifier] === undefined) {
+        let value = asColor(modifier, colorPalette)
+
+        if (value === undefined) {
           return []
         }
 
@@ -18,7 +21,7 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
           [
             nameClass('text', modifier),
             withAlphaVariable({
-              color: colorPalette[modifier],
+              color: value,
               property: 'color',
               variable: '--tw-text-opacity',
             }),

@@ -1,4 +1,5 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
+const { asLength } = require('../pluginUtils')
 
 function isPlainObject(value) {
   return typeof value === 'object' && value !== null
@@ -11,7 +12,18 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
         let value = theme.fontSize[modifier]
 
         if (value === undefined) {
-          return []
+          value = asLength(modifier, {})
+
+          return value === undefined
+            ? []
+            : [
+                [
+                  nameClass('text', modifier),
+                  {
+                    'font-size': value,
+                  },
+                ],
+              ]
         }
 
         let [fontSize, options] = Array.isArray(value) ? value : [value]

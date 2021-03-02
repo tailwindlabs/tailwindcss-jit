@@ -3,6 +3,7 @@ const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').
 const flattenColorPalette = require('tailwindcss/lib/util/flattenColorPalette').default
 const toColorValue = require('tailwindcss/lib/util/toColorValue').default
 const toRgba = require('tailwindcss/lib/util/withAlphaVariable').toRgba
+const { asColor } = require('../pluginUtils')
 
 function transparentTo(value) {
   if (typeof value === 'function') {
@@ -23,11 +24,14 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     from: [
       (modifier, { theme }) => {
-        let value = colorPalette[modifier]
-        if (modifier === '' || value === undefined) {
+        let value = asColor(modifier, colorPalette)
+
+        if (value === undefined) {
           return []
         }
+
         let transparentToValue = transparentTo(value)
+
         return [
           [
             nameClass('from', modifier),
@@ -43,11 +47,14 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     via: [
       (modifier, { theme }) => {
-        let value = colorPalette[modifier]
-        if (modifier === '' || value === undefined) {
+        let value = asColor(modifier, colorPalette)
+
+        if (value === undefined) {
           return []
         }
+
         let transparentToValue = transparentTo(value)
+
         return [
           [
             nameClass('via', modifier),
@@ -65,10 +72,12 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     to: [
       (modifier, { theme }) => {
-        let value = colorPalette[modifier]
-        if (modifier === '' || value === undefined) {
+        let value = asColor(modifier, colorPalette)
+
+        if (value === undefined) {
           return []
         }
+
         return [
           [
             nameClass('to', modifier),

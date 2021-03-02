@@ -1,14 +1,13 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asLength } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     gap: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('gap')
-        let value = transformValue(theme.gap[modifier])
+        let value = asLength(modifier, theme['gap'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -19,10 +18,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     'gap-x': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('gap')
-        let value = transformValue(theme.gap[modifier])
+        let value = asLength(modifier, theme['gap'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -31,10 +29,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'gap-y': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('gap')
-        let value = transformValue(theme.gap[modifier])
+        let value = asLength(modifier, theme['gap'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 

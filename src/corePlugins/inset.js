@@ -1,12 +1,11 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asLength } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     inset: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('inset')
-        let value = transformValue(theme.inset[modifier])
+        let value = asLength(modifier, theme['inset'])
 
         if (value === undefined) {
           return []
@@ -21,8 +20,7 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     'inset-x': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('inset')
-        let value = transformValue(theme.inset[modifier])
+        let value = asLength(modifier, theme['inset'])
 
         if (value === undefined) {
           return []
@@ -33,8 +31,7 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'inset-y': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('inset')
-        let value = transformValue(theme.inset[modifier])
+        let value = asLength(modifier, theme['inset'])
 
         if (value === undefined) {
           return []
@@ -47,8 +44,7 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     top: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('inset')
-        let value = transformValue(theme.inset[modifier])
+        let value = asLength(modifier, theme['inset'])
 
         if (value === undefined) {
           return []
@@ -59,8 +55,7 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     right: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('inset')
-        let value = transformValue(theme.inset[modifier])
+        let value = asLength(modifier, theme['inset'])
 
         if (value === undefined) {
           return []
@@ -71,8 +66,7 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     bottom: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('inset')
-        let value = transformValue(theme.inset[modifier])
+        let value = asLength(modifier, theme['inset'])
 
         if (value === undefined) {
           return []
@@ -83,8 +77,7 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     left: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('inset')
-        let value = transformValue(theme.inset[modifier])
+        let value = asLength(modifier, theme['inset'])
 
         if (value === undefined) {
           return []

@@ -1,12 +1,11 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asAngle } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     rotate: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('rotate')
-        let value = transformValue(theme.rotate[modifier])
+        let value = asAngle(modifier, theme.rotate)
 
         if (value === undefined) {
           return []

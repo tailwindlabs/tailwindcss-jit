@@ -1,12 +1,11 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asAngle } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     'skew-x': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('skew')
-        let value = transformValue(theme.skew[modifier])
+        let value = asAngle(modifier, theme.skew)
 
         if (value === undefined) {
           return []
@@ -17,8 +16,7 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'skew-y': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('skew')
-        let value = transformValue(theme.skew[modifier])
+        let value = asAngle(modifier, theme.skew)
 
         if (value === undefined) {
           return []

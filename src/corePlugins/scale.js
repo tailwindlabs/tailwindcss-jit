@@ -1,12 +1,11 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asValue } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     scale: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('scale')
-        let value = transformValue(theme.scale[modifier])
+        let value = asValue(modifier, theme.scale)
 
         if (value === undefined) {
           return []
@@ -19,8 +18,7 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     'scale-x': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('scale')
-        let value = transformValue(theme.scale[modifier])
+        let value = asValue(modifier, theme.scale)
 
         if (value === undefined) {
           return []
@@ -31,8 +29,7 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'scale-y': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('scale')
-        let value = transformValue(theme.scale[modifier])
+        let value = asValue(modifier, theme.scale)
 
         if (value === undefined) {
           return []

@@ -72,18 +72,17 @@ module.exports = {
     )
 
     addVariant(
+      'ltr',
+      transformAllSelectors(
+        (selector) => `[dir="ltr"] ${updateAllClasses(selector, (className) => `ltr:${className}`)}`
+      )
+    )
+
+    addVariant(
       'rtl',
-      transformAllSelectors((selector) => {
-        let variantSelector = updateAllClasses(selector, (className) => {
-          return `rtl:${className}`
-        })
-
-        if (variantSelector === selector) {
-          return null
-        }
-
-        return `[dir="rtl"] ${variantSelector}`
-      })
+      transformAllSelectors(
+        (selector) => `[dir="rtl"] ${updateAllClasses(selector, (className) => `rtl:${className}`)}`
+      )
     )
 
     if (config.darkMode === 'class') {

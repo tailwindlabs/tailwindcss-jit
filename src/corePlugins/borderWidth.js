@@ -1,14 +1,13 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { asLength } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     border: [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderWidth')
-        let value = transformValue(theme.borderWidth[modifier])
+        let value = asLength(modifier, theme['borderWidth'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -19,10 +18,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     'border-t': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderWidth')
-        let value = transformValue(theme.borderWidth[modifier])
+        let value = asLength(modifier, theme['borderWidth'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -31,10 +29,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'border-r': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderWidth')
-        let value = transformValue(theme.borderWidth[modifier])
+        let value = asLength(modifier, theme['borderWidth'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -43,10 +40,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'border-b': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderWidth')
-        let value = transformValue(theme.borderWidth[modifier])
+        let value = asLength(modifier, theme['borderWidth'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 
@@ -55,10 +51,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
     ],
     'border-l': [
       (modifier, { theme }) => {
-        let transformValue = transformThemeValue('borderWidth')
-        let value = transformValue(theme.borderWidth[modifier])
+        let value = asLength(modifier, theme['borderWidth'])
 
-        if (modifier === '' || value === undefined) {
+        if (value === undefined) {
           return []
         }
 

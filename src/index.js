@@ -795,6 +795,9 @@ module.exports = (pluginOptions = {}) => {
       let modified = fs.statSync(userConfigPath).mtimeMs
 
       // It hasn't changed (based on timestamp)
+      // TODO: This will be invalid once we start looking at config dependencies, but if
+      // we don't figure out a way to reuse unchanged config files we have to re-resolve
+      // on every build.
       if (modified <= prevModified) {
         return [prevConfig, configHash]
       }
