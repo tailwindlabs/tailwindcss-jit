@@ -71,6 +71,21 @@ module.exports = {
       }, '@media (prefers-reduced-motion: reduce)')
     )
 
+    addVariant(
+      'rtl',
+      transformAllSelectors((selector) => {
+        let variantSelector = updateAllClasses(selector, (className) => {
+          return `rtl:${className}`
+        })
+
+        if (variantSelector === selector) {
+          return null
+        }
+
+        return `[dir="rtl"] ${variantSelector}`
+      })
+    )
+
     if (config.darkMode === 'class') {
       addVariant(
         'dark',
