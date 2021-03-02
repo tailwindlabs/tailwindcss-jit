@@ -41,13 +41,9 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   addUtilities({
     mt: [
       (modifier, { theme, candidate }) => {
-        let value = theme.margin[modifier]
+        let value = asLength(modifier, theme['margin'])
 
         if (value === undefined) {
-          value = modifier
-        }
-
-        if (modifier === '' || value === undefined) {
           return []
         }
 
