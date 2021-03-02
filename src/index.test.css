@@ -37,19 +37,9 @@
   margin-left: auto;
   margin-right: auto;
 }
-@media (min-width: 1536px) {
+@media (min-width: 640px) {
   .apply-components {
-    max-width: 1536px;
-  }
-}
-@media (min-width: 1280px) {
-  .apply-components {
-    max-width: 1280px;
-  }
-}
-@media (min-width: 1024px) {
-  .apply-components {
-    max-width: 1024px;
+    max-width: 640px;
   }
 }
 @media (min-width: 768px) {
@@ -57,9 +47,19 @@
     max-width: 768px;
   }
 }
-@media (min-width: 640px) {
+@media (min-width: 1024px) {
   .apply-components {
-    max-width: 640px;
+    max-width: 1024px;
+  }
+}
+@media (min-width: 1280px) {
+  .apply-components {
+    max-width: 1280px;
+  }
+}
+@media (min-width: 1536px) {
+  .apply-components {
+    max-width: 1536px;
   }
 }
 .drop-empty-rules:hover {
@@ -503,5 +503,20 @@ div {
     .sm\:md\:text-center {
       text-align: center;
     }
+  }
+}
+@media (orientation: portrait) {
+  .portrait\:text-center {
+    text-align: center;
+  }
+}
+@media (min-width: 1280px) and (max-width: 1535px) {
+  .range\:text-right {
+    text-align: right;
+  }
+}
+@media (min-width: 640px) and (max-width: 767px), (max-width: 868px) {
+  .multi\:text-left {
+    text-align: left;
   }
 }

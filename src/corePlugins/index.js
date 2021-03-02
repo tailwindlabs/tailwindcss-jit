@@ -1,4 +1,5 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
+const buildMediaQuery = require('tailwindcss/lib/util/buildMediaQuery').default
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const {
   updateLastClasses,
@@ -111,12 +112,13 @@ module.exports = {
 
     for (let screen in theme.screens) {
       let size = theme.screens[screen]
+      let query = buildMediaQuery(size)
 
       addVariant(
         screen,
         transformLastClasses((className) => {
           return `${screen}:${className}`
-        }, `@media (min-width: ${size})`)
+        }, `@media ${query}`)
       )
     }
   },

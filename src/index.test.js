@@ -13,8 +13,15 @@ test('it works', () => {
   let config = {
     darkMode: 'class',
     purge: [path.resolve(__dirname, './index.test.html')],
-    corePlugins: {
-      preflight: false,
+    corePlugins: { preflight: false },
+    theme: {
+      extend: {
+        screens: {
+          portrait: { raw: '(orientation: portrait)' },
+          range: { min: '1280px', max: '1535px' },
+          multi: [{ min: '640px', max: '767px' }, { max: '868px' }],
+        },
+      },
     },
     plugins: [
       require('@tailwindcss/aspect-ratio'),
@@ -28,7 +35,6 @@ test('it works', () => {
             },
           },
         })
-
         addUtilities(
           {
             '.filter-none': {

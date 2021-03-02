@@ -408,20 +408,36 @@ function toPath(value) {
   return parts
 }
 
+function toRuleTuple(node) {
+  if (node.type === 'atrule') {
+    return [`@${node.name} ${node.params}`, node.nodes.map(toRuleTuple)]
+  }
+
+  if (node.type === 'rule') {
+    let decls = Object.fromEntries(
+      node.nodes.map(({ prop, value }) => {
+        return [prop, value]
+      })
+    )
+    return [node.selector, decls]
+  }
+}
+
 // { .foo { color: black } }
 // => [ ['foo', ['.foo', { color: 'black' }] ]
 function toStaticRuleArray(legacyStyles) {
   return parseLegacyStyles(legacyStyles).flatMap((node) => {
     let nodeMap = new Map()
-    let classes = getClasses(node.selector)
+    let classes = node.type === 'rule' ? getClasses(node.selector) : []
+
+    if (node.type === 'atrule') {
+      node.walkRules((rule) => {
+        classes = [...classes, ...getClasses(rule.selector)]
+      })
+    }
     return classes.map((c) => {
       if (!nodeMap.has(node)) {
-        let decls = Object.fromEntries(
-          node.nodes.map(({ prop, value }) => {
-            return [prop, value]
-          })
-        )
-        nodeMap.set(node, [node.selector, decls])
+        nodeMap.set(node, toRuleTuple(node))
       }
       return [c, nodeMap.get(node)]
     })
