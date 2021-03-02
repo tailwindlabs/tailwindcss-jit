@@ -26,6 +26,10 @@ let env = {
   DEBUG: process.env.DEBUG !== undefined,
 }
 
+function sign(bigIntValue) {
+  return (bigIntValue > 0n) - (bigIntValue < 0n)
+}
+
 // ---
 
 // This is used to trigger rebuilds. Just updating the timestamp
@@ -261,9 +265,7 @@ function generateRules(tailwindConfig, candidates, context) {
 }
 
 function buildStylesheet(rules, context) {
-  let sortedRules = rules.sort(([a], [z]) => {
-    return Math.sign(Number(a - z))
-  })
+  let sortedRules = rules.sort(([a], [z]) => sign(a - z))
 
   let returnValue = {
     components: new Set(),
@@ -1132,7 +1134,7 @@ module.exports = (pluginOptions = {}) => {
                 }
 
                 // Inject the rules, sorted, correctly
-                for (let [sort, sibling] of siblings.sort(([a], [z]) => Math.sign(Number(z - a)))) {
+                for (let [sort, sibling] of siblings.sort(([a], [z]) => sign(z - a))) {
                   // `apply.parent` is refering to the node at `.abc` in: .abc { @apply mt-2 }
                   apply.parent.after(sibling)
                 }
