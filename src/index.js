@@ -332,6 +332,7 @@ function rebootTemplateWatcher(context) {
     (env.TAILWIND_MODE === undefined && env.NODE_ENV === 'development')
   ) {
     context.touchFile = context.touchFile !== null ? context.touchFile : tmp.fileSync()
+    env.DEBUG && console.log("Touch file path:", context.touchFile)
 
     Promise.resolve(context.watcher ? context.watcher.close() : null).then(() => {
       context.watcher = chokidar.watch(context.candidateFiles, {
