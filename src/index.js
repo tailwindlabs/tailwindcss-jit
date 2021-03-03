@@ -746,6 +746,7 @@ function setupContext(tailwindConfig, configHash, configPath) {
   }
 
   let context = {
+    dependencies: new Set(),
     changedFiles: new Set(),
     utilityRuleCache: new Set(),
     componentRuleCache: new Set(),
@@ -973,6 +974,8 @@ module.exports = (pluginOptions = {}) => {
 
             env.DEBUG && console.time('Reading changed files')
             for (let file of context.changedFiles) {
+              context.dependencies.add(file)
+
               let content = fs.readFileSync(file, 'utf8')
               getClassCandidates(content, contentMatchCache, candidates, seen)
             }
@@ -1042,6 +1045,7 @@ module.exports = (pluginOptions = {}) => {
 
             if (env.DEBUG) {
               console.log('Changed files: ', context.changedFiles.size)
+              console.log('Dependencies:', context.dependencies.size)
               console.log('Potential classes: ', candidates.size)
               console.log('Active contexts: ', contextMap.size)
               console.log('Active sources:', sourceContextMap.size)
@@ -1051,6 +1055,7 @@ module.exports = (pluginOptions = {}) => {
 
             // Clear the cache for the changed files
             context.changedFiles.clear()
+            context.dependencies.forEach(registerDependency)
           },
           function (root) {
             if (!foundTailwind) {
