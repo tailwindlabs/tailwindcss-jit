@@ -795,8 +795,8 @@ let contentMatchCache = new LRU({ maxSize: 25000 })
 let configPathCache = new LRU({ maxSize: 100 })
 
 let contextMap = new Map()
-
 let cssFileModifiedMap = new Map()
+let fileModifiedMap = new Map()
 
 // Retrieve an existing context from cache if possible (since contexts are unique per
 // config object), or set up a new one (including setting up watchers and registering
@@ -891,14 +891,14 @@ module.exports = (pluginOptions = {}) => {
 
       // It hasn't changed (based on timestamp)
       if (modified <= prevModified) {
-        return [false, prevConfig]
+        return prevConfig
       }
 
       // It has changed (based on timestamp), or first run
       delete require.cache[userConfigPath]
       let newConfig = resolveConfig(require(userConfigPath))
       configPathCache.set(userConfigPath, [newConfig, modified])
-      return [true, newConfig]
+      return newConfig
     }
 
     // It's a plain object, not a path
@@ -906,38 +906,45 @@ module.exports = (pluginOptions = {}) => {
       pluginOptions.config === undefined ? pluginOptions : pluginOptions.config
     )
 
-    return [true, newConfig]
+    return newConfig
+  }
+
+  function updateModifiedMap(files) {
+    let changed = false
+
+    for (let file of files) {
+      let newModified = fs.statSync(file).mtimeMs
+
+      if (!fileModifiedMap.has(file) || newModified > fileModifiedMap.get(file)) {
+        changed = true
+      }
+
+      fileModifiedMap.set(file, newModified)
+    }
+
+    return changed
   }
 
   function getContext(result) {
     let sourcePath = result.opts.from
 
-    // If any of the CSS file dependencies have changed (including the main CSS file),
-    // we need to make sure we setup a fresh context.
-    let cssChanged = false
-    let cssDependencies = new Set()
-    cssDependencies.add(sourcePath)
+    let userConfigPath = resolveConfigPath(pluginOptions)
+    let config = getTailwindConfig(userConfigPath)
+
+    let contextDependencies = new Set()
+    contextDependencies.add(sourcePath)
+
+    if (userConfigPath !== null) {
+      contextDependencies.add(userConfigPath)
+    }
 
     for (let message of result.messages) {
       if (message.type === 'dependency') {
-        cssDependencies.add(message.file)
+        contextDependencies.add(message.file)
       }
     }
 
-    for (let cssFile of cssDependencies) {
-      let newModified = fs.statSync(cssFile).mtimeMs
-
-      if (!cssFileModifiedMap.has(cssFile) || newModified > cssFileModifiedMap.get(cssFile)) {
-        cssChanged = true
-      }
-
-      cssFileModifiedMap.set(cssFile, newModified)
-    }
-
-    let userConfigPath = resolveConfigPath(pluginOptions)
-    let [configChanged, config] = getTailwindConfig(userConfigPath)
-
-    let contextDependenciesChanged = configChanged || cssChanged
+    let contextDependenciesChanged = updateModifiedMap([...contextDependencies])
 
     let context = setupContext(config, sourcePath, userConfigPath, contextDependenciesChanged)
 
