@@ -337,8 +337,6 @@ function cleanupContext(context) {
   if (context.watcher) {
     context.watcher.close()
   }
-  contextMap.delete(context.configHash)
-  contextSources.delete(context)
 }
 
 function generateTouchFileName() {
@@ -797,16 +795,20 @@ let contentMatchCache = new LRU({ maxSize: 25000 })
 let configPathCache = new LRU({ maxSize: 100 })
 
 let contextMap = new Map()
-let sourceContextMap = new Map()
-let contextSources = new Map()
+
+let cssFileModifiedMap = new Map()
 
 // Retrieve an existing context from cache if possible (since contexts are unique per
 // config object), or set up a new one (including setting up watchers and registering
 // plugins) then return it
-function setupContext(tailwindConfig, configHash, configPath) {
-  env.DEBUG && console.log('Config hash:', configHash)
-  if (contextMap.has(configHash)) {
-    return contextMap.get(configHash)
+function setupContext(tailwindConfig, sourcePath, configPath, dependenciesChanged) {
+  env.DEBUG && console.log('Source path:', sourcePath)
+  if (contextMap.has(sourcePath) && !dependenciesChanged) {
+    return contextMap.get(sourcePath)
+  }
+
+  if (contextMap.has(sourcePath)) {
+    cleanupContext(contextMap.get(sourcePath))
   }
 
   env.DEBUG && console.log('Setting up new context...')
@@ -825,7 +827,7 @@ function setupContext(tailwindConfig, configHash, configPath) {
     utilityMap: new Map(),
     baseRules: new Set(),
     configPath: configPath,
-    configHash: configHash,
+    sourcePath: sourcePath,
     tailwindConfig: tailwindConfig,
     configDependencies: new Set(),
     candidateFiles: Array.isArray(tailwindConfig.purge)
@@ -838,7 +840,7 @@ function setupContext(tailwindConfig, configHash, configPath) {
       screens: [],
     },
   }
-  contextMap.set(configHash, context)
+  contextMap.set(sourcePath, context)
 
   if (configPath !== null) {
     for (let dependency of getModuleDependencies(configPath)) {
@@ -884,74 +886,60 @@ module.exports = (pluginOptions = {}) => {
   // Get the config object based on a path
   function getTailwindConfig(userConfigPath) {
     if (userConfigPath !== null) {
-      let [prevConfig, prevModified = -Infinity, configHash] =
-        configPathCache.get(userConfigPath) ?? []
+      let [prevConfig, prevModified = -Infinity] = configPathCache.get(userConfigPath) ?? []
       let modified = fs.statSync(userConfigPath).mtimeMs
 
       // It hasn't changed (based on timestamp)
       if (modified <= prevModified) {
-        return [prevConfig, configHash]
+        return [false, prevConfig]
       }
 
       // It has changed (based on timestamp), or first run
       delete require.cache[userConfigPath]
       let newConfig = resolveConfig(require(userConfigPath))
-      configHash = hash(newConfig)
-      configPathCache.set(userConfigPath, [newConfig, modified, configHash])
-      return [newConfig, configHash]
+      configPathCache.set(userConfigPath, [newConfig, modified])
+      return [true, newConfig]
     }
 
     // It's a plain object, not a path
     let newConfig = resolveConfig(
       pluginOptions.config === undefined ? pluginOptions : pluginOptions.config
     )
-    let configHash = hash(newConfig)
 
-    return [newConfig, configHash]
+    return [true, newConfig]
   }
 
-  // This function takes a source path (like /Users/elonmusk/Projects/mars-landing/tailwind.css)
-  // and the current context being used for that path and makes sure we do any necessary clean up.
-  // It checks to see if this path is using a different context than it was before, and if so,
-  // it checks to see if that old context is still being used by anything else. If it's not, the
-  // old context is cleaned up and destroyed.
-  //
-  // Probably still a memory leak here somewhere in weird situations I haven't thought of.
-  function updateSourceContext(sourcePath, newContext) {
-    let oldContext = sourceContextMap.get(sourcePath)
+  function getContext(result) {
+    let sourcePath = result.opts.from
 
-    if (oldContext === newContext) {
-      return
-    }
+    // If any of the CSS file dependencies have changed (including the main CSS file),
+    // we need to make sure we setup a fresh context.
+    let cssChanged = false
+    let cssDependencies = new Set()
+    cssDependencies.add(sourcePath)
 
-    if (contextSources.has(oldContext)) {
-      // Remove the source path from the list of sources associated with this source path
-      let sources = contextSources.get(oldContext)
-      sources.delete(sourcePath)
-
-      // If the old context is no longer used, clean it up
-      if (sources.size === 0) {
-        cleanupContext(oldContext)
+    for (let message of result.messages) {
+      if (message.type === 'dependency') {
+        cssDependencies.add(message.file)
       }
     }
 
-    if (!contextSources.has(newContext)) {
-      contextSources.set(newContext, new Set())
+    for (let cssFile of cssDependencies) {
+      let newModified = fs.statSync(cssFile).mtimeMs
+
+      if (!cssFileModifiedMap.has(cssFile) || newModified > cssFileModifiedMap.get(cssFile)) {
+        cssChanged = true
+      }
+
+      cssFileModifiedMap.set(cssFile, newModified)
     }
 
-    let newSources = contextSources.get(newContext)
-    newSources.add(sourcePath)
-    sourceContextMap.set(sourcePath, newContext)
-  }
-
-  // Given a source path (~/my-project/tailwind.css), sets up and returns the context
-  function getContext(sourcePath) {
     let userConfigPath = resolveConfigPath(pluginOptions)
-    let [config, configHash] = getTailwindConfig(userConfigPath)
-    let context = setupContext(config, configHash, userConfigPath)
+    let [configChanged, config] = getTailwindConfig(userConfigPath)
 
-    // Track which context this source is using and clean up old context if necessary
-    updateSourceContext(sourcePath, context)
+    let contextDependenciesChanged = configChanged || cssChanged
+
+    let context = setupContext(config, sourcePath, userConfigPath, contextDependenciesChanged)
 
     return context
   }
@@ -983,7 +971,7 @@ module.exports = (pluginOptions = {}) => {
           })
         }
 
-        let context = getContext(result.opts.from)
+        let context = getContext(result)
 
         if (context.configPath !== null) {
           registerDependency(context.configPath)
@@ -1118,8 +1106,8 @@ module.exports = (pluginOptions = {}) => {
               console.log('Changed files: ', context.changedFiles.size)
               console.log('Potential classes: ', candidates.size)
               console.log('Active contexts: ', contextMap.size)
-              console.log('Active sources:', sourceContextMap.size)
-              console.log('Context source size: ', contextSources.size)
+              // console.log('Active sources:', sourceContextMap.size)
+              // console.log('Context source size: ', contextSources.size)
               console.log('Content match entries', contentMatchCache.size)
             }
 

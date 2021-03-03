@@ -6,7 +6,7 @@ const fs = require('fs')
 const path = require('path')
 
 function run(input, config = {}) {
-  return postcss([tailwind(config)]).process(input, { from: undefined })
+  return postcss([tailwind(config)]).process(input, { from: path.resolve(__filename) })
 }
 
 test('it works', () => {
