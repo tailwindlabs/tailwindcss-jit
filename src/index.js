@@ -1,7 +1,8 @@
 const fs = require('fs')
 const path = require('path')
+const os = require('os')
+const crypto = require('crypto')
 
-const tmp = require('tmp')
 const postcss = require('postcss')
 const chokidar = require('chokidar')
 const fastGlob = require('fast-glob')
@@ -29,6 +30,22 @@ let env = {
 
 function sign(bigIntValue) {
   return (bigIntValue > 0n) - (bigIntValue < 0n)
+}
+
+// ---
+
+// Earmarks a directory for our touch files.
+// If the directory already exists we delete any existing touch files,
+// invalidating any caches associated with them.
+
+const touchDir = path.join(os.homedir() || os.tmpdir(), '.tailwindcss', 'touch')
+
+if (fs.existsSync(touchDir)) {
+  for (let file of fs.readdirSync(touchDir)) {
+    fs.unlinkSync(path.join(touchDir, file))
+  }
+} else {
+  fs.mkdirSync(touchDir, { recursive: true })
 }
 
 // ---
@@ -322,6 +339,25 @@ function cleanupContext(context) {
   contextSources.delete(context)
 }
 
+function generateTouchFileName() {
+  let chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+  let randomChars = ''
+  let randomCharsLength = 12
+  let bytes = null
+
+  try {
+    bytes = crypto.randomBytes(randomCharsLength)
+  } catch (_error) {
+    bytes = crypto.pseudoRandomBytes(randomCharsLength)
+  }
+
+  for (let i = 0; i < randomCharsLength; i++) {
+    randomChars += chars[bytes[i] % chars.length]
+  }
+
+  return path.join(touchDir, `touch-${process.pid}-${randomChars}`)
+}
+
 function rebootTemplateWatcher(context) {
   if (env.TAILWIND_MODE === 'build') {
     return
@@ -331,7 +367,10 @@ function rebootTemplateWatcher(context) {
     env.TAILWIND_MODE === 'watch' ||
     (env.TAILWIND_MODE === undefined && env.NODE_ENV === 'development')
   ) {
-    context.touchFile = context.touchFile !== null ? context.touchFile : tmp.fileSync()
+    if (context.touchFile === null) {
+      context.touchFile = generateTouchFileName()
+      touch(context.touchFile)
+    }
 
     Promise.resolve(context.watcher ? context.watcher.close() : null).then(() => {
       context.watcher = chokidar.watch(context.candidateFiles, {
@@ -340,12 +379,12 @@ function rebootTemplateWatcher(context) {
 
       context.watcher.on('add', (file) => {
         context.changedFiles.add(path.resolve('.', file))
-        touch(context.touchFile.name)
+        touch(context.touchFile)
       })
 
       context.watcher.on('change', (file) => {
         context.changedFiles.add(path.resolve('.', file))
-        touch(context.touchFile.name)
+        touch(context.touchFile)
       })
     })
   }
@@ -951,7 +990,7 @@ module.exports = (pluginOptions = {}) => {
             // Register our temp file as a dependency — we write to this file
             // to trigger rebuilds.
             if (context.touchFile) {
-              registerDependency(context.touchFile.name)
+              registerDependency(context.touchFile)
             }
 
             // If we're not set up and watching files ourselves, we need to do
