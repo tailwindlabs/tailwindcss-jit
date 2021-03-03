@@ -840,12 +840,14 @@ function setupContext(tailwindConfig, configHash, configPath) {
   }
   contextMap.set(configHash, context)
 
-  for (let dependency of getModuleDependencies(configPath)) {
-    if (dependency.file === configPath) {
-      continue
-    }
+  if (configPath !== null) {
+    for (let dependency of getModuleDependencies(configPath)) {
+      if (dependency.file === configPath) {
+        continue
+      }
 
-    context.configDependencies.add(dependency.file)
+      context.configDependencies.add(dependency.file)
+    }
   }
 
   rebootWatcher(context)
