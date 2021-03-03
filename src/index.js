@@ -318,6 +318,9 @@ function cleanupContext(context) {
   if (context.watcher) {
     context.watcher.close()
   }
+  if (context.touchFile) {
+    context.touchFile.removeCallback()
+  }
   contextMap.delete(context.configHash)
   contextSources.delete(context)
 }
