@@ -1,3 +1,4 @@
+const dlv = require('dlv')
 const nameClass = require('tailwindcss/lib/util/nameClass').default
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const toRgba = require('tailwindcss/lib/util/withAlphaVariable').toRgba
@@ -13,8 +14,8 @@ function safeCall(callback, defaultValue) {
 
 module.exports = function ({ jit: { theme, addUtilities } }) {
   let ringColorDefault = (([r, g, b]) => {
-    return `rgba(${r}, ${g}, ${b}, ${theme.ringOpacity?.DEFAULT ?? '0.5'})`
-  })(safeCall(() => toRgba(theme.ringOpacity?.DEFAULT), ['147', '197', '253']))
+    return `rgba(${r}, ${g}, ${b}, ${dlv(theme, ['ringOpacity', 'DEFAULT'], '0.5')})`
+  })(safeCall(() => toRgba(dlv(theme, ['ringOpacity', 'DEFAULT'])), ['147', '197', '253']))
 
   let ringReset = [
     '*',
