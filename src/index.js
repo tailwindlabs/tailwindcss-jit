@@ -1194,6 +1194,29 @@ module.exports = (pluginOptions = {}) => {
           },
           evaluateTailwindFunctions(context.tailwindConfig),
           substituteScreenAtRules(context.tailwindConfig),
+
+          // Collapse adjacent media queries
+          function (root) {
+            let currentRule = null
+            root.each((node) => {
+              if (node.type !== 'atrule') {
+                currentRule = null
+                return
+              }
+
+              if (currentRule === null) {
+                currentRule = node
+                return
+              }
+
+              if (node.params === currentRule.params) {
+                currentRule.append(node.nodes)
+                node.remove()
+              } else {
+                currentRule = node
+              }
+            })
+          },
         ]).process(root, { from: undefined })
       },
       env.DEBUG &&
