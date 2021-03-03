@@ -959,7 +959,7 @@ module.exports = (pluginOptions = {}) => {
             // the work of grabbing all of the template files for candidate
             // detection.
             if (!context.scannedContent) {
-              let files = fastGlob.sync(context.candidateFiles)
+              let files = fastGlob.sync(context.candidateFiles, { absolute: true })
               for (let file of files) {
                 context.changedFiles.add(file)
               }
