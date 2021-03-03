@@ -19,8 +19,10 @@ const substituteScreenAtRules = require('tailwindcss/lib/lib/substituteScreenAtR
 const parseObjectStyles = require('tailwindcss/lib/util/parseObjectStyles').default
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const prefixSelector = require('tailwindcss/lib/util/prefixSelector').default
+const getModuleDependencies = require('tailwindcss/lib/lib/getModuleDependencies').default
 
 const corePlugins = require('./corePlugins')
+const { config } = require('process')
 
 let env = {
   TAILWIND_MODE: process.env.TAILWIND_MODE,
@@ -358,7 +360,12 @@ function generateTouchFileName() {
   return path.join(touchDir, `touch-${process.pid}-${randomChars}`)
 }
 
-function rebootTemplateWatcher(context) {
+function rebootWatcher(context) {
+  if (context.touchFile === null) {
+    context.touchFile = generateTouchFileName()
+    touch(context.touchFile)
+  }
+
   if (env.TAILWIND_MODE === 'build') {
     return
   }
@@ -367,13 +374,8 @@ function rebootTemplateWatcher(context) {
     env.TAILWIND_MODE === 'watch' ||
     (env.TAILWIND_MODE === undefined && env.NODE_ENV === 'development')
   ) {
-    if (context.touchFile === null) {
-      context.touchFile = generateTouchFileName()
-      touch(context.touchFile)
-    }
-
     Promise.resolve(context.watcher ? context.watcher.close() : null).then(() => {
-      context.watcher = chokidar.watch(context.candidateFiles, {
+      context.watcher = chokidar.watch([...context.candidateFiles, ...context.configDependencies], {
         ignoreInitial: true,
       })
 
@@ -383,8 +385,30 @@ function rebootTemplateWatcher(context) {
       })
 
       context.watcher.on('change', (file) => {
-        context.changedFiles.add(path.resolve('.', file))
-        touch(context.touchFile)
+        // If it was a config dependency, touch the config file to trigger a new context.
+        // This is not really that clean of a solution but it's the fastest, because we
+        // can do a very quick check on each build to see if the config has changed instead
+        // of having to get all of the module dependencies and check every timestamp each
+        // time.
+        if (context.configDependencies.has(file)) {
+          for (let dependency of context.configDependencies) {
+            delete require.cache[require.resolve(dependency)]
+          }
+          touch(context.configPath)
+        } else {
+          context.changedFiles.add(path.resolve('.', file))
+          touch(context.touchFile)
+        }
+      })
+
+      context.watcher.on('unlink', (file) => {
+        // Touch the config file if any of the dependencies are deleted.
+        if (context.configDependencies.has(file)) {
+          for (let dependency of context.configDependencies) {
+            delete require.cache[require.resolve(dependency)]
+          }
+          touch(context.configPath)
+        }
       })
     })
   }
@@ -780,9 +804,12 @@ let contextSources = new Map()
 // config object), or set up a new one (including setting up watchers and registering
 // plugins) then return it
 function setupContext(tailwindConfig, configHash, configPath) {
+  env.DEBUG && console.log('Config hash:', configHash)
   if (contextMap.has(configHash)) {
     return contextMap.get(configHash)
   }
+
+  env.DEBUG && console.log('Setting up new context...')
 
   let context = {
     changedFiles: new Set(),
@@ -800,6 +827,7 @@ function setupContext(tailwindConfig, configHash, configPath) {
     configPath: configPath,
     configHash: configHash,
     tailwindConfig: tailwindConfig,
+    configDependencies: new Set(),
     candidateFiles: Array.isArray(tailwindConfig.purge)
       ? tailwindConfig.purge
       : tailwindConfig.purge.content,
@@ -812,7 +840,15 @@ function setupContext(tailwindConfig, configHash, configPath) {
   }
   contextMap.set(configHash, context)
 
-  rebootTemplateWatcher(context)
+  for (let dependency of getModuleDependencies(configPath)) {
+    if (dependency.file === configPath) {
+      continue
+    }
+
+    context.configDependencies.add(dependency.file)
+  }
+
+  rebootWatcher(context)
 
   let corePluginList = Object.entries(corePlugins)
     .map(([name, plugin]) => {
@@ -851,9 +887,6 @@ module.exports = (pluginOptions = {}) => {
       let modified = fs.statSync(userConfigPath).mtimeMs
 
       // It hasn't changed (based on timestamp)
-      // TODO: This will be invalid once we start looking at config dependencies, but if
-      // we don't figure out a way to reuse unchanged config files we have to re-resolve
-      // on every build.
       if (modified <= prevModified) {
         return [prevConfig, configHash]
       }

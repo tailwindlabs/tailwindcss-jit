@@ -69,19 +69,26 @@
 - [x] Make existing official plugins work
 - [x] Add support for classic plugin API
 
+### Mar 2
+
+- [x] Support container configuration options
+- [x] Support complex screens configuration
+- [x] Support square brackets for arbitrary values
+
+### Mar 3
+
+- [x] Collapse media queries
+- [x] Rebuild when config dependencies change
+
 #### Next
 
-- [ ] Rebuild when config dependencies change
-- [ ] Support container configuration options
-- [ ] Support complex screens configuration
 - [ ] Make prefixes work
 - [ ] Make important work
 - [ ] Make separator work
 - [ ] Support @apply with custom CSS
 - [ ] Add support for custom CSS that supports variants (anything in @layer?)
-- [ ] Support square brackets for arbitrary values
 - [ ] Support purge safelist (just add entries to candidate list, regexes will be harder though)
-- [ ] Incorporate 'transformThemeValue' properly (mostly important for `theme` function which already works, but also need it to support array syntax for things like box shadow in someone's config)
+- [ ] Only use `transformThemeValue` where necessary
 - [ ] Support "dynamic" components
 - [ ] Support "dynamic" variants (like group-2, etc.)
 - [ ] Refactor plugins to an abstraction that handles negative values, transformThemeValue, etc.
@@ -89,6 +96,5 @@
 - [ ] Put plugins in deliberate order
 - [ ] Include vendor prefixes for modern browsers by default so autoprefixer is only needed in production?
 - [ ] Cache Preflight styles? They only change when the config changes (default font family, border color, etc.)
-- [ ] Collapse media queries
 - [ ] Cache entire PostCSS tree and re-use if no candidate cache misses
 - [ ] Move code to a feature flag in Tailwind, hopefully without introducing additional performance costs
