@@ -1,4 +1,3 @@
-const postcss = require('postcss')
 const generateRules = require('./generateRules')
 const { bigSign, toPostCssNode, isPlainObject } = require('./utils')
 const escape = require('tailwindcss/lib/util/escapeClassName').default
@@ -82,9 +81,7 @@ function expandApplyAtRules(context) {
         }
 
         // Inject the rules, sorted, correctly
-        for (let [{ sort }, sibling] of siblings.sort(([{ sort: a }], [{ sort: z }]) =>
-          bigSign(z - a)
-        )) {
+        for (let [, sibling] of siblings.sort(([{ sort: a }], [{ sort: z }]) => bigSign(z - a))) {
           // `apply.parent` is referring to the node at `.abc` in: .abc { @apply mt-2 }
           apply.parent.after(sibling)
         }
