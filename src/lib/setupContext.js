@@ -16,7 +16,7 @@ const resolveConfig = require('tailwindcss/resolveConfig')
 
 const sharedState = require('./sharedState')
 const corePlugins = require('../corePlugins')
-const { isPlainObject } = require('./utils')
+const { isPlainObject, toPostCssNode } = require('./utils')
 const { isBuffer } = require('util')
 
 let contextMap = sharedState.contextMap
@@ -326,6 +326,14 @@ function toStaticRuleArray(legacyStyles) {
         classes = [...classes, ...getClasses(rule.selector)]
       })
     }
+
+    // If this isn't "on-demandable", add a "true" flag for `isStatic`
+    // This works but it is kinda gross. Eventually this check should
+    // be more complex and support other use cases too.
+    if (classes.length === 0) {
+      return [[null, toRuleTuple(node), true]]
+    }
+
     return classes.map((c) => {
       if (!nodeMap.has(node)) {
         nodeMap.set(node, toRuleTuple(node))
@@ -392,13 +400,17 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         Array.isArray(options) ? { variants: options } : options
       )
 
-      for (let [identifier, tuple] of toStaticRuleArray(components)) {
+      for (let [identifier, tuple, isStatic] of toStaticRuleArray(components)) {
         let offset = offsets.components++
 
-        if (context.componentMap.has(identifier)) {
-          context.componentMap.get(identifier).push([offset, tuple])
+        if (isStatic) {
+          context.componentRules.add([offset, tuple])
         } else {
-          context.componentMap.set(identifier, [[offset, tuple]])
+          if (context.componentMap.has(identifier)) {
+            context.componentMap.get(identifier).push([offset, tuple])
+          } else {
+            context.componentMap.set(identifier, [[offset, tuple]])
+          }
         }
       }
     },
@@ -416,13 +428,17 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         Array.isArray(options) ? { variants: options } : options
       )
 
-      for (let [identifier, tuple] of toStaticRuleArray(utilities)) {
+      for (let [identifier, tuple, isStatic] of toStaticRuleArray(utilities)) {
         let offset = offsets.utilities++
 
-        if (context.utilityMap.has(identifier)) {
-          context.utilityMap.get(identifier).push([offset, tuple])
+        if (isStatic) {
+          context.utilityRules.add([offset, tuple])
         } else {
-          context.utilityMap.set(identifier, [[offset, tuple]])
+          if (context.utilityMap.has(identifier)) {
+            context.utilityMap.get(identifier).push([offset, tuple])
+          } else {
+            context.utilityMap.set(identifier, [[offset, tuple]])
+          }
         }
       }
     },
@@ -572,6 +588,8 @@ function setupContext(configOrPath) {
       componentMap: new Map(),
       utilityMap: new Map(),
       baseRules: new Set(),
+      componentRules: new Set(),
+      utilityRules: new Set(),
       configPath: userConfigPath,
       sourcePath: sourcePath,
       tailwindConfig: tailwindConfig,
@@ -580,11 +598,7 @@ function setupContext(configOrPath) {
         ? tailwindConfig.purge
         : tailwindConfig.purge.content,
       variantMap: new Map(),
-      stylesheetCache: {
-        components: [],
-        utilities: [],
-        screens: [],
-      },
+      stylesheetCache: null,
     }
     contextMap.set(sourcePath, context)
 

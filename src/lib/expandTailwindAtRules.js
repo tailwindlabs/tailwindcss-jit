@@ -2,7 +2,7 @@ const fs = require('fs')
 const fastGlob = require('fast-glob')
 const sharedState = require('./sharedState')
 const generateRules = require('./generateRules')
-const { bigSign } = require('./utils')
+const { bigSign, toPostCssNode } = require('./utils')
 
 let env = sharedState.env
 let contentMatchCache = sharedState.contentMatchCache
@@ -152,7 +152,8 @@ function expandTailwindAtRules(context, registerDependency) {
     env.DEBUG && console.timeEnd('Generate rules')
 
     // We only ever add to the classCache, so if it didn't grow, there is nothing new.
-    if (context.classCache.size !== classCacheCount) {
+    if (context.stylesheetCache === null || context.classCache.size !== classCacheCount) {
+      env.DEBUG && console.time('Build stylesheet')
       for (let rule of components) {
         context.componentRuleCache.add(rule)
       }
@@ -161,10 +162,31 @@ function expandTailwindAtRules(context, registerDependency) {
         context.utilityRuleCache.add(rule)
       }
 
-      env.DEBUG && console.time('Build stylesheet')
+      let staticUtilityRules = []
+
+      for (let [sort, rule] of context.utilityRules) {
+        staticUtilityRules.push([
+          sort | context.layerOrder.utilities,
+          toPostCssNode(rule, context.postCssNodeCache),
+        ])
+      }
+
+      let staticComponentRules = []
+
+      for (let [sort, rule] of context.componentRules) {
+        staticComponentRules.push([
+          sort | context.layerOrder.components,
+          toPostCssNode(rule, context.postCssNodeCache),
+        ])
+      }
+
       context.stylesheetCache = buildStylesheet(
-        // [...staticComponents, ...staticUtilities, ...staticBase],
-        [...context.componentRuleCache, ...context.utilityRuleCache],
+        [
+          ...staticUtilityRules,
+          ...staticComponentRules,
+          ...context.componentRuleCache,
+          ...context.utilityRuleCache,
+        ],
         context
       )
       env.DEBUG && console.timeEnd('Build stylesheet')
