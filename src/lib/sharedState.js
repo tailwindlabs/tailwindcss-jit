@@ -1,10 +1,11 @@
-let env = {
-  TAILWIND_MODE: process.env.TAILWIND_MODE,
-  NODE_ENV: process.env.NODE_ENV,
-  DEBUG: process.env.DEBUG !== undefined,
-}
+const LRU = require('quick-lru')
 
 module.exports = {
-  env,
+  env: {
+    TAILWIND_MODE: process.env.TAILWIND_MODE,
+    NODE_ENV: process.env.NODE_ENV,
+    DEBUG: process.env.DEBUG !== undefined,
+  },
   contextMap: new Map(),
+  contentMatchCache: new LRU({ maxSize: 25000 }),
 }

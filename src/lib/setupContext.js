@@ -16,6 +16,8 @@ const resolveConfig = require('tailwindcss/resolveConfig')
 
 const sharedState = require('./sharedState')
 const corePlugins = require('../corePlugins')
+const { isPlainObject } = require('./utils')
+const { isBuffer } = require('util')
 
 let contextMap = sharedState.contextMap
 let env = sharedState.env
@@ -49,16 +51,6 @@ function touch(filename) {
 
 function isObject(value) {
   return typeof value === 'object' && value !== null
-}
-
-function isPlainObject(value) {
-  if (Object.prototype.toString.call(value) !== '[object Object]') {
-    return false
-  }
-
-  const prototype = Object.getPrototypeOf(value)
-  return prototype === null || prototype === Object.prototype
-  // return isObject(value) && !Array.isArray(value)
 }
 
 function isEmpty(obj) {
