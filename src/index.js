@@ -5,8 +5,9 @@ const substituteScreenAtRules = require('tailwindcss/lib/lib/substituteScreenAtR
 
 const setupContext = require('./lib/setupContext')
 const removeLayerAtRules = require('./lib/removeLayerAtRules')
-const substituteTailwindAtRules = require('./lib/substituteTailwindAtRules')
+const expandTailwindAtRules = require('./lib/expandTailwindAtRules')
 const expandApplyAtRules = require('./lib/expandApplyAtRules')
+const collapseAdjacentRules = require('./lib/collapseAdjacentRules')
 
 const { env } = require('./lib/sharedState')
 
@@ -38,33 +39,11 @@ module.exports = (configOrPath = {}) => {
 
         return postcss([
           removeLayerAtRules(context),
-          substituteTailwindAtRules(context, registerDependency),
+          expandTailwindAtRules(context, registerDependency),
           expandApplyAtRules(context),
           evaluateTailwindFunctions(context.tailwindConfig),
           substituteScreenAtRules(context.tailwindConfig),
-
-          // Collapse adjacent media queries
-          function (root) {
-            let currentRule = null
-            root.each((node) => {
-              if (node.type !== 'atrule') {
-                currentRule = null
-                return
-              }
-
-              if (currentRule === null) {
-                currentRule = node
-                return
-              }
-
-              if (node.params === currentRule.params) {
-                currentRule.append(node.nodes)
-                node.remove()
-              } else {
-                currentRule = node
-              }
-            })
-          },
+          collapseAdjacentRules(context),
         ]).process(root, { from: undefined })
       },
       env.DEBUG &&

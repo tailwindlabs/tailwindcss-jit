@@ -71,7 +71,7 @@ function buildStylesheet(rules, context) {
   return returnValue
 }
 
-function substituteTailwindAtRules(context, registerDependency) {
+function expandTailwindAtRules(context, registerDependency) {
   return (root) => {
     let foundTailwind = false
     let layerNodes = {
@@ -216,4 +216,4 @@ function substituteTailwindAtRules(context, registerDependency) {
   }
 }
 
-module.exports = substituteTailwindAtRules
+module.exports = expandTailwindAtRules
