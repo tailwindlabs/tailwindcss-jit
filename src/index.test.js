@@ -110,6 +110,18 @@ test('it works', () => {
       @apply font-bold hover:font-normal;
     }
   }
+  .apply-order-a {
+    @apply m-5 mt-6;
+  }
+  .apply-order-b {
+    @apply mt-6 m-5;
+  }
+  .apply-dark-group-example-a {
+    @apply dark:group-hover:bg-green-500;
+  }
+  .apply-dark-group-example-b {
+    @apply group-hover:dark:bg-green-500;
+  }
   .crazy-example {
     @apply sm:motion-safe:group-active:focus:opacity-10;
   }

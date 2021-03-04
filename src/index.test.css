@@ -11,6 +11,8 @@
 }
 .apply-test {
   margin-top: 1.5rem;
+}
+.apply-test {
   --tw-bg-opacity: 1;
   background-color: rgba(236, 72, 153, var(--tw-bg-opacity));
 }
@@ -32,8 +34,6 @@
 }
 .apply-components {
   width: 100%;
-  margin-left: auto;
-  margin-right: auto;
 }
 @media (min-width: 640px) {
   .apply-components {
@@ -59,6 +59,10 @@
   .apply-components {
     max-width: 1536px;
   }
+}
+.apply-components {
+  margin-left: auto;
+  margin-right: auto;
 }
 .drop-empty-rules:hover {
   font-weight: 700;
@@ -98,6 +102,26 @@
   .example:hover {
     font-weight: 400;
   }
+}
+.apply-order-a {
+  margin: 1.25rem;
+}
+.apply-order-a {
+  margin-top: 1.5rem;
+}
+.apply-order-b {
+  margin: 1.25rem;
+}
+.apply-order-b {
+  margin-top: 1.5rem;
+}
+.dark .dark\:group:hover .apply-dark-group-example-a {
+  --tw-bg-opacity: 1;
+  background-color: rgba(16, 185, 129, var(--tw-bg-opacity));
+}
+.group:hover .group-hover\:dark .apply-dark-group-example-b {
+  --tw-bg-opacity: 1;
+  background-color: rgba(16, 185, 129, var(--tw-bg-opacity));
 }
 @media (min-width: 640px) {
   @media (prefers-reduced-motion: no-preference) {

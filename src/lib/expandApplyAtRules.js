@@ -69,31 +69,15 @@ function expandApplyAtRules(context) {
 
           let rules = context.classCache.get(applyCandidate)
           for (let [{ sort, layer }, [selector, rule]] of rules) {
-            // Nested rules...
-            if (!isPlainObject(rule)) {
-              siblings.push([
-                { sort, layer },
-                toPostCssNode(
-                  [selector, updateSelectors(rule, apply, applyCandidate)],
-                  context.postCssNodeCache
-                ),
-              ])
-            } else {
-              let appliedSelector = replaceSelector(apply.parent.selector, selector, applyCandidate)
-
-              if (appliedSelector !== apply.parent.selector) {
-                siblings.push([
-                  { sort, layer },
-                  toPostCssNode([appliedSelector, rule], context.postCssNodeCache),
-                ])
-                continue
-              }
-
-              // Add declarations directly
-              for (let property in rule) {
-                apply.before(postcss.decl({ prop: property, value: rule[property] }))
-              }
-            }
+            siblings.push([
+              { sort, layer },
+              toPostCssNode(
+                !isPlainObject(rule)
+                  ? [selector, updateSelectors(rule, apply, applyCandidate)]
+                  : [replaceSelector(apply.parent.selector, selector, applyCandidate), rule],
+                context.postCssNodeCache
+              ),
+            ])
           }
         }
 
@@ -101,7 +85,7 @@ function expandApplyAtRules(context) {
         for (let [{ sort }, sibling] of siblings.sort(([{ sort: a }], [{ sort: z }]) =>
           bigSign(z - a)
         )) {
-          // `apply.parent` is refering to the node at `.abc` in: .abc { @apply mt-2 }
+          // `apply.parent` is referring to the node at `.abc` in: .abc { @apply mt-2 }
           apply.parent.after(sibling)
         }
 
