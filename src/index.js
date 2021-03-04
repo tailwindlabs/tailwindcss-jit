@@ -10,6 +10,7 @@ const hash = require('object-hash')
 const LRU = require('quick-lru')
 const dlv = require('dlv')
 const Node = require('postcss/lib/node')
+const Rule = require('postcss/lib/rule')
 const selectorParser = require('postcss-selector-parser')
 
 const resolveConfig = require('tailwindcss/resolveConfig')
@@ -417,7 +418,10 @@ function parseLegacyStyles(styles) {
     return parseLegacyStyles([styles])
   }
 
-  return styles.flatMap((style) => (style instanceof Node ? style : parseObjectStyles(style)))
+  return styles.flatMap((style) => {
+    let isNode = !isPlainObject(style)
+    return isNode ? style : parseObjectStyles(style)
+  })
 }
 
 function getClasses(selector) {
@@ -685,7 +689,7 @@ function applyVariant(variant, matches, { variantMap }) {
 
 // ---
 
-function registerPlugins(tailwindConfig, plugins, context) {
+function registerPlugins(tailwindConfig, plugins, context, root) {
   let variantList = []
   let variantMap = new Map()
   let offsets = {
@@ -708,6 +712,25 @@ function registerPlugins(tailwindConfig, plugins, context) {
       plugin(pluginApi)
     }
   }
+
+  // Walk @layer rules and treat them like plugins
+  root.walkAtRules('layer', (layerNode) => {
+    if (layerNode.params === 'base') {
+      for (let node of layerNode.nodes) {
+        pluginApi.addBase(node)
+      }
+    }
+    if (layerNode.params === 'components') {
+      for (let node of layerNode.nodes) {
+        pluginApi.addComponents(node)
+      }
+    }
+    if (layerNode.params === 'utilities') {
+      for (let node of layerNode.nodes) {
+        pluginApi.addUtilities(node)
+      }
+    }
+  })
 
   let highestOffset =
     offsets.utilities > offsets.components ? offsets.utilities : offsets.components
@@ -739,7 +762,13 @@ function isObject(value) {
 }
 
 function isPlainObject(value) {
-  return isObject(value) && !Array.isArray(value)
+  if (Object.prototype.toString.call(value) !== '[object Object]') {
+    return false
+  }
+
+  const prototype = Object.getPrototypeOf(value)
+  return prototype === null || prototype === Object.prototype
+  // return isObject(value) && !Array.isArray(value)
 }
 
 function isEmpty(obj) {
@@ -801,7 +830,7 @@ let fileModifiedMap = new Map()
 // Retrieve an existing context from cache if possible (since contexts are unique per
 // config object), or set up a new one (including setting up watchers and registering
 // plugins) then return it
-function setupContext(tailwindConfig, sourcePath, configPath, dependenciesChanged) {
+function setupContext(tailwindConfig, sourcePath, configPath, dependenciesChanged, root) {
   env.DEBUG && console.log('Source path:', sourcePath)
   if (contextMap.has(sourcePath) && !dependenciesChanged) {
     return contextMap.get(sourcePath)
@@ -877,7 +906,7 @@ function setupContext(tailwindConfig, sourcePath, configPath, dependenciesChange
     return typeof plugin === 'function' ? plugin : plugin.handler
   })
 
-  registerPlugins(context.tailwindConfig, [...corePluginList, ...userPlugins], context)
+  registerPlugins(context.tailwindConfig, [...corePluginList, ...userPlugins], context, root)
 
   return context
 }
@@ -925,7 +954,7 @@ module.exports = (pluginOptions = {}) => {
     return changed
   }
 
-  function getContext(result) {
+  function getContext(result, root) {
     let sourcePath = result.opts.from
 
     let userConfigPath = resolveConfigPath(pluginOptions)
@@ -944,9 +973,10 @@ module.exports = (pluginOptions = {}) => {
       }
     }
 
-    let contextDependenciesChanged = updateModifiedMap([...contextDependencies])
+    let contextDependenciesChanged =
+      updateModifiedMap([...contextDependencies]) || userConfigPath === null
 
-    let context = setupContext(config, sourcePath, userConfigPath, contextDependenciesChanged)
+    let context = setupContext(config, sourcePath, userConfigPath, contextDependenciesChanged, root)
 
     return context
   }
@@ -978,7 +1008,7 @@ module.exports = (pluginOptions = {}) => {
           })
         }
 
-        let context = getContext(result)
+        let context = getContext(result, root)
 
         if (context.configPath !== null) {
           registerDependency(context.configPath)
@@ -1127,8 +1157,8 @@ module.exports = (pluginOptions = {}) => {
             }
 
             root.walkAtRules('layer', (rule) => {
-              let layerName = rule.params
-              layerNodes[layerName].append(rule.nodes)
+              // let layerName = rule.params
+              // layerNodes[layerName].append(rule.nodes)
               rule.remove()
             })
 
