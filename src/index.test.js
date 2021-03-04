@@ -50,70 +50,69 @@ test('it works', () => {
     ],
   }
 
-  return run(
-    `
-    @layer utilities {
-      .custom-util {
-        background: #abcdef;
-      }
+  let css = `
+  @layer utilities {
+    .custom-util {
+      background: #abcdef;
     }
-    @layer components {
-      .custom-component {
-        background: #123456;
-      }
+  }
+  @layer components {
+    .custom-component {
+      background: #123456;
     }
-    @layer base {
-      div {
-        background: #654321;
-      }
+  }
+  @layer base {
+    div {
+      background: #654321;
     }
-    .theme-test {
-      font-family: theme('fontFamily.sans');
-      color: theme('colors.blue.500');
+  }
+  .theme-test {
+    font-family: theme('fontFamily.sans');
+    color: theme('colors.blue.500');
+  }
+  @screen lg {
+    .screen-test {
+      color: purple;
     }
-    @screen lg {
-      .screen-test {
-        color: purple;
-      }
+  }
+  .apply-test {
+    @apply mt-6 bg-pink-500 hover:font-bold focus:hover:font-bold sm:bg-green-500 sm:focus:even:bg-pink-200;
+  }
+  .apply-components {
+    @apply container mx-auto;
+  }
+  .drop-empty-rules {
+    @apply hover:font-bold;
+  }
+  .apply-group {
+    @apply group-hover:font-bold;
+  }
+  .apply-dark-mode {
+    @apply dark:font-bold;
+  }
+  .apply-with-existing:hover {
+    @apply font-normal sm:bg-green-500;
+  }
+  .multiple, .selectors {
+    @apply font-bold group-hover:font-normal;
+  }
+  .list {
+    @apply space-x-4;
+  }
+  .nested {
+    .example {
+      @apply font-bold hover:font-normal;
     }
-    .apply-test {
-      @apply mt-6 bg-pink-500 hover:font-bold focus:hover:font-bold sm:bg-green-500 sm:focus:even:bg-pink-200;
-    }
-    .apply-components {
-      @apply container mx-auto;
-    }
-    .drop-empty-rules {
-      @apply hover:font-bold;
-    }
-    .apply-group {
-      @apply group-hover:font-bold;
-    }
-    .apply-dark-mode {
-      @apply dark:font-bold;
-    }
-    .apply-with-existing:hover {
-      @apply font-normal sm:bg-green-500;
-    }
-    .multiple, .selectors {
-      @apply font-bold group-hover:font-normal;
-    }
-    .list {
-      @apply space-x-4;
-    }
-    .nested {
-      .example {
-        @apply font-bold hover:font-normal;
-      }
-    }
-    .crazy-example {
-      @apply sm:motion-safe:group-active:focus:opacity-10;
-    }
-    @tailwind base;
-    @tailwind components;
-    @tailwind utilities;
-  `,
-    config
-  ).then((result) => {
+  }
+  .crazy-example {
+    @apply sm:motion-safe:group-active:focus:opacity-10;
+  }
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+`
+
+  return run(css, config).then((result) => {
     let expectedPath = path.resolve(__dirname, './index.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 

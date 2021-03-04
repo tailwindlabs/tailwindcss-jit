@@ -1015,6 +1015,28 @@ module.exports = (pluginOptions = {}) => {
         }
 
         return postcss([
+          // Remove @layer rules, already collected and added to context
+          function (root) {
+            root.walkAtRules('layer', (rule) => {
+              rule.remove()
+            })
+
+            for (let layerName in layerNodes) {
+              let node = layerNodes[layerName]
+
+              if (node === null) {
+                continue
+              }
+
+              if (node.nodes === undefined) {
+                node.remove()
+                continue
+              }
+
+              node.before(node.nodes)
+              node.remove()
+            }
+          },
           // substituteTailwindAtRules
           function (root) {
             // Make sure this file contains Tailwind directives. If not, we can save
@@ -1121,18 +1143,22 @@ module.exports = (pluginOptions = {}) => {
 
             if (layerNodes.base) {
               layerNodes.base.before([...context.baseRules])
+              layerNodes.base.remove()
             }
 
             if (layerNodes.components) {
               layerNodes.components.before([...componentNodes])
+              layerNodes.components.remove()
             }
 
             if (layerNodes.utilities) {
               layerNodes.utilities.before([...utilityNodes])
+              layerNodes.utilities.remove()
             }
 
             if (layerNodes.screens) {
               layerNodes.screens.before([...screenNodes])
+              layerNodes.screens.remove()
             } else {
               root.append([...screenNodes])
             }
@@ -1143,40 +1169,11 @@ module.exports = (pluginOptions = {}) => {
               console.log('Changed files: ', context.changedFiles.size)
               console.log('Potential classes: ', candidates.size)
               console.log('Active contexts: ', contextMap.size)
-              // console.log('Active sources:', sourceContextMap.size)
-              // console.log('Context source size: ', contextSources.size)
               console.log('Content match entries', contentMatchCache.size)
             }
 
             // Clear the cache for the changed files
             context.changedFiles.clear()
-          },
-          function (root) {
-            if (!foundTailwind) {
-              return root
-            }
-
-            root.walkAtRules('layer', (rule) => {
-              // let layerName = rule.params
-              // layerNodes[layerName].append(rule.nodes)
-              rule.remove()
-            })
-
-            for (let layerName in layerNodes) {
-              let node = layerNodes[layerName]
-
-              if (node === null) {
-                continue
-              }
-
-              if (node.nodes === undefined) {
-                node.remove()
-                continue
-              }
-
-              node.before(node.nodes)
-              node.remove()
-            }
           },
           function (root) {
             let applyCandidates = new Set()
