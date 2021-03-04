@@ -202,6 +202,9 @@ div {
 .custom-component {
   background: #123456;
 }
+* {
+  padding: 5px;
+}
 .grid-cols-\[200px\,repeat\(auto-fill\,minmax\(15\%\,100px\)\)\,300px\] {
   grid-template-columns: 200px repeat(auto-fill, minmax(15%, 100px)) 300px;
 }
@@ -263,6 +266,9 @@ div {
 }
 .custom-util {
   background: #abcdef;
+}
+* {
+  margin: 10px;
 }
 .first\:pt-0:first-child {
   padding-top: 0px;

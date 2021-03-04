@@ -314,27 +314,33 @@ function toRuleTuple(node) {
   }
 }
 
+function extractCandidates(node) {
+  let classes = node.type === 'rule' ? getClasses(node.selector) : []
+
+  if (node.type === 'atrule') {
+    node.walkRules((rule) => {
+      classes = [...classes, ...getClasses(rule.selector)]
+    })
+  }
+
+  return classes
+}
+
 // { .foo { color: black } }
 // => [ ['foo', ['.foo', { color: 'black' }] ]
 function toStaticRuleArray(legacyStyles) {
   return parseLegacyStyles(legacyStyles).flatMap((node) => {
     let nodeMap = new Map()
-    let classes = node.type === 'rule' ? getClasses(node.selector) : []
-
-    if (node.type === 'atrule') {
-      node.walkRules((rule) => {
-        classes = [...classes, ...getClasses(rule.selector)]
-      })
-    }
+    let candidates = extractCandidates(node)
 
     // If this isn't "on-demandable", add a "true" flag for `isStatic`
     // This works but it is kinda gross. Eventually this check should
     // be more complex and support other use cases too.
-    if (classes.length === 0) {
+    if (candidates.length === 0) {
       return [[null, toRuleTuple(node), true]]
     }
 
-    return classes.map((c) => {
+    return candidates.map((c) => {
       if (!nodeMap.has(node)) {
         nodeMap.set(node, toRuleTuple(node))
       }
@@ -400,10 +406,10 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         Array.isArray(options) ? { variants: options } : options
       )
 
-      for (let [identifier, tuple, isStatic] of toStaticRuleArray(components)) {
+      for (let [identifier, tuple] of toStaticRuleArray(components)) {
         let offset = offsets.components++
 
-        if (isStatic) {
+        if (identifier === null) {
           context.componentRules.add([offset, tuple])
         } else {
           if (context.componentMap.has(identifier)) {
@@ -428,10 +434,10 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         Array.isArray(options) ? { variants: options } : options
       )
 
-      for (let [identifier, tuple, isStatic] of toStaticRuleArray(utilities)) {
+      for (let [identifier, tuple] of toStaticRuleArray(utilities)) {
         let offset = offsets.utilities++
 
-        if (isStatic) {
+        if (identifier === null) {
           context.utilityRules.add([offset, tuple])
         } else {
           if (context.utilityMap.has(identifier)) {

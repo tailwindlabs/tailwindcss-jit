@@ -55,10 +55,16 @@ test('it works', () => {
     .custom-util {
       background: #abcdef;
     }
+    * {
+      margin: 10px;
+    }
   }
   @layer components {
     .custom-component {
       background: #123456;
+    }
+    * {
+      padding: 5px;
     }
   }
   @layer base {
