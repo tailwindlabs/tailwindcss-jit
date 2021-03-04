@@ -419,7 +419,7 @@ function parseLegacyStyles(styles) {
   }
 
   return styles.flatMap((style) => {
-    let isNode = !isPlainObject(style)
+    let isNode = !Array.isArray(style) && !isPlainObject(style)
     return isNode ? style : parseObjectStyles(style)
   })
 }
