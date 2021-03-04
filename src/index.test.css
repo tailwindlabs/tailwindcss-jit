@@ -11,8 +11,6 @@
 }
 .apply-test {
   margin-top: 1.5rem;
-}
-.apply-test {
   --tw-bg-opacity: 1;
   background-color: rgba(236, 72, 153, var(--tw-bg-opacity));
 }
@@ -105,14 +103,10 @@
 }
 .apply-order-a {
   margin: 1.25rem;
-}
-.apply-order-a {
   margin-top: 1.5rem;
 }
 .apply-order-b {
   margin: 1.25rem;
-}
-.apply-order-b {
   margin-top: 1.5rem;
 }
 .dark .dark\:group:hover .apply-dark-group-example-a {
