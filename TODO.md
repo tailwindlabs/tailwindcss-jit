@@ -80,19 +80,25 @@
 - [x] Collapse media queries
 - [x] Rebuild when config dependencies change
 
+### Mar 4
+
+- [x] Factor the code in a responsible way
+- [x] Add support for custom CSS that supports variants (anything in @layer?)
+- [x] Support "dynamic" components
+- [x] Support "unconditional" rules — styles that should be included in the CSS no matter what
+- [x] Unify components/utilities into single "rules" concept, remove tons of duplication
+
 #### Next
 
+- [ ] Unify base styles into the same "rules" abstraction
 - [ ] Make prefixes work
 - [ ] Make important work
 - [ ] Make separator work
 - [ ] Support @apply with custom CSS
-- [ ] Add support for custom CSS that supports variants (anything in @layer?)
 - [ ] Support purge safelist (just add entries to candidate list, regexes will be harder though)
 - [ ] Only use `transformThemeValue` where necessary
-- [ ] Support "dynamic" components
 - [ ] Support "dynamic" variants (like group-2, etc.)
 - [ ] Refactor plugins to an abstraction that handles negative values, transformThemeValue, etc.
-- [ ] Factor the code in a responsible way
 - [ ] Put plugins in deliberate order
 - [ ] Include vendor prefixes for modern browsers by default so autoprefixer is only needed in production?
 - [ ] Cache Preflight styles? They only change when the config changes (default font family, border color, etc.)
