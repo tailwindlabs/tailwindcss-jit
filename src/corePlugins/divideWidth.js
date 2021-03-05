@@ -46,21 +46,15 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   })
 
   addUtilities({
-    'divide-y-reverse': [
-      [
-        '.divide-y-reverse > :not([hidden]) ~ :not([hidden])',
-        {
-          '--tw-divide-y-reverse': '1',
-        },
-      ],
-    ],
-    'divide-x-reverse': [
-      [
-        '.divide-x-reverse > :not([hidden]) ~ :not([hidden])',
-        {
-          '--tw-divide-x-reverse': '1',
-        },
-      ],
-    ],
+    'divide-y-reverse': {
+      '.divide-y-reverse > :not([hidden]) ~ :not([hidden])': {
+        '--tw-divide-y-reverse': '1',
+      },
+    },
+    'divide-x-reverse': {
+      '.divide-x-reverse > :not([hidden]) ~ :not([hidden])': {
+        '--tw-divide-x-reverse': '1',
+      },
+    },
   })
 }

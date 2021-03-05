@@ -47,21 +47,15 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
   })
 
   addUtilities({
-    'space-y-reverse': [
-      [
-        '.space-y-reverse > :not([hidden]) ~ :not([hidden])',
-        {
-          '--tw-space-y-reverse': '1',
-        },
-      ],
-    ],
-    'space-x-reverse': [
-      [
-        '.space-x-reverse > :not([hidden]) ~ :not([hidden])',
-        {
-          '--tw-space-x-reverse': '1',
-        },
-      ],
-    ],
+    'space-y-reverse': {
+      '.space-y-reverse > :not([hidden]) ~ :not([hidden])': {
+        '--tw-space-y-reverse': '1',
+      },
+    },
+    'space-x-reverse': {
+      '.space-x-reverse > :not([hidden]) ~ :not([hidden])': {
+        '--tw-space-x-reverse': '1',
+      },
+    },
   })
 }

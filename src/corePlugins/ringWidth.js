@@ -61,13 +61,10 @@ module.exports = function ({ jit: { theme, addUtilities } }) {
   })
 
   addUtilities({
-    'ring-inset': [
-      [
-        '.ring-inset',
-        {
-          '--tw-ring-inset': 'inset',
-        },
-      ],
-    ],
+    'ring-inset': {
+      '.ring-inset': {
+        '--tw-ring-inset': 'inset',
+      },
+    },
   })
 }
