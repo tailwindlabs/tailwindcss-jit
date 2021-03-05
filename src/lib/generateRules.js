@@ -37,11 +37,9 @@ function applyVariant(variant, matches, { variantMap }) {
     let [variantSort, applyThisVariant] = variantMap.get(variant)
     let result = []
 
-    for (let [{ sort, layer }, rule] of matches) {
-      let options = rule.__tailwind ?? {}
-
+    for (let [{ sort, layer, options }, rule] of matches) {
       if (options.respectVariants === false) {
-        result.push([{ sort, layer }, rule])
+        result.push([{ sort, layer, options }, rule])
         continue
       }
 
@@ -53,7 +51,7 @@ function applyVariant(variant, matches, { variantMap }) {
         continue
       }
 
-      let withOffset = [{ sort: variantSort | sort, layer }, container.nodes[0]]
+      let withOffset = [{ sort: variantSort | sort, layer, options }, container.nodes[0]]
       result.push(withOffset)
     }
 
@@ -115,16 +113,20 @@ function generateRules(tailwindConfig, candidates, context) {
     for (let [sort, plugin] of plugins) {
       if (typeof plugin === 'function') {
         for (let result of plugin(modifier, pluginHelpers)) {
+          let options = {}
           if (Array.isArray(result)) {
+            ;[, , options = {}] = result
             result = toPostCssNode(result, context.postCssNodeCache)
           }
-          matches.push([sort, result])
+          matches.push([{ ...sort, options }, result])
         }
       } else {
+        let options = {}
         if (Array.isArray(plugin)) {
+          ;[, , options = {}] = plugin
           plugin = toPostCssNode(plugin, context.postCssNodeCache)
         }
-        matches.push([sort, plugin])
+        matches.push([{ ...sort, options }, plugin])
       }
     }
 

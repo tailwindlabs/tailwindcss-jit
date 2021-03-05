@@ -11,7 +11,7 @@ function toPostCssNode(rule, postCssNodeCache) {
     return postCssNodeCache.get(rule)
   }
 
-  let [selector, childRule, options = {}] = rule
+  let [selector, childRule] = rule
   let node
 
   if (selector[0] === '@') {
@@ -46,10 +46,6 @@ function toPostCssNode(rule, postCssNodeCache) {
         return postcss.decl({ prop, value })
       }),
     })
-  }
-
-  if (options.respectVariants === false) {
-    node.__tailwind = Object.assign({}, node.__tailwind, { respectVariants: false })
   }
 
   postCssNodeCache.set(rule, node)
