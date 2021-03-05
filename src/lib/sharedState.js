@@ -8,4 +8,5 @@ module.exports = {
   },
   contextMap: new Map(),
   contentMatchCache: new LRU({ maxSize: 25000 }),
+  fileModifiedCache: new Map(),
 }

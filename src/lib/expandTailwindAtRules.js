@@ -1,5 +1,7 @@
 const fs = require('fs')
+const path = require('path')
 const fastGlob = require('fast-glob')
+const parseGlob = require('parse-glob')
 const sharedState = require('./sharedState')
 const generateRules = require('./generateRules')
 const { bigSign, toPostCssNode } = require('./utils')
@@ -111,21 +113,34 @@ function expandTailwindAtRules(context, registerDependency) {
 
     // ---
 
-    // Register our temp file as a dependency — we write to this file
-    // to trigger rebuilds.
-    if (context.touchFile) {
-      registerDependency(context.touchFile)
+    for (let maybeGlob of context.candidateFiles) {
+      let {
+        is: { glob: isGlob },
+        base,
+      } = parseGlob(maybeGlob)
+
+      if (isGlob) {
+        registerDependency(path.resolve(base), 'context-dependency')
+      } else {
+        registerDependency(path.resolve(maybeGlob))
+      }
     }
 
-    // If we're not set up and watching files ourselves, we need to do
-    // the work of grabbing all of the template files for candidate
-    // detection.
-    if (!context.scannedContent) {
-      let files = fastGlob.sync(context.candidateFiles)
-      for (let file of files) {
+    env.DEBUG && console.time('Finding changed files')
+    let files = fastGlob.sync(context.candidateFiles)
+    for (let file of files) {
+      let prevModified = sharedState.fileModifiedCache.get(file) ?? -Infinity
+      let modified = fs.statSync(file).mtimeMs
+
+      if (modified > prevModified) {
         context.changedFiles.add(file)
+        sharedState.fileModifiedCache.set(file, modified)
       }
-      context.scannedContent = true
+    }
+    env.DEBUG && console.timeEnd('Finding changed files')
+
+    if (context.changedFiles.size === 0) {
+      return root
     }
 
     // ---

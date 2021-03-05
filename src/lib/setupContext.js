@@ -1,8 +1,5 @@
 const fs = require('fs')
-const os = require('os')
 const path = require('path')
-const crypto = require('crypto')
-const chokidar = require('chokidar')
 const postcss = require('postcss')
 const dlv = require('dlv')
 const selectorParser = require('postcss-selector-parser')
@@ -22,33 +19,6 @@ const { isBuffer } = require('util')
 
 let contextMap = sharedState.contextMap
 let env = sharedState.env
-
-// Earmarks a directory for our touch files.
-// If the directory already exists we delete any existing touch files,
-// invalidating any caches associated with them.
-
-const touchDir = path.join(os.homedir() || os.tmpdir(), '.tailwindcss', 'touch')
-
-if (fs.existsSync(touchDir)) {
-  for (let file of fs.readdirSync(touchDir)) {
-    fs.unlinkSync(path.join(touchDir, file))
-  }
-} else {
-  fs.mkdirSync(touchDir, { recursive: true })
-}
-
-// This is used to trigger rebuilds. Just updating the timestamp
-// is significantly faster than actually writing to the file (10x).
-
-function touch(filename) {
-  let time = new Date()
-
-  try {
-    fs.utimesSync(filename, time, time)
-  } catch (err) {
-    fs.closeSync(fs.openSync(filename, 'w'))
-  }
-}
 
 function isObject(value) {
   return typeof value === 'object' && value !== null
@@ -171,95 +141,23 @@ function getTailwindConfig(configOrPath) {
   return [newConfig, null]
 }
 
-let fileModifiedMap = new Map()
-
 function trackModified(files) {
   let changed = false
 
   for (let file of files) {
     let newModified = fs.statSync(file).mtimeMs
 
-    if (!fileModifiedMap.has(file) || newModified > fileModifiedMap.get(file)) {
+    if (
+      !sharedState.fileModifiedCache.has(file) ||
+      newModified > sharedState.fileModifiedCache.get(file)
+    ) {
       changed = true
     }
 
-    fileModifiedMap.set(file, newModified)
+    sharedState.fileModifiedCache.set(file, newModified)
   }
 
   return changed
-}
-
-function generateTouchFileName() {
-  let chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-  let randomChars = ''
-  let randomCharsLength = 12
-  let bytes = null
-
-  try {
-    bytes = crypto.randomBytes(randomCharsLength)
-  } catch (_error) {
-    bytes = crypto.pseudoRandomBytes(randomCharsLength)
-  }
-
-  for (let i = 0; i < randomCharsLength; i++) {
-    randomChars += chars[bytes[i] % chars.length]
-  }
-
-  return path.join(touchDir, `touch-${process.pid}-${randomChars}`)
-}
-
-function rebootWatcher(context) {
-  if (context.touchFile === null) {
-    context.touchFile = generateTouchFileName()
-    touch(context.touchFile)
-  }
-
-  if (env.TAILWIND_MODE === 'build') {
-    return
-  }
-
-  if (
-    env.TAILWIND_MODE === 'watch' ||
-    (env.TAILWIND_MODE === undefined && env.NODE_ENV === 'development')
-  ) {
-    Promise.resolve(context.watcher ? context.watcher.close() : null).then(() => {
-      context.watcher = chokidar.watch([...context.candidateFiles, ...context.configDependencies], {
-        ignoreInitial: true,
-      })
-
-      context.watcher.on('add', (file) => {
-        context.changedFiles.add(path.resolve('.', file))
-        touch(context.touchFile)
-      })
-
-      context.watcher.on('change', (file) => {
-        // If it was a config dependency, touch the config file to trigger a new context.
-        // This is not really that clean of a solution but it's the fastest, because we
-        // can do a very quick check on each build to see if the config has changed instead
-        // of having to get all of the module dependencies and check every timestamp each
-        // time.
-        if (context.configDependencies.has(file)) {
-          for (let dependency of context.configDependencies) {
-            delete require.cache[require.resolve(dependency)]
-          }
-          touch(context.configPath)
-        } else {
-          context.changedFiles.add(path.resolve('.', file))
-          touch(context.touchFile)
-        }
-      })
-
-      context.watcher.on('unlink', (file) => {
-        // Touch the config file if any of the dependencies are deleted.
-        if (context.configDependencies.has(file)) {
-          for (let dependency of context.configDependencies) {
-            delete require.cache[require.resolve(dependency)]
-          }
-          touch(context.configPath)
-        }
-      })
-    })
-  }
 }
 
 function insertInto(list, value, { before = [] } = {}) {
@@ -533,12 +431,6 @@ function registerPlugins(tailwindConfig, plugins, context) {
   }
 }
 
-function cleanupContext(context) {
-  if (context.watcher) {
-    context.watcher.close()
-  }
-}
-
 // Retrieve an existing context from cache if possible (since contexts are unique per
 // source path), or set up a new one (including setting up watchers and registering
 // plugins) then return it
@@ -560,6 +452,12 @@ function setupContext(configOrPath) {
       }
     }
 
+    if (contextMap.has(sourcePath)) {
+      for (let dependency of contextMap.get(sourcePath).configDependencies) {
+        contextDependencies.add(dependency)
+      }
+    }
+
     let contextDependenciesChanged =
       trackModified([...contextDependencies]) || userConfigPath === null
 
@@ -568,18 +466,12 @@ function setupContext(configOrPath) {
       return contextMap.get(sourcePath)
     }
 
-    if (contextMap.has(sourcePath)) {
-      cleanupContext(contextMap.get(sourcePath))
-    }
-
     process.env.DEBUG && console.log('Setting up new context...')
 
     let context = {
       changedFiles: new Set(),
       ruleCache: new Set(),
-      watcher: null,
       scannedContent: false,
-      touchFile: null,
       classCache: new Map(),
       notClassCache: new Set(),
       postCssNodeCache: new Map(),
@@ -604,10 +496,17 @@ function setupContext(configOrPath) {
         }
 
         context.configDependencies.add(dependency.file)
+
+        result.messages.push({
+          type: 'dependency',
+          plugin: 'tailwindcss-jit',
+          parent: result.opts.from,
+          file: dependency.file,
+        })
+
+        trackModified([dependency.file])
       }
     }
-
-    rebootWatcher(context)
 
     let corePluginList = Object.entries(corePlugins)
       .map(([name, plugin]) => {

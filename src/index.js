@@ -22,9 +22,9 @@ module.exports = (configOrPath = {}) => {
           return root
         },
       function (root, result) {
-        function registerDependency(fileName) {
+        function registerDependency(fileName, type = 'dependency') {
           result.messages.push({
-            type: 'dependency',
+            type,
             plugin: 'tailwindcss-jit',
             parent: result.opts.from,
             file: fileName,
