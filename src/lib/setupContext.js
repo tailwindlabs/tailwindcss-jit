@@ -333,11 +333,9 @@ function toStaticRuleArray(legacyStyles) {
     let nodeMap = new Map()
     let candidates = extractCandidates(node)
 
-    // If this isn't "on-demandable", add a "true" flag for `isStatic`
-    // This works but it is kinda gross. Eventually this check should
-    // be more complex and support other use cases too.
+    // If this isn't "on-demandable", assign it a universal candidate.
     if (candidates.length === 0) {
-      return [[null, toRuleTuple(node), true]]
+      return [['*', toRuleTuple(node)]]
     }
 
     return candidates.map((c) => {
@@ -409,14 +407,10 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       for (let [identifier, tuple] of toStaticRuleArray(components)) {
         let offset = offsets.components++
 
-        if (identifier === null) {
-          context.componentRules.add([offset, tuple])
+        if (context.componentMap.has(identifier)) {
+          context.componentMap.get(identifier).push([offset, tuple])
         } else {
-          if (context.componentMap.has(identifier)) {
-            context.componentMap.get(identifier).push([offset, tuple])
-          } else {
-            context.componentMap.set(identifier, [[offset, tuple]])
-          }
+          context.componentMap.set(identifier, [[offset, tuple]])
         }
       }
     },
@@ -437,14 +431,10 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       for (let [identifier, tuple] of toStaticRuleArray(utilities)) {
         let offset = offsets.utilities++
 
-        if (identifier === null) {
-          context.utilityRules.add([offset, tuple])
+        if (context.utilityMap.has(identifier)) {
+          context.utilityMap.get(identifier).push([offset, tuple])
         } else {
-          if (context.utilityMap.has(identifier)) {
-            context.utilityMap.get(identifier).push([offset, tuple])
-          } else {
-            context.utilityMap.set(identifier, [[offset, tuple]])
-          }
+          context.utilityMap.set(identifier, [[offset, tuple]])
         }
       }
     },
@@ -594,8 +584,6 @@ function setupContext(configOrPath) {
       componentMap: new Map(),
       utilityMap: new Map(),
       baseRules: new Set(),
-      componentRules: new Set(),
-      utilityRules: new Set(),
       configPath: userConfigPath,
       sourcePath: sourcePath,
       tailwindConfig: tailwindConfig,

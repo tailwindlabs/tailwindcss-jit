@@ -95,58 +95,58 @@ function generateRules(tailwindConfig, candidates, context) {
 
       classCache.set(candidate, ['components', matches])
       layers.components.push(matches)
-    } else {
-      let matchedPlugins = null
-
-      if (utilityMap.has(classCandidate)) {
-        matchedPlugins = [utilityMap.get(classCandidate), 'DEFAULT']
-      } else {
-        let candidatePrefix = classCandidate
-        let negative = false
-
-        if (candidatePrefix[0] === '-') {
-          negative = true
-          candidatePrefix = candidatePrefix.slice(1)
-        }
-
-        for (let [prefix, modifier] of candidatePermutations(candidatePrefix)) {
-          if (utilityMap.has(prefix)) {
-            matchedPlugins = [utilityMap.get(prefix), negative ? `-${modifier}` : modifier]
-            break
-          }
-        }
-      }
-
-      if (matchedPlugins === null) {
-        notClassCache.add(candidate)
-        continue
-      }
-
-      let pluginHelpers = {
-        candidate: classCandidate,
-        theme: tailwindConfig.theme,
-      }
-
-      let matches = []
-      let [plugins, modifier] = matchedPlugins
-
-      for (let [sort, plugin] of plugins) {
-        if (Array.isArray(plugin)) {
-          matches.push([sort, plugin])
-        } else {
-          for (let result of plugin(modifier, pluginHelpers)) {
-            matches.push([sort, result])
-          }
-        }
-      }
-
-      for (let variant of variants) {
-        matches = applyVariant(variant, matches, context)
-      }
-
-      classCache.set(candidate, ['utilities', matches])
-      layers.utilities.push(matches)
     }
+
+    let matchedPlugins = null
+
+    if (utilityMap.has(classCandidate)) {
+      matchedPlugins = [utilityMap.get(classCandidate), 'DEFAULT']
+    } else {
+      let candidatePrefix = classCandidate
+      let negative = false
+
+      if (candidatePrefix[0] === '-') {
+        negative = true
+        candidatePrefix = candidatePrefix.slice(1)
+      }
+
+      for (let [prefix, modifier] of candidatePermutations(candidatePrefix)) {
+        if (utilityMap.has(prefix)) {
+          matchedPlugins = [utilityMap.get(prefix), negative ? `-${modifier}` : modifier]
+          break
+        }
+      }
+    }
+
+    if (matchedPlugins === null) {
+      notClassCache.add(candidate)
+      continue
+    }
+
+    let pluginHelpers = {
+      candidate: classCandidate,
+      theme: tailwindConfig.theme,
+    }
+
+    let matches = []
+    let [plugins, modifier] = matchedPlugins
+
+    for (let [sort, plugin] of plugins) {
+      if (Array.isArray(plugin)) {
+        matches.push([sort, plugin])
+      } else {
+        for (let result of plugin(modifier, pluginHelpers)) {
+          matches.push([sort, result])
+        }
+      }
+    }
+
+    for (let variant of variants) {
+      matches = applyVariant(variant, matches, context)
+    }
+
+    classCache.set(candidate, ['utilities', matches])
+    layers.utilities.push(matches)
   }
 
   return {

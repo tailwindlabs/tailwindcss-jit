@@ -130,8 +130,8 @@ function expandTailwindAtRules(context, registerDependency) {
 
     // ---
 
-    // Find potential classes in changed files
-    let candidates = new Set()
+    // Find potential rules in changed files
+    let candidates = new Set(['*'])
     let seen = new Set()
 
     env.DEBUG && console.time('Reading changed files')
@@ -162,31 +162,8 @@ function expandTailwindAtRules(context, registerDependency) {
         context.utilityRuleCache.add(rule)
       }
 
-      let staticUtilityRules = []
-
-      for (let [sort, rule] of context.utilityRules) {
-        staticUtilityRules.push([
-          sort | context.layerOrder.utilities,
-          toPostCssNode(rule, context.postCssNodeCache),
-        ])
-      }
-
-      let staticComponentRules = []
-
-      for (let [sort, rule] of context.componentRules) {
-        staticComponentRules.push([
-          sort | context.layerOrder.components,
-          toPostCssNode(rule, context.postCssNodeCache),
-        ])
-      }
-
       context.stylesheetCache = buildStylesheet(
-        [
-          ...staticUtilityRules,
-          ...staticComponentRules,
-          ...context.componentRuleCache,
-          ...context.utilityRuleCache,
-        ],
+        [...context.componentRuleCache, ...context.utilityRuleCache],
         context
       )
       env.DEBUG && console.timeEnd('Build stylesheet')
