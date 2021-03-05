@@ -407,11 +407,13 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       for (let [identifier, tuple] of toStaticRuleArray(components)) {
         let offset = offsets.components++
 
-        if (!context.componentMap.has(identifier)) {
-          context.componentMap.set(identifier, [])
+        if (!context.candidateRuleMap.has(identifier)) {
+          context.candidateRuleMap.set(identifier, [])
         }
 
-        context.componentMap.get(identifier).push([{ sort: offset, layer: 'components' }, tuple])
+        context.candidateRuleMap
+          .get(identifier)
+          .push([{ sort: offset, layer: 'components' }, tuple])
       }
     },
     addUtilities(utilities, options) {
@@ -431,11 +433,11 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       for (let [identifier, tuple] of toStaticRuleArray(utilities)) {
         let offset = offsets.utilities++
 
-        if (!context.utilityMap.has(identifier)) {
-          context.utilityMap.set(identifier, [])
+        if (!context.candidateRuleMap.has(identifier)) {
+          context.candidateRuleMap.set(identifier, [])
         }
 
-        context.utilityMap.get(identifier).push([{ sort: offset, layer: 'utilities' }, tuple])
+        context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'utilities' }, tuple])
       }
     },
     // ---
@@ -455,11 +457,11 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
 
           let withOffsets = value.map((tuple) => [{ sort: offset, layer: 'components' }, tuple])
 
-          if (!context.componentMap.has(identifier)) {
-            context.componentMap.set(identifier, [])
+          if (!context.candidateRuleMap.has(identifier)) {
+            context.candidateRuleMap.set(identifier, [])
           }
 
-          context.componentMap.get(identifier).push(...withOffsets)
+          context.candidateRuleMap.get(identifier).push(...withOffsets)
         }
       },
       addUtilities(utilities) {
@@ -470,11 +472,11 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
 
           let withOffsets = value.map((tuple) => [{ sort: offset, layer: 'utilities' }, tuple])
 
-          if (!context.utilityMap.has(identifier)) {
-            context.utilityMap.set(identifier, [])
+          if (!context.candidateRuleMap.has(identifier)) {
+            context.candidateRuleMap.set(identifier, [])
           }
 
-          context.utilityMap.get(identifier).push(...withOffsets)
+          context.candidateRuleMap.get(identifier).push(...withOffsets)
         }
       },
     },
@@ -580,6 +582,7 @@ function setupContext(configOrPath) {
       classCache: new Map(),
       notClassCache: new Set(),
       postCssNodeCache: new Map(),
+      candidateRuleMap: new Map(),
       componentMap: new Map(),
       utilityMap: new Map(),
       baseRules: new Set(),

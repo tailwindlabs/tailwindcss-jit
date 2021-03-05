@@ -61,12 +61,8 @@ function applyVariant(variant, matches, { variantMap }) {
 }
 
 function generateRules(tailwindConfig, candidates, context) {
-  let { componentMap, utilityMap, classCache, notClassCache, postCssNodeCache } = context
-
-  let layers = {
-    components: [],
-    utilities: [],
-  }
+  let { candidateRuleMap, classCache, notClassCache, postCssNodeCache } = context
+  let allRules = []
 
   for (let candidate of candidates) {
     if (notClassCache.has(candidate)) {
@@ -74,33 +70,15 @@ function generateRules(tailwindConfig, candidates, context) {
     }
 
     if (classCache.has(candidate)) {
-      let [layer, matches] = classCache.get(candidate)
-      layers[layer].push(matches)
+      allRules.push(classCache.get(candidate))
       continue
     }
 
     let [classCandidate, ...variants] = candidate.split(':').reverse()
-
-    if (componentMap.has(classCandidate)) {
-      let matches = componentMap.get(classCandidate)
-
-      if (matches.length === 0) {
-        notClassCache.add(candidate)
-        continue
-      }
-
-      for (let variant of variants) {
-        matches = applyVariant(variant, matches, context)
-      }
-
-      classCache.set(candidate, ['components', matches])
-      layers.components.push(matches)
-    }
-
     let matchedPlugins = null
 
-    if (utilityMap.has(classCandidate)) {
-      matchedPlugins = [utilityMap.get(classCandidate), 'DEFAULT']
+    if (candidateRuleMap.has(classCandidate)) {
+      matchedPlugins = [candidateRuleMap.get(classCandidate), 'DEFAULT']
     } else {
       let candidatePrefix = classCandidate
       let negative = false
@@ -111,8 +89,8 @@ function generateRules(tailwindConfig, candidates, context) {
       }
 
       for (let [prefix, modifier] of candidatePermutations(candidatePrefix)) {
-        if (utilityMap.has(prefix)) {
-          matchedPlugins = [utilityMap.get(prefix), negative ? `-${modifier}` : modifier]
+        if (candidateRuleMap.has(prefix)) {
+          matchedPlugins = [candidateRuleMap.get(prefix), negative ? `-${modifier}` : modifier]
           break
         }
       }
@@ -145,25 +123,16 @@ function generateRules(tailwindConfig, candidates, context) {
       matches = applyVariant(variant, matches, context)
     }
 
-    classCache.set(candidate, ['utilities', matches])
-    layers.utilities.push(matches)
+    classCache.set(candidate, matches)
+    allRules.push(matches)
   }
 
-  let componentNodes = layers.components
+  return allRules
     .flat(1)
-    .map(([{ sort }, rule]) => [
-      sort | context.layerOrder.components,
+    .map(([{ sort, layer }, rule]) => [
+      sort | context.layerOrder[layer],
       toPostCssNode(rule, postCssNodeCache),
     ])
-
-  let utilityNodes = layers.utilities
-    .flat(1)
-    .map(([{ sort }, rule]) => [
-      sort | context.layerOrder.utilities,
-      toPostCssNode(rule, postCssNodeCache),
-    ])
-
-  return [...componentNodes, ...utilityNodes]
 }
 
 module.exports = generateRules

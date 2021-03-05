@@ -67,7 +67,7 @@ function expandApplyAtRules(context) {
             throw new Error('Utility does not exist!')
           }
 
-          let [layerName, rules] = context.classCache.get(applyCandidate)
+          let rules = context.classCache.get(applyCandidate)
           for (let [{ sort, layer }, [selector, rule]] of rules) {
             // Nested rules...
             if (!isPlainObject(rule)) {
