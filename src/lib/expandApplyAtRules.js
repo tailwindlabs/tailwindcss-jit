@@ -67,9 +67,9 @@ function expandApplyAtRules(context) {
           }
 
           let rules = context.classCache.get(applyCandidate)
-          for (let [{ sort, layer }, [selector, rule]] of rules) {
+          for (let [meta, [selector, rule]] of rules) {
             siblings.push([
-              { sort, layer },
+              meta,
               toPostCssNode(
                 !isPlainObject(rule)
                   ? [selector, updateSelectors(rule, apply, applyCandidate)]
