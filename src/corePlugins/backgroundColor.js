@@ -18,15 +18,13 @@ module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
           return []
         }
 
-        return [
-          {
-            [nameClass('bg', modifier)]: withAlphaVariable({
-              color: value,
-              property: 'background-color',
-              variable: '--tw-bg-opacity',
-            }),
-          },
-        ]
+        return {
+          [nameClass('bg', modifier)]: withAlphaVariable({
+            color: value,
+            property: 'background-color',
+            variable: '--tw-bg-opacity',
+          }),
+        }
       }),
     ],
   })
