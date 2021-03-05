@@ -453,7 +453,7 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         let offset = offsets.components++
 
         for (let identifier in components) {
-          let value = components[identifier]
+          let value = [].concat(components[identifier])
 
           let withOffsets = value.map((tuple) => [{ sort: offset, layer: 'components' }, tuple])
 
