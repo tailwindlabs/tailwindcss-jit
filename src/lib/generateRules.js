@@ -132,7 +132,7 @@ function generateRules(tailwindConfig, candidates, context) {
 
     for (let [sort, plugin] of plugins) {
       if (typeof plugin === 'function') {
-        for (let ruleSet of plugin(modifier, pluginHelpers)) {
+        for (let ruleSet of [].concat(plugin(modifier, pluginHelpers))) {
           if (plugin.format !== 'new') {
             let options = {}
             if (Array.isArray(ruleSet)) {
