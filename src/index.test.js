@@ -25,6 +25,20 @@ test('it works', () => {
     },
     plugins: [
       require('@tailwindcss/aspect-ratio'),
+      function ({ addVariant }) {
+        addVariant(
+          'foo',
+          ({ container }) => {
+            container.walkRules((rule) => {
+              rule.selector = `.foo\\:${rule.selector.slice(1)}`
+              rule.walkDecls((decl) => {
+                decl.important = true
+              })
+            })
+          },
+          { before: 'sm' }
+        )
+      },
       function ({ addUtilities, addBase, theme }) {
         addBase({
           h1: {
@@ -141,83 +155,6 @@ test('it works', () => {
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)
-  })
-})
-
-test('using postcss for everything wip', () => {
-  let config = {
-    darkMode: 'class',
-    purge: [path.resolve(__dirname, './index.test.adding-a-custom-variant.html')],
-    corePlugins: ['opacity'],
-    theme: {},
-    plugins: [
-      function ({ addVariant }) {
-        addVariant(
-          'foo',
-          ({ container }) => {
-            container.walkRules((rule) => {
-              rule.selector = `.foo\\:${rule.selector.slice(1)}`
-              rule.walkDecls((decl) => {
-                decl.important = true
-              })
-            })
-          },
-          { before: 'sm' }
-        )
-      },
-    ],
-  }
-
-  let css = `
-    @tailwind utilities;
-    @layer utilities {
-      .custom-util {
-        background: #abcdef;
-      }
-    }
-  `
-
-  return run(css, config).then((result) => {
-    expect(result.css).toMatchCss(`
-      .opacity-50 {
-        opacity: 0.5;
-      }
-      .custom-util {
-        background: #abcdef;
-      }
-      .hover\\:custom-util:hover {
-        background: #abcdef;
-      }
-      .group:hover .group-hover\\:custom-util {
-        background: #abcdef;
-      }
-      @media (prefers-reduced-motion: no-preference) {
-        .motion-safe\\:custom-util {
-          background: #abcdef;
-        }
-      }
-      .dark .dark\\:custom-util {
-        background: #abcdef;
-      }
-      .foo\\:custom-util {
-        background: #abcdef !important;
-      }
-      .foo\\:hover\\:custom-util:hover {
-        background: #abcdef !important;
-      }
-      @media (min-width: 640px) {
-        .sm\\:custom-util {
-          background: #abcdef;
-        }
-      }
-      @media (min-width: 768px) {
-        @media (prefers-reduced-motion: no-preference) {
-          .dark .md\\:dark\\:motion-safe\\:foo\\:active\\:custom-util:active {
-            background: #abcdef !important;
-          }
-        }
-      }
-    `)
   })
 })
 

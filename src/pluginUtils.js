@@ -1,5 +1,6 @@
 const selectorParser = require('postcss-selector-parser')
 const postcss = require('postcss')
+const { toRgba } = require('tailwindcss/lib/util/withAlphaVariable')
 
 function updateAllClasses(selectors, updateClass) {
   let parser = selectorParser((selectors) => {
@@ -44,31 +45,6 @@ function updateLastClasses(selectors, updateClass) {
 
 function ruleIsEmpty([selector, rules]) {
   return Array.isArray(rules) && rules.length === 0
-}
-
-function transformRule(rule, transform) {
-  let [selector, rules] = rule
-
-  let transformed = transform(rule)
-
-  if (transformed === null) {
-    return null
-  }
-
-  let [transformedSelector, transformedRules] = transformed
-
-  let result = [
-    transformedSelector,
-    Array.isArray(transformedRules)
-      ? transformedRules.map((rule) => transformRule(rule, transform)).filter(Boolean)
-      : transformedRules,
-  ]
-
-  if (ruleIsEmpty(result)) {
-    return null
-  }
-
-  return result
 }
 
 function transformAllSelectors(transformSelector, wrap = null) {
@@ -144,12 +120,9 @@ function asUnit(modifier, units, lookup = {}) {
   })
 }
 
-const { toRgba } = require('tailwindcss/lib/util/withAlphaVariable')
-
 module.exports = {
   updateAllClasses,
   updateLastClasses,
-  transformRule,
   transformAllSelectors,
   transformAllClasses,
   transformLastClasses,
