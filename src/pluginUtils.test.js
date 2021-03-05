@@ -1,12 +1,21 @@
+const postcss = require('postcss')
 const { updateLastClasses, updateAllClasses, transformRule } = require('./pluginUtils')
 
 test('transforming simple class rule', () => {
-  let simpleClass = [
-    '.bg-black',
-    {
-      'background-color': '#000',
-    },
-  ]
+  // let simpleClass = [
+  //   '.bg-black',
+  //   {
+  //     'background-color': '#000',
+  //   },
+  // ]
+
+  // TODO: Make this work
+  let simpleClass = postcss.rule({
+    selector: '.bg-black',
+    nodes: [postcss.decl({ prop: 'background-color', value: '#000' })],
+  })
+
+  console.log(simpleClass)
 
   expect(transformRule(simpleClass, ([sel, rules]) => ['.transformed', rules])).toEqual([
     '.transformed',

@@ -327,6 +327,25 @@ function extractCandidates(node) {
   return classes
 }
 
+function withIdentifiers(styles) {
+  return parseLegacyStyles(styles).flatMap((node) => {
+    let nodeMap = new Map()
+    let candidates = extractCandidates(node)
+
+    // If this isn't "on-demandable", assign it a universal candidate.
+    if (candidates.length === 0) {
+      return [['*', node]]
+    }
+
+    return candidates.map((c) => {
+      if (!nodeMap.has(node)) {
+        nodeMap.set(node, node)
+      }
+      return [c, nodeMap.get(node)]
+    })
+  })
+}
+
 // { .foo { color: black } }
 // => [ ['foo', ['.foo', { color: 'black' }] ]
 function toStaticRuleArray(legacyStyles) {
@@ -431,15 +450,25 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         Array.isArray(options) ? { variants: options } : options
       )
 
-      for (let [identifier, tuple] of toStaticRuleArray(utilities)) {
+      for (let [identifier, node] of withIdentifiers(utilities)) {
         let offset = offsets.utilities++
 
         if (!context.candidateRuleMap.has(identifier)) {
           context.candidateRuleMap.set(identifier, [])
         }
 
-        context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'utilities' }, tuple])
+        context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'utilities' }, node])
       }
+
+      // for (let [identifier, tuple] of toStaticRuleArray(utilities)) {
+      //   let offset = offsets.utilities++
+
+      //   if (!context.candidateRuleMap.has(identifier)) {
+      //     context.candidateRuleMap.set(identifier, [])
+      //   }
+
+      //   context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'utilities' }, tuple])
+      // }
     },
     // ---
     jit: {
@@ -488,6 +517,7 @@ function registerPlugins(tailwindConfig, plugins, context) {
   let variantList = []
   let variantMap = new Map()
   let offsets = {
+    base: 0n,
     components: 0n,
     utilities: 0n,
   }
@@ -508,8 +538,11 @@ function registerPlugins(tailwindConfig, plugins, context) {
     }
   }
 
-  let highestOffset =
-    offsets.utilities > offsets.components ? offsets.utilities : offsets.components
+  let highestOffset = ((...args) => args.reduce((m, e) => (e > m ? e : m)))([
+    offsets.base,
+    offsets.components,
+    offsets.utilities,
+  ])
   let reservedBits = BigInt(highestOffset.toString(2).length)
 
   context.layerOrder = {

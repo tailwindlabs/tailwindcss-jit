@@ -37,12 +37,13 @@ function applyVariant(variant, matches, { variantMap }) {
     let result = []
 
     for (let [{ sort, layer }, rule] of matches) {
-      let [, , options = {}] = rule
+      // TODO: Support these options again
+      // let [, , options = {}] = rule
 
-      if (options.respectVariants === false) {
-        result.push([{ sort, layer }, rule])
-        continue
-      }
+      // if (options.respectVariants === false) {
+      //   result.push([{ sort, layer }, rule])
+      //   continue
+      // }
 
       let ruleWithVariant = applyThisVariant(rule)
 
@@ -109,13 +110,16 @@ function generateRules(tailwindConfig, candidates, context) {
     let matches = []
     let [plugins, modifier] = matchedPlugins
 
+    // console.log(plugins, modifier)
+
     for (let [sort, plugin] of plugins) {
-      if (Array.isArray(plugin)) {
-        matches.push([sort, plugin])
-      } else {
+      console.log(plugin)
+      if (typeof plugin === 'function') {
         for (let result of plugin(modifier, pluginHelpers)) {
           matches.push([sort, result])
         }
+      } else {
+        matches.push([sort, plugin])
       }
     }
 
@@ -127,12 +131,7 @@ function generateRules(tailwindConfig, candidates, context) {
     allRules.push(matches)
   }
 
-  return allRules
-    .flat(1)
-    .map(([{ sort, layer }, rule]) => [
-      sort | context.layerOrder[layer],
-      toPostCssNode(rule, postCssNodeCache),
-    ])
+  return allRules.flat(1).map(([{ sort, layer }, rule]) => [sort | context.layerOrder[layer], rule])
 }
 
 module.exports = generateRules
