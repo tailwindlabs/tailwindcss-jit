@@ -68,11 +68,11 @@ function expandApplyAtRules(context) {
           }
 
           let [layerName, rules] = context.classCache.get(applyCandidate)
-          for (let [sort, [selector, rule]] of rules) {
+          for (let [{ sort, layer }, [selector, rule]] of rules) {
             // Nested rules...
             if (!isPlainObject(rule)) {
               siblings.push([
-                sort,
+                { sort, layer },
                 toPostCssNode(
                   [selector, updateSelectors(rule, apply, applyCandidate)],
                   context.postCssNodeCache
@@ -83,7 +83,7 @@ function expandApplyAtRules(context) {
 
               if (appliedSelector !== apply.parent.selector) {
                 siblings.push([
-                  sort,
+                  { sort, layer },
                   toPostCssNode([appliedSelector, rule], context.postCssNodeCache),
                 ])
                 continue
@@ -98,7 +98,9 @@ function expandApplyAtRules(context) {
         }
 
         // Inject the rules, sorted, correctly
-        for (let [sort, sibling] of siblings.sort(([a], [z]) => bigSign(z - a))) {
+        for (let [{ sort }, sibling] of siblings.sort(([{ sort: a }], [{ sort: z }]) =>
+          bigSign(z - a)
+        )) {
           // `apply.parent` is refering to the node at `.abc` in: .abc { @apply mt-2 }
           apply.parent.after(sibling)
         }

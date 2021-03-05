@@ -148,24 +148,17 @@ function expandTailwindAtRules(context, registerDependency) {
     let classCacheCount = context.classCache.size
 
     env.DEBUG && console.time('Generate rules')
-    let { utilities, components } = generateRules(context.tailwindConfig, candidates, context)
+    let rules = generateRules(context.tailwindConfig, candidates, context)
     env.DEBUG && console.timeEnd('Generate rules')
 
     // We only ever add to the classCache, so if it didn't grow, there is nothing new.
     if (context.stylesheetCache === null || context.classCache.size !== classCacheCount) {
       env.DEBUG && console.time('Build stylesheet')
-      for (let rule of components) {
-        context.componentRuleCache.add(rule)
+      for (let rule of rules) {
+        context.ruleCache.add(rule)
       }
 
-      for (let rule of utilities) {
-        context.utilityRuleCache.add(rule)
-      }
-
-      context.stylesheetCache = buildStylesheet(
-        [...context.componentRuleCache, ...context.utilityRuleCache],
-        context
-      )
+      context.stylesheetCache = buildStylesheet([...context.ruleCache], context)
       env.DEBUG && console.timeEnd('Build stylesheet')
     }
 

@@ -36,11 +36,11 @@ function applyVariant(variant, matches, { variantMap }) {
     let [variantSort, applyThisVariant] = variantMap.get(variant)
     let result = []
 
-    for (let [sort, rule] of matches) {
+    for (let [{ sort, layer }, rule] of matches) {
       let [, , options = {}] = rule
 
       if (options.respectVariants === false) {
-        result.push([sort, rule])
+        result.push([{ sort, layer }, rule])
         continue
       }
 
@@ -50,7 +50,7 @@ function applyVariant(variant, matches, { variantMap }) {
         continue
       }
 
-      let withOffset = [variantSort | sort, ruleWithVariant]
+      let withOffset = [{ sort: variantSort | sort, layer }, ruleWithVariant]
       result.push(withOffset)
     }
 
@@ -149,20 +149,21 @@ function generateRules(tailwindConfig, candidates, context) {
     layers.utilities.push(matches)
   }
 
-  return {
-    components: layers.components
-      .flat(1)
-      .map(([sort, rule]) => [
-        sort | context.layerOrder.components,
-        toPostCssNode(rule, postCssNodeCache),
-      ]),
-    utilities: layers.utilities
-      .flat(1)
-      .map(([sort, rule]) => [
-        sort | context.layerOrder.utilities,
-        toPostCssNode(rule, postCssNodeCache),
-      ]),
-  }
+  let componentNodes = layers.components
+    .flat(1)
+    .map(([{ sort }, rule]) => [
+      sort | context.layerOrder.components,
+      toPostCssNode(rule, postCssNodeCache),
+    ])
+
+  let utilityNodes = layers.utilities
+    .flat(1)
+    .map(([{ sort }, rule]) => [
+      sort | context.layerOrder.utilities,
+      toPostCssNode(rule, postCssNodeCache),
+    ])
+
+  return [...componentNodes, ...utilityNodes]
 }
 
 module.exports = generateRules
