@@ -72,86 +72,46 @@ function transformRule(rule, transform) {
 }
 
 function transformAllSelectors(transformSelector, wrap = null) {
-  return (pair) => {
-    let updatedRules = transformRule(pair, ([selector, rules]) => {
-      if (Array.isArray(rules)) {
-        return [selector, rules]
-      }
-
-      let transformed = selector.split(',').map(transformSelector).join(',')
-
-      if (transformed === null) {
-        return null
-      }
-
-      return [transformed, rules]
+  return ({ container }) => {
+    container.walkRules((rule) => {
+      let transformed = rule.selector.split(',').map(transformSelector).join(',')
+      rule.selector = transformed
+      return rule
     })
 
-    if (updatedRules === null) {
-      return null
+    if (wrap) {
+      let wrapper = wrap()
+      wrapper.append(container.nodes)
+      container.append(wrapper)
     }
-
-    if (wrap !== null) {
-      return [wrap, [updatedRules]]
-    }
-
-    return updatedRules
   }
 }
 
 function transformAllClasses(transformClass, wrap = null) {
-  return (pair) => {
-    let updatedRules = transformRule(pair, ([selector, rules]) => {
-      if (Array.isArray(rules)) {
-        return [selector, rules]
-      }
-
+  return ({ container }) => {
+    container.walkRules((rule) => {
+      let selector = rule.selector
       let variantSelector = updateAllClasses(selector, transformClass)
-
-      // if (variantSelector === selector) {
-      //   return null
-      // }
-
-      return [variantSelector, rules]
+      rule.selector = variantSelector
+      return rule
     })
-
-    if (updatedRules === null) {
-      return null
-    }
-
-    if (wrap !== null) {
-      return [wrap, [updatedRules]]
-    }
-
-    return updatedRules
   }
 }
 
 function transformLastClasses(transformClass, wrap = null) {
-  return (pair) => {
-    let updatedRules = transformRule(pair, ([selector, rules]) => {
-      if (Array.isArray(rules)) {
-        return [selector, rules]
-      }
-
+  return ({ container }) => {
+    container.walkRules((rule) => {
+      let selector = rule.selector
       let variantSelector = updateLastClasses(selector, transformClass)
-
-      // if (variantSelector === selector) {
-      //   return null
-      // }
-
-      return [variantSelector, rules]
+      rule.selector = variantSelector
+      return rule
     })
 
-    if (updatedRules === null) {
-      return null
+    if (wrap) {
+      let wrapper = wrap()
+      wrapper.append(container.nodes)
+      container.append(wrapper)
     }
-
-    if (wrap !== null) {
-      return [wrap, [updatedRules]]
-    }
-
-    return updatedRules
   }
 }
 

@@ -88,10 +88,14 @@
 - [x] Support "unconditional" rules — styles that should be included in the CSS no matter what
 - [x] Unify components/utilities into single "rules" concept, remove tons of duplication
 
+### Mar 5
+
+- [x] Make rule tuple format support comments and any other node types (@font-face) properly (considering abandoning this entire data structure in favor of PostCSS)
+- [x] Unify base styles into the same "rules" abstraction
+
 #### Next
 
-- [ ] Make rule tuple format support comments and any other node types (@font-face) properly (considering abandoning this entire data structure in favor of PostCSS)
-- [ ] Unify base styles into the same "rules" abstraction
+- [ ] Support `modifySelectors` in variant API
 - [ ] Make prefixes work
 - [ ] Make important work
 - [ ] Make separator work

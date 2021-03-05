@@ -17,7 +17,7 @@ const resolveConfig = require('tailwindcss/resolveConfig')
 
 const sharedState = require('./sharedState')
 const corePlugins = require('../corePlugins')
-const { isPlainObject, toPostCssNode } = require('./utils')
+const { isPlainObject } = require('./utils')
 const { isBuffer } = require('util')
 
 let contextMap = sharedState.contextMap
@@ -263,6 +263,8 @@ function rebootWatcher(context) {
 }
 
 function insertInto(list, value, { before = [] } = {}) {
+  before = [].concat(before)
+
   if (before.length <= 0) {
     list.push(value)
     return
@@ -278,9 +280,9 @@ function insertInto(list, value, { before = [] } = {}) {
   list.splice(idx, 0, value)
 }
 
-function parseLegacyStyles(styles) {
+function parseStyles(styles) {
   if (!Array.isArray(styles)) {
-    return parseLegacyStyles([styles])
+    return parseStyles([styles])
   }
 
   return styles.flatMap((style) => {
@@ -300,21 +302,6 @@ function getClasses(selector) {
   return parser.transformSync(selector)
 }
 
-function toRuleTuple(node) {
-  if (node.type === 'atrule') {
-    return [`@${node.name} ${node.params}`, node.nodes.map(toRuleTuple)]
-  }
-
-  if (node.type === 'rule') {
-    let decls = Object.fromEntries(
-      node.nodes.map(({ prop, value }) => {
-        return [prop, value]
-      })
-    )
-    return [node.selector, decls]
-  }
-}
-
 function extractCandidates(node) {
   let classes = node.type === 'rule' ? getClasses(node.selector) : []
 
@@ -328,7 +315,7 @@ function extractCandidates(node) {
 }
 
 function withIdentifiers(styles) {
-  return parseLegacyStyles(styles).flatMap((node) => {
+  return parseStyles(styles).flatMap((node) => {
     let nodeMap = new Map()
     let candidates = extractCandidates(node)
 
@@ -346,27 +333,6 @@ function withIdentifiers(styles) {
   })
 }
 
-// { .foo { color: black } }
-// => [ ['foo', ['.foo', { color: 'black' }] ]
-function toStaticRuleArray(legacyStyles) {
-  return parseLegacyStyles(legacyStyles).flatMap((node) => {
-    let nodeMap = new Map()
-    let candidates = extractCandidates(node)
-
-    // If this isn't "on-demandable", assign it a universal candidate.
-    if (candidates.length === 0) {
-      return [['*', toRuleTuple(node)]]
-    }
-
-    return candidates.map((c) => {
-      if (!nodeMap.has(node)) {
-        nodeMap.set(node, toRuleTuple(node))
-      }
-      return [c, nodeMap.get(node)]
-    })
-  })
-}
-
 function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offsets }) {
   function getConfigValue(path, defaultValue) {
     return path ? dlv(tailwindConfig, path, defaultValue) : tailwindConfig
@@ -378,8 +344,9 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
 
   return {
     // Classic plugin API
-    addVariant() {
-      throw new Error(`Variant plugins aren't supported yet`)
+    addVariant(variantName, applyThisVariant, options = {}) {
+      insertInto(variantList, variantName, options)
+      variantMap.set(variantName, applyThisVariant)
     },
     postcss,
     prefix: applyConfiguredPrefix,
@@ -404,10 +371,15 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
 
       return getConfigValue(['variants', path], defaultValue)
     },
-    addBase(styles) {
-      let nodes = parseLegacyStyles(styles)
-      for (let node of nodes) {
-        context.baseRules.add(node)
+    addBase(base) {
+      for (let [identifier, rule] of withIdentifiers(base)) {
+        let offset = offsets.base++
+
+        if (!context.candidateRuleMap.has(identifier)) {
+          context.candidateRuleMap.set(identifier, [])
+        }
+
+        context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'base' }, rule])
       }
     },
     addComponents(components, options) {
@@ -424,16 +396,14 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         Array.isArray(options) ? { variants: options } : options
       )
 
-      for (let [identifier, tuple] of toStaticRuleArray(components)) {
+      for (let [identifier, rule] of withIdentifiers(components)) {
         let offset = offsets.components++
 
         if (!context.candidateRuleMap.has(identifier)) {
           context.candidateRuleMap.set(identifier, [])
         }
 
-        context.candidateRuleMap
-          .get(identifier)
-          .push([{ sort: offset, layer: 'components' }, tuple])
+        context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'components' }, rule])
       }
     },
     addUtilities(utilities, options) {
@@ -450,25 +420,15 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         Array.isArray(options) ? { variants: options } : options
       )
 
-      for (let [identifier, node] of withIdentifiers(utilities)) {
+      for (let [identifier, rule] of withIdentifiers(utilities)) {
         let offset = offsets.utilities++
 
         if (!context.candidateRuleMap.has(identifier)) {
           context.candidateRuleMap.set(identifier, [])
         }
 
-        context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'utilities' }, node])
+        context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'utilities' }, rule])
       }
-
-      // for (let [identifier, tuple] of toStaticRuleArray(utilities)) {
-      //   let offset = offsets.utilities++
-
-      //   if (!context.candidateRuleMap.has(identifier)) {
-      //     context.candidateRuleMap.set(identifier, [])
-      //   }
-
-      //   context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'utilities' }, tuple])
-      // }
     },
     // ---
     jit: {
@@ -485,7 +445,7 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         for (let identifier in components) {
           let value = [].concat(components[identifier])
 
-          let withOffsets = value.map((tuple) => [{ sort: offset, layer: 'components' }, tuple])
+          let withOffsets = value.map((rule) => [{ sort: offset, layer: 'components' }, rule])
 
           if (!context.candidateRuleMap.has(identifier)) {
             context.candidateRuleMap.set(identifier, [])
@@ -500,7 +460,7 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         for (let identifier in utilities) {
           let value = [].concat(utilities[identifier])
 
-          let withOffsets = value.map((tuple) => [{ sort: offset, layer: 'utilities' }, tuple])
+          let withOffsets = value.map((rule) => [{ sort: offset, layer: 'utilities' }, rule])
 
           if (!context.candidateRuleMap.has(identifier)) {
             context.candidateRuleMap.set(identifier, [])
@@ -617,7 +577,6 @@ function setupContext(configOrPath) {
       notClassCache: new Set(),
       postCssNodeCache: new Map(),
       candidateRuleMap: new Map(),
-      baseRules: new Set(),
       configPath: userConfigPath,
       sourcePath: sourcePath,
       tailwindConfig: tailwindConfig,

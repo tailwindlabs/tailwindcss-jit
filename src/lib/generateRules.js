@@ -1,3 +1,4 @@
+const postcss = require('postcss')
 const { toPostCssNode } = require('./utils')
 
 // Generate match permutations for a class candidate, like:
@@ -37,21 +38,22 @@ function applyVariant(variant, matches, { variantMap }) {
     let result = []
 
     for (let [{ sort, layer }, rule] of matches) {
-      // TODO: Support these options again
-      // let [, , options = {}] = rule
+      let options = rule.__tailwind ?? {}
 
-      // if (options.respectVariants === false) {
-      //   result.push([{ sort, layer }, rule])
-      //   continue
-      // }
+      if (options.respectVariants === false) {
+        result.push([{ sort, layer }, rule])
+        continue
+      }
 
-      let ruleWithVariant = applyThisVariant(rule)
+      let container = postcss.root({ nodes: [rule] })
+
+      let ruleWithVariant = applyThisVariant({ container })
 
       if (ruleWithVariant === null) {
         continue
       }
 
-      let withOffset = [{ sort: variantSort | sort, layer }, ruleWithVariant]
+      let withOffset = [{ sort: variantSort | sort, layer }, container.nodes[0]]
       result.push(withOffset)
     }
 
@@ -110,15 +112,18 @@ function generateRules(tailwindConfig, candidates, context) {
     let matches = []
     let [plugins, modifier] = matchedPlugins
 
-    // console.log(plugins, modifier)
-
     for (let [sort, plugin] of plugins) {
-      console.log(plugin)
       if (typeof plugin === 'function') {
         for (let result of plugin(modifier, pluginHelpers)) {
+          if (Array.isArray(result)) {
+            result = toPostCssNode(result, context.postCssNodeCache)
+          }
           matches.push([sort, result])
         }
       } else {
+        if (Array.isArray(plugin)) {
+          plugin = toPostCssNode(plugin, context.postCssNodeCache)
+        }
         matches.push([sort, plugin])
       }
     }

@@ -1,4 +1,5 @@
 const postcss = require('postcss')
+const parseObjectStyles = require('tailwindcss/lib/util/parseObjectStyles').default
 const { updateLastClasses, updateAllClasses, transformRule } = require('./pluginUtils')
 
 test('transforming simple class rule', () => {
@@ -15,7 +16,15 @@ test('transforming simple class rule', () => {
     nodes: [postcss.decl({ prop: 'background-color', value: '#000' })],
   })
 
-  console.log(simpleClass)
+  // console.log(simpleClass)
+
+  console.log(
+    parseObjectStyles({
+      '.bg-black': {
+        'background-color': '#000',
+      },
+    })
+  )
 
   expect(transformRule(simpleClass, ([sel, rules]) => ['.transformed', rules])).toEqual([
     '.transformed',

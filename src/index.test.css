@@ -9,6 +9,12 @@
     color: purple;
   }
 }
+.apply-1 {
+  margin-top: 1.5rem;
+}
+.apply-2 {
+  margin-top: 1.5rem;
+}
 .apply-test {
   margin-top: 1.5rem;
   --tw-bg-opacity: 1;
@@ -222,6 +228,9 @@ div {
 }
 * {
   padding: 5px;
+}
+.mt-6 {
+  margin-top: 1.5rem;
 }
 .grid-cols-\[200px\,repeat\(auto-fill\,minmax\(15\%\,100px\)\)\,300px\] {
   grid-template-columns: 200px repeat(auto-fill, minmax(15%, 100px)) 300px;

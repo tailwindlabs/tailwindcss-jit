@@ -2,7 +2,7 @@ const fs = require('fs')
 const fastGlob = require('fast-glob')
 const sharedState = require('./sharedState')
 const generateRules = require('./generateRules')
-const { bigSign, toPostCssNode } = require('./utils')
+const { bigSign } = require('./utils')
 
 let env = sharedState.env
 let contentMatchCache = sharedState.contentMatchCache
@@ -46,6 +46,7 @@ function buildStylesheet(rules, context) {
   let sortedRules = rules.sort(([a], [z]) => bigSign(a - z))
 
   let returnValue = {
+    base: new Set(),
     components: new Set(),
     utilities: new Set(),
     screens: new Set(),
@@ -54,6 +55,11 @@ function buildStylesheet(rules, context) {
   for (let [sort, rule] of sortedRules) {
     if (sort >= context.minimumScreen) {
       returnValue.screens.add(rule)
+      continue
+    }
+
+    if (sort & context.layerOrder.base) {
+      returnValue.base.add(rule)
       continue
     }
 
@@ -152,17 +158,18 @@ function expandTailwindAtRules(context, registerDependency) {
     env.DEBUG && console.timeEnd('Generate rules')
 
     // We only ever add to the classCache, so if it didn't grow, there is nothing new.
+    env.DEBUG && console.time('Build stylesheet')
     if (context.stylesheetCache === null || context.classCache.size !== classCacheCount) {
-      env.DEBUG && console.time('Build stylesheet')
       for (let rule of rules) {
         context.ruleCache.add(rule)
       }
 
       context.stylesheetCache = buildStylesheet([...context.ruleCache], context)
-      env.DEBUG && console.timeEnd('Build stylesheet')
     }
+    env.DEBUG && console.timeEnd('Build stylesheet')
 
     let {
+      base: baseNodes,
       components: componentNodes,
       utilities: utilityNodes,
       screens: screenNodes,
@@ -173,7 +180,7 @@ function expandTailwindAtRules(context, registerDependency) {
     // Replace any Tailwind directives with generated CSS
 
     if (layerNodes.base) {
-      layerNodes.base.before([...context.baseRules])
+      layerNodes.base.before([...baseNodes])
       layerNodes.base.remove()
     }
 
