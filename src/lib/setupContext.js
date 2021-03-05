@@ -342,6 +342,22 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
     return prefixSelector(tailwindConfig.prefix, selector)
   }
 
+  function addUtilities(utilities) {
+    let offset = offsets.utilities++
+
+    for (let identifier in utilities) {
+      let value = [].concat(utilities[identifier])
+
+      let withOffsets = value.map((rule) => [{ sort: offset, layer: 'utilities' }, rule])
+
+      if (!context.candidateRuleMap.has(identifier)) {
+        context.candidateRuleMap.set(identifier, [])
+      }
+
+      context.candidateRuleMap.get(identifier).push(...withOffsets)
+    }
+  }
+
   return {
     // Classic plugin API
     addVariant(variantName, applyThisVariant, options = {}) {
@@ -430,6 +446,16 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'utilities' }, rule])
       }
     },
+    matchUtilities: function (utilities) {
+      utilities = Object.fromEntries(
+        Object.entries(utilities).map(([key, value]) => {
+          value.format = 'new'
+          return [key, value]
+        })
+      )
+
+      addUtilities(utilities)
+    },
     // ---
     jit: {
       e: escapeClassName,
@@ -454,21 +480,7 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
           context.candidateRuleMap.get(identifier).push(...withOffsets)
         }
       },
-      addUtilities(utilities) {
-        let offset = offsets.utilities++
-
-        for (let identifier in utilities) {
-          let value = [].concat(utilities[identifier])
-
-          let withOffsets = value.map((rule) => [{ sort: offset, layer: 'utilities' }, rule])
-
-          if (!context.candidateRuleMap.has(identifier)) {
-            context.candidateRuleMap.set(identifier, [])
-          }
-
-          context.candidateRuleMap.get(identifier).push(...withOffsets)
-        }
-      },
+      addUtilities,
     },
   }
 }
