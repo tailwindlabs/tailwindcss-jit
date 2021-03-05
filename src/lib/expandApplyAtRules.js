@@ -18,8 +18,14 @@ function expandApplyAtRules(context) {
 
     // Start the @apply process if we have rules with @apply in them
     if (applies.length > 0) {
+      let classCacheCount = context.classCache.size
+
       // Fill up some caches!
       generateRules(context.tailwindConfig, applyCandidates, context)
+
+      if (context.classCache.size > classCacheCount) {
+        context.stylesheetCache = null
+      }
 
       /**
        * When we have an apply like this:
