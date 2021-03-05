@@ -25,6 +25,20 @@ test('it works', () => {
     },
     plugins: [
       require('@tailwindcss/aspect-ratio'),
+      function ({ addVariant }) {
+        addVariant(
+          'foo',
+          ({ container }) => {
+            container.walkRules((rule) => {
+              rule.selector = `.foo\\:${rule.selector.slice(1)}`
+              rule.walkDecls((decl) => {
+                decl.important = true
+              })
+            })
+          },
+          { before: 'sm' }
+        )
+      },
       function ({ addUtilities, addBase, theme }) {
         addBase({
           h1: {
@@ -80,6 +94,12 @@ test('it works', () => {
     .screen-test {
       color: purple;
     }
+  }
+  .apply-1 {
+    @apply mt-6;
+  }
+  .apply-2 {
+    @apply mt-6;
   }
   .apply-test {
     @apply mt-6 bg-pink-500 hover:font-bold focus:hover:font-bold sm:bg-green-500 sm:focus:even:bg-pink-200;

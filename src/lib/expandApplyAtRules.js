@@ -1,5 +1,6 @@
+const postcss = require('postcss')
 const generateRules = require('./generateRules')
-const { bigSign, toPostCssNode, isPlainObject } = require('./utils')
+const { bigSign } = require('./utils')
 const escape = require('tailwindcss/lib/util/escapeClassName').default
 
 function expandApplyAtRules(context) {
@@ -17,8 +18,14 @@ function expandApplyAtRules(context) {
 
     // Start the @apply process if we have rules with @apply in them
     if (applies.length > 0) {
+      let classCacheCount = context.classCache.size
+
       // Fill up some caches!
       generateRules(context.tailwindConfig, applyCandidates, context)
+
+      if (context.classCache.size > classCacheCount) {
+        context.stylesheetCache = null
+      }
 
       /**
        * When we have an apply like this:
@@ -48,15 +55,6 @@ function expandApplyAtRules(context) {
           .join(', ')
       }
 
-      function updateSelectors(rule, apply, candidate) {
-        return rule.map(([selector, rule]) => {
-          if (!isPlainObject(rule)) {
-            return [selector, updateSelectors(rule, apply, candidate)]
-          }
-          return [replaceSelector(apply.parent.selector, selector, candidate), rule]
-        })
-      }
-
       for (let apply of applies) {
         let siblings = []
         let applyCandidates = apply.params.split(/[\s\t\n]+/g)
@@ -67,16 +65,15 @@ function expandApplyAtRules(context) {
           }
 
           let rules = context.classCache.get(applyCandidate)
-          for (let [meta, [selector, rule]] of rules) {
-            siblings.push([
-              meta,
-              toPostCssNode(
-                !isPlainObject(rule)
-                  ? [selector, updateSelectors(rule, apply, applyCandidate)]
-                  : [replaceSelector(apply.parent.selector, selector, applyCandidate), rule],
-                context.postCssNodeCache
-              ),
-            ])
+
+          for (let [meta, node] of rules) {
+            let root = postcss.root({ nodes: [node] })
+
+            root.walkRules((rule) => {
+              rule.selector = replaceSelector(apply.parent.selector, rule.selector, applyCandidate)
+            })
+
+            siblings.push([meta, root.nodes[0]])
           }
         }
 

@@ -1,3 +1,4 @@
+const postcss = require('postcss')
 const { toPostCssNode } = require('./utils')
 
 // Generate match permutations for a class candidate, like:
@@ -36,21 +37,21 @@ function applyVariant(variant, matches, { variantMap }) {
     let [variantSort, applyThisVariant] = variantMap.get(variant)
     let result = []
 
-    for (let [{ sort, layer }, rule] of matches) {
-      let [, , options = {}] = rule
-
+    for (let [{ sort, layer, options }, rule] of matches) {
       if (options.respectVariants === false) {
-        result.push([{ sort, layer }, rule])
+        result.push([{ sort, layer, options }, rule])
         continue
       }
 
-      let ruleWithVariant = applyThisVariant(rule)
+      let container = postcss.root({ nodes: [rule] })
+
+      let ruleWithVariant = applyThisVariant({ container })
 
       if (ruleWithVariant === null) {
         continue
       }
 
-      let withOffset = [{ sort: variantSort | sort, layer }, ruleWithVariant]
+      let withOffset = [{ sort: variantSort | sort, layer, options }, container.nodes[0]]
       result.push(withOffset)
     }
 
@@ -110,12 +111,22 @@ function generateRules(tailwindConfig, candidates, context) {
     let [plugins, modifier] = matchedPlugins
 
     for (let [sort, plugin] of plugins) {
-      if (Array.isArray(plugin)) {
-        matches.push([sort, plugin])
-      } else {
+      if (typeof plugin === 'function') {
         for (let result of plugin(modifier, pluginHelpers)) {
-          matches.push([sort, result])
+          let options = {}
+          if (Array.isArray(result)) {
+            ;[, , options = {}] = result
+            result = toPostCssNode(result, context.postCssNodeCache)
+          }
+          matches.push([{ ...sort, options }, result])
         }
+      } else {
+        let options = {}
+        if (Array.isArray(plugin)) {
+          ;[, , options = {}] = plugin
+          plugin = toPostCssNode(plugin, context.postCssNodeCache)
+        }
+        matches.push([{ ...sort, options }, plugin])
       }
     }
 
@@ -127,12 +138,7 @@ function generateRules(tailwindConfig, candidates, context) {
     allRules.push(matches)
   }
 
-  return allRules
-    .flat(1)
-    .map(([{ sort, layer }, rule]) => [
-      sort | context.layerOrder[layer],
-      toPostCssNode(rule, postCssNodeCache),
-    ])
+  return allRules.flat(1).map(([{ sort, layer }, rule]) => [sort | context.layerOrder[layer], rule])
 }
 
 module.exports = generateRules

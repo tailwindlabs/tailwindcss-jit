@@ -1,10 +1,10 @@
+const postcss = require('postcss')
 const nameClass = require('tailwindcss/lib/util/nameClass').default
 const buildMediaQuery = require('tailwindcss/lib/util/buildMediaQuery').default
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const {
   updateLastClasses,
   updateAllClasses,
-  transformRule,
   transformAllSelectors,
   transformAllClasses,
   transformLastClasses,
@@ -60,16 +60,22 @@ module.exports = {
 
     addVariant(
       'motion-safe',
-      transformLastClasses((className) => {
-        return `motion-safe:${className}`
-      }, '@media (prefers-reduced-motion: no-preference)')
+      transformLastClasses(
+        (className) => {
+          return `motion-safe:${className}`
+        },
+        () => postcss.atRule({ name: 'media', params: '(prefers-reduced-motion: no-preference)' })
+      )
     )
 
     addVariant(
       'motion-reduce',
-      transformLastClasses((className) => {
-        return `motion-reduce:${className}`
-      }, '@media (prefers-reduced-motion: reduce)')
+      transformLastClasses(
+        (className) => {
+          return `motion-reduce:${className}`
+        },
+        () => postcss.atRule({ name: 'media', params: '(prefers-reduced-motion: reduce)' })
+      )
     )
 
     addVariant(
@@ -104,9 +110,12 @@ module.exports = {
     } else if (config.darkMode === 'media') {
       addVariant(
         'dark',
-        transformLastClasses((className) => {
-          return `dark:${className}`
-        }, '@media (prefers-color-scheme: dark)')
+        transformLastClasses(
+          (className) => {
+            return `dark:${className}`
+          },
+          () => postcss.atRule({ name: 'media', params: '(prefers-color-scheme: dark)' })
+        )
       )
     }
 
@@ -116,9 +125,12 @@ module.exports = {
 
       addVariant(
         screen,
-        transformLastClasses((className) => {
-          return `${screen}:${className}`
-        }, `@media ${query}`)
+        transformLastClasses(
+          (className) => {
+            return `${screen}:${className}`
+          },
+          () => postcss.atRule({ name: 'media', params: query })
+        )
       )
     }
   },
