@@ -576,6 +576,7 @@ function setupContext(configOrPath) {
       classCache: new Map(),
       notClassCache: new Set(),
       postCssNodeCache: new Map(),
+      newPostCssNodeCache: new Map(),
       candidateRuleMap: new Map(),
       configPath: userConfigPath,
       sourcePath: sourcePath,

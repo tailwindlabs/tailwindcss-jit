@@ -120,6 +120,11 @@ function asUnit(modifier, units, lookup = {}) {
   })
 }
 
+function newFormat(plugin) {
+  plugin.format = 'new'
+  return plugin
+}
+
 module.exports = {
   updateAllClasses,
   updateLastClasses,
@@ -130,7 +135,8 @@ module.exports = {
     return function ({ jit: { addUtilities } }) {
       addUtilities(
         Object.entries(styles).reduce((newStyles, [selector, rules]) => {
-          newStyles[selector.slice(1)] = [[selector, rules]]
+          let result = { [selector]: rules }
+          newStyles[selector.slice(1)] = [result]
           return newStyles
         }, {})
       )
@@ -186,5 +192,9 @@ module.exports = {
       ],
       lookup
     )
+  },
+  newFormat(plugin) {
+    plugin.format = 'new'
+    return plugin
   },
 }

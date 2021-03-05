@@ -1,18 +1,17 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { newFormat } = require('../pluginUtils')
 
-let shadowReset = [
-  '*',
-  {
+let shadowReset = {
+  '*': {
     '--tw-shadow': '0 0 #0000',
   },
-  { respectVariants: false },
-]
+}
 
 module.exports = function ({ jit: { theme, addUtilities } }) {
   addUtilities({
     shadow: [
-      (modifier, { theme }) => {
+      newFormat((modifier, { theme }) => {
         modifier = modifier === '' ? 'DEFAULT' : modifier
 
         let transformValue = transformThemeValue('boxShadow')
@@ -23,10 +22,9 @@ module.exports = function ({ jit: { theme, addUtilities } }) {
         }
 
         return [
-          shadowReset,
-          [
-            nameClass('shadow', modifier),
-            {
+          [shadowReset, { respectVariants: false }],
+          {
+            [nameClass('shadow', modifier)]: {
               '--tw-shadow': value === 'none' ? '0 0 #0000' : value,
               'box-shadow': [
                 `var(--tw-ring-offset-shadow, 0 0 #0000)`,
@@ -34,9 +32,9 @@ module.exports = function ({ jit: { theme, addUtilities } }) {
                 `var(--tw-shadow)`,
               ].join(', '),
             },
-          ],
+          },
         ]
-      },
+      }),
     ],
   })
 }
