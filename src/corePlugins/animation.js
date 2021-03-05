@@ -1,6 +1,7 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const parseAnimationValue = require('tailwindcss/lib/util/parseAnimationValue').default
+const { newFormat } = require('../pluginUtils')
 
 module.exports = function ({ jit: { theme, addUtilities } }) {
   let keyframes = Object.fromEntries(
@@ -8,12 +9,11 @@ module.exports = function ({ jit: { theme, addUtilities } }) {
       return [
         key,
         [
-          `@keyframes ${key}`,
-          Object.entries(value).map(([key, value]) => {
-            return [key, value]
-          }),
+          {
+            [`@keyframes ${key}`]: value,
+          },
+          { respectVariants: false },
         ],
-        { respectVariants: false },
       ]
     })
   )
@@ -21,7 +21,7 @@ module.exports = function ({ jit: { theme, addUtilities } }) {
   let transformValue = transformThemeValue('animation')
   addUtilities({
     animate: [
-      (modifier, { theme }) => {
+      newFormat((modifier, { theme }) => {
         let value = transformValue(theme.animation[modifier])
 
         if (modifier === '' || value === undefined) {
@@ -30,8 +30,11 @@ module.exports = function ({ jit: { theme, addUtilities } }) {
 
         let { name: animationName } = parseAnimationValue(value)
 
-        return [keyframes[animationName], [nameClass('animate', modifier), { animation: value }]]
-      },
+        return [
+          keyframes[animationName],
+          { [nameClass('animate', modifier)]: { animation: value } },
+        ]
+      }),
     ],
   })
 }
