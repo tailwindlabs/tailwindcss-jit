@@ -11,6 +11,7 @@ const LRU = require('quick-lru')
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const parseObjectStyles = require('tailwindcss/lib/util/parseObjectStyles').default
 const getModuleDependencies = require('tailwindcss/lib/lib/getModuleDependencies').default
+const escapeClassName = require('tailwindcss/lib/util/escapeClassName').default
 
 const resolveConfig = require('tailwindcss/resolveConfig')
 
@@ -363,7 +364,7 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
     },
     postcss,
     prefix: applyConfiguredPrefix,
-    e: escape,
+    e: escapeClassName,
     config: getConfigValue,
     theme(path, defaultValue) {
       const [pathRoot, ...subPaths] = toPath(path)
@@ -442,7 +443,7 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
     },
     // ---
     jit: {
-      e: escape,
+      e: escapeClassName,
       config: tailwindConfig,
       theme: tailwindConfig.theme,
       addVariant(variantName, applyVariant, options = {}) {
