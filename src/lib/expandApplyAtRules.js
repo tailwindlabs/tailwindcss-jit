@@ -81,7 +81,7 @@ function expandApplyAtRules(context) {
         }
 
         // Inject the rules, sorted, correctly
-        for (let [, sibling] of siblings.sort(([{ sort: a }], [{ sort: z }]) => bigSign(z - a))) {
+        for (let [, sibling] of siblings.sort(([a], [z]) => bigSign(z.sort - a.sort))) {
           // `apply.parent` is referring to the node at `.abc` in: .abc { @apply mt-2 }
           apply.parent.after(sibling)
         }
