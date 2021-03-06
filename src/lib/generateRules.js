@@ -133,16 +133,6 @@ function generateRules(tailwindConfig, candidates, context) {
     for (let [sort, plugin] of plugins) {
       if (typeof plugin === 'function') {
         for (let ruleSet of [].concat(plugin(modifier, pluginHelpers))) {
-          if (plugin.format !== 'new') {
-            let options = {}
-            if (Array.isArray(ruleSet)) {
-              ;[, , options = {}] = ruleSet
-              ruleSet = toPostCssNode(ruleSet, context.postCssNodeCache)
-            }
-            matches.push([{ ...sort, options }, ruleSet])
-            continue
-          }
-
           let [rules, options] = parseRules(ruleSet, context.newPostCssNodeCache)
           for (let rule of rules) {
             matches.push([{ ...sort, options }, rule])

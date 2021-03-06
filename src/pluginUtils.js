@@ -132,8 +132,8 @@ module.exports = {
   transformAllClasses,
   transformLastClasses,
   createSimpleStaticUtilityPlugin(styles) {
-    return function ({ jit: { addUtilities } }) {
-      addUtilities(
+    return function ({ matchUtilities }) {
+      matchUtilities(
         Object.entries(styles).reduce((newStyles, [selector, rules]) => {
           let result = { [selector]: rules }
           newStyles[selector.slice(1)] = [result]

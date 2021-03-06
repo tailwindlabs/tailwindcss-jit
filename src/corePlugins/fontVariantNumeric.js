@@ -10,8 +10,8 @@ let fontVariantBaseStyles = {
   },
 }
 
-module.exports = function ({ jit: { addUtilities } }) {
-  addUtilities({
+module.exports = function ({ matchUtilities }) {
+  matchUtilities({
     'normal-nums': fontVariantBaseStyles,
     ordinal: fontVariantBaseStyles,
     'slashed-zero': fontVariantBaseStyles,
@@ -23,7 +23,7 @@ module.exports = function ({ jit: { addUtilities } }) {
     'stacked-fractions': fontVariantBaseStyles,
   })
 
-  addUtilities({
+  matchUtilities({
     'normal-nums': { '.normal-nums': { 'font-variant-numeric': 'normal' } },
     ordinal: { '.ordinal': { '--tw-ordinal': 'ordinal' } },
     'slashed-zero': { '.slashed-zero': { '--tw-slashed-zero': 'slashed-zero' } },

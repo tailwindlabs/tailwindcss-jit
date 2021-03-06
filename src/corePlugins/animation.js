@@ -3,7 +3,7 @@ const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').
 const parseAnimationValue = require('tailwindcss/lib/util/parseAnimationValue').default
 const { newFormat } = require('../pluginUtils')
 
-module.exports = function ({ jit: { theme, addUtilities } }) {
+module.exports = function ({ matchUtilities, jit: { theme } }) {
   let keyframes = Object.fromEntries(
     Object.entries(theme.keyframes).map(([key, value]) => {
       return [
@@ -19,9 +19,9 @@ module.exports = function ({ jit: { theme, addUtilities } }) {
   )
 
   let transformValue = transformThemeValue('animation')
-  addUtilities({
+  matchUtilities({
     animate: [
-      newFormat((modifier, { theme }) => {
+      (modifier, { theme }) => {
         let value = transformValue(theme.animation[modifier])
 
         if (modifier === '' || value === undefined) {
@@ -34,7 +34,7 @@ module.exports = function ({ jit: { theme, addUtilities } }) {
           keyframes[animationName],
           { [nameClass('animate', modifier)]: { animation: value } },
         ]
-      }),
+      },
     ],
   })
 }
