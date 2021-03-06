@@ -18,75 +18,60 @@ function transparentTo(value) {
   }
 }
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
+module.exports = function ({ matchUtilities, jit: { theme } }) {
   let colorPalette = flattenColorPalette(theme.backgroundColor)
 
-  addUtilities({
-    from: [
-      (modifier, { theme }) => {
-        let value = asColor(modifier, colorPalette)
+  matchUtilities({
+    from: (modifier, { theme }) => {
+      let value = asColor(modifier, colorPalette)
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        let transparentToValue = transparentTo(value)
+      let transparentToValue = transparentTo(value)
 
-        return [
-          [
-            nameClass('from', modifier),
-            {
-              '--tw-gradient-from': toColorValue(value, 'from'),
-              '--tw-gradient-stops': `var(--tw-gradient-from), var(--tw-gradient-to, ${transparentToValue})`,
-            },
-          ],
-        ]
-      },
-    ],
+      return {
+        [nameClass('from', modifier)]: {
+          '--tw-gradient-from': toColorValue(value, 'from'),
+          '--tw-gradient-stops': `var(--tw-gradient-from), var(--tw-gradient-to, ${transparentToValue})`,
+        },
+      }
+    },
   })
-  addUtilities({
-    via: [
-      (modifier, { theme }) => {
-        let value = asColor(modifier, colorPalette)
+  matchUtilities({
+    via: (modifier, { theme }) => {
+      let value = asColor(modifier, colorPalette)
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        let transparentToValue = transparentTo(value)
+      let transparentToValue = transparentTo(value)
 
-        return [
-          [
-            nameClass('via', modifier),
-            {
-              '--tw-gradient-stops': `var(--tw-gradient-from), ${toColorValue(
-                value,
-                'via'
-              )}, var(--tw-gradient-to, ${transparentToValue})`,
-            },
-          ],
-        ]
-      },
-    ],
+      return {
+        [nameClass('via', modifier)]: {
+          '--tw-gradient-stops': `var(--tw-gradient-from), ${toColorValue(
+            value,
+            'via'
+          )}, var(--tw-gradient-to, ${transparentToValue})`,
+        },
+      }
+    },
   })
-  addUtilities({
-    to: [
-      (modifier, { theme }) => {
-        let value = asColor(modifier, colorPalette)
+  matchUtilities({
+    to: (modifier, { theme }) => {
+      let value = asColor(modifier, colorPalette)
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [
-          [
-            nameClass('to', modifier),
-            {
-              '--tw-gradient-to': toColorValue(value, 'to'),
-            },
-          ],
-        ]
-      },
-    ],
+      return {
+        [nameClass('to', modifier)]: {
+          '--tw-gradient-to': toColorValue(value, 'to'),
+        },
+      }
+    },
   })
 }

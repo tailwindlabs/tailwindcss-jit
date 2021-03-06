@@ -5,29 +5,24 @@ function isPlainObject(value) {
   return typeof value === 'object' && value !== null
 }
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    outline: [
-      (modifier, { theme }) => {
-        let transformValue = transformThemeValue('outline')
-        let value = transformValue(theme.outline[modifier])
+module.exports = function ({ matchUtilities, jit: { theme } }) {
+  matchUtilities({
+    outline: (modifier, { theme }) => {
+      let transformValue = transformThemeValue('outline')
+      let value = transformValue(theme.outline[modifier])
 
-        if (modifier === '' || value === undefined) {
-          return []
-        }
+      if (modifier === '' || value === undefined) {
+        return []
+      }
 
-        let [outline, outlineOffset = '0'] = Array.isArray(value) ? value : [value]
+      let [outline, outlineOffset = '0'] = Array.isArray(value) ? value : [value]
 
-        return [
-          [
-            nameClass('outline', modifier),
-            {
-              outline,
-              'outline-offset': outlineOffset,
-            },
-          ],
-        ]
-      },
-    ],
+      return {
+        [nameClass('outline', modifier)]: {
+          outline,
+          'outline-offset': outlineOffset,
+        },
+      }
+    },
   })
 }

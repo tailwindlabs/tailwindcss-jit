@@ -4,29 +4,24 @@ const withAlphaVariable = require('tailwindcss/lib/util/withAlphaVariable').defa
 const toColorValue = require('tailwindcss/lib/util/toColorValue').default
 const { asColor } = require('../pluginUtils')
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
+module.exports = function ({ matchUtilities, jit: { theme } }) {
   let colorPalette = flattenColorPalette(theme.ringColor)
 
-  addUtilities({
-    ring: [
-      (modifier, { theme }) => {
-        let value = asColor(modifier, colorPalette)
+  matchUtilities({
+    ring: (modifier, { theme }) => {
+      let value = asColor(modifier, colorPalette)
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [
-          [
-            nameClass('ring', modifier),
-            withAlphaVariable({
-              color: value,
-              property: '--tw-ring-color',
-              variable: '--tw-ring-opacity',
-            }),
-          ],
-        ]
-      },
-    ],
+      return {
+        [nameClass('ring', modifier)]: withAlphaVariable({
+          color: value,
+          property: '--tw-ring-color',
+          variable: '--tw-ring-opacity',
+        }),
+      }
+    },
   })
 }

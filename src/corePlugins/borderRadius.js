@@ -1,130 +1,112 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
 const { asLength } = require('../pluginUtils')
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    rounded: [
-      (modifier, { theme }) => {
-        let value = asLength(modifier, theme['borderRadius'])
+module.exports = function ({ matchUtilities, jit: { theme } }) {
+  matchUtilities({
+    rounded: (modifier, { theme }) => {
+      let value = asLength(modifier, theme['borderRadius'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[nameClass('rounded', modifier), { 'border-radius': value }]]
-      },
-    ],
+      return { [nameClass('rounded', modifier)]: { 'border-radius': value } }
+    },
   })
-  addUtilities({
-    'rounded-t': [
-      (modifier, { theme }) => {
-        let value = asLength(modifier, theme['borderRadius'])
+  matchUtilities({
+    'rounded-t': (modifier, { theme }) => {
+      let value = asLength(modifier, theme['borderRadius'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [
-          [
-            nameClass('rounded-t', modifier),
-            { 'border-top-left-radius': value, 'border-top-right-radius': value },
-          ],
-        ]
-      },
-    ],
-    'rounded-r': [
-      (modifier, { theme }) => {
-        let value = asLength(modifier, theme['borderRadius'])
+      return {
+        [nameClass('rounded-t', modifier)]: {
+          'border-top-left-radius': value,
+          'border-top-right-radius': value,
+        },
+      }
+    },
+    'rounded-r': (modifier, { theme }) => {
+      let value = asLength(modifier, theme['borderRadius'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [
-          [
-            nameClass('rounded-r', modifier),
-            { 'border-top-right-radius': value, 'border-bottom-right-radius': value },
-          ],
-        ]
-      },
-    ],
-    'rounded-b': [
-      (modifier, { theme }) => {
-        let value = asLength(modifier, theme['borderRadius'])
+      return {
+        [nameClass('rounded-r', modifier)]: {
+          'border-top-right-radius': value,
+          'border-bottom-right-radius': value,
+        },
+      }
+    },
+    'rounded-b': (modifier, { theme }) => {
+      let value = asLength(modifier, theme['borderRadius'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [
-          [
-            nameClass('rounded-b', modifier),
-            { 'border-bottom-right-radius': value, 'border-bottom-left-radius': value },
-          ],
-        ]
-      },
-    ],
-    'rounded-l': [
-      (modifier, { theme }) => {
-        let value = asLength(modifier, theme['borderRadius'])
+      return {
+        [nameClass('rounded-b', modifier)]: {
+          'border-bottom-right-radius': value,
+          'border-bottom-left-radius': value,
+        },
+      }
+    },
+    'rounded-l': (modifier, { theme }) => {
+      let value = asLength(modifier, theme['borderRadius'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [
-          [
-            nameClass('rounded-l', modifier),
-            { 'border-top-left-radius': value, 'border-bottom-left-radius': value },
-          ],
-        ]
-      },
-    ],
+      return {
+        [nameClass('rounded-l', modifier)]: {
+          'border-top-left-radius': value,
+          'border-bottom-left-radius': value,
+        },
+      }
+    },
   })
-  addUtilities({
-    'rounded-tl': [
-      (modifier, { theme }) => {
-        let value = asLength(modifier, theme['borderRadius'])
+  matchUtilities({
+    'rounded-tl': (modifier, { theme }) => {
+      let value = asLength(modifier, theme['borderRadius'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[nameClass('rounded-tl', modifier), { 'border-top-left-radius': value }]]
-      },
-    ],
-    'rounded-tr': [
-      (modifier, { theme }) => {
-        let value = asLength(modifier, theme['borderRadius'])
+      return { [nameClass('rounded-tl', modifier)]: { 'border-top-left-radius': value } }
+    },
+    'rounded-tr': (modifier, { theme }) => {
+      let value = asLength(modifier, theme['borderRadius'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[nameClass('rounded-tr', modifier), { 'border-top-right-radius': value }]]
-      },
-    ],
-    'rounded-br': [
-      (modifier, { theme }) => {
-        let value = asLength(modifier, theme['borderRadius'])
+      return { [nameClass('rounded-tr', modifier)]: { 'border-top-right-radius': value } }
+    },
+    'rounded-br': (modifier, { theme }) => {
+      let value = asLength(modifier, theme['borderRadius'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[nameClass('rounded-br', modifier), { 'border-bottom-right-radius': value }]]
-      },
-    ],
-    'rounded-bl': [
-      (modifier, { theme }) => {
-        let value = asLength(modifier, theme['borderRadius'])
+      return { [nameClass('rounded-br', modifier)]: { 'border-bottom-right-radius': value } }
+    },
+    'rounded-bl': (modifier, { theme }) => {
+      let value = asLength(modifier, theme['borderRadius'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[nameClass('rounded-bl', modifier), { 'border-bottom-left-radius': value }]]
-      },
-    ],
+      return { [nameClass('rounded-bl', modifier)]: { 'border-bottom-left-radius': value } }
+    },
   })
 }
