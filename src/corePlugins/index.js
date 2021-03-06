@@ -96,7 +96,7 @@ module.exports = {
       addVariant(
         'dark',
         transformAllSelectors((selector) => {
-          let variantSelector = updateAllClasses(selector, (className) => {
+          let variantSelector = updateLastClasses(selector, (className) => {
             return `dark:${className}`
           })
 

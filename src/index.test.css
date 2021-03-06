@@ -115,7 +115,7 @@
   margin: 1.25rem;
   margin-top: 1.5rem;
 }
-.dark .dark\:group:hover .apply-dark-group-example-a {
+.dark .group:hover .apply-dark-group-example-a {
   --tw-bg-opacity: 1;
   background-color: rgba(16, 185, 129, var(--tw-bg-opacity));
 }
