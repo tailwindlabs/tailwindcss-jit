@@ -92,6 +92,7 @@
 
 - [x] Make rule tuple format support comments and any other node types (@font-face) properly (considering abandoning this entire data structure in favor of PostCSS)
 - [x] Unify base styles into the same "rules" abstraction
+- [x] Design user-facing API for authoring on-demand plugins
 
 #### Next
 
