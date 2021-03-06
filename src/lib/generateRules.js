@@ -1,5 +1,6 @@
 const postcss = require('postcss')
-const { toPostCssNode } = require('./utils')
+const { default: parseObjectStyles } = require('tailwindcss/lib/util/parseObjectStyles')
+const { toPostCssNode, isPlainObject } = require('./utils')
 
 // Generate match permutations for a class candidate, like:
 // ['ring-offset-blue', '100']
@@ -61,6 +62,25 @@ function applyVariant(variant, matches, { variantMap }) {
   return []
 }
 
+function parseRules(rule, cache, options = {}) {
+  // PostCSS node
+  if (!isPlainObject(rule) && !Array.isArray(rule)) {
+    return [[rule], options]
+  }
+
+  // Tuple
+  if (Array.isArray(rule)) {
+    return parseRules(rule[0], cache, rule[1])
+  }
+
+  // Simple object
+  if (!cache.has(rule)) {
+    cache.set(rule, parseObjectStyles(rule))
+  }
+
+  return [cache.get(rule), options]
+}
+
 function generateRules(tailwindConfig, candidates, context) {
   let { candidateRuleMap, classCache, notClassCache, postCssNodeCache } = context
   let allRules = []
@@ -112,21 +132,18 @@ function generateRules(tailwindConfig, candidates, context) {
 
     for (let [sort, plugin] of plugins) {
       if (typeof plugin === 'function') {
-        for (let result of plugin(modifier, pluginHelpers)) {
-          let options = {}
-          if (Array.isArray(result)) {
-            ;[, , options = {}] = result
-            result = toPostCssNode(result, context.postCssNodeCache)
+        for (let ruleSet of [].concat(plugin(modifier, pluginHelpers))) {
+          let [rules, options] = parseRules(ruleSet, context.newPostCssNodeCache)
+          for (let rule of rules) {
+            matches.push([{ ...sort, options }, rule])
           }
-          matches.push([{ ...sort, options }, result])
         }
       } else {
-        let options = {}
-        if (Array.isArray(plugin)) {
-          ;[, , options = {}] = plugin
-          plugin = toPostCssNode(plugin, context.postCssNodeCache)
+        let ruleSet = plugin
+        let [rules, options] = parseRules(ruleSet, context.newPostCssNodeCache)
+        for (let rule of rules) {
+          matches.push([{ ...sort, options }, rule])
         }
-        matches.push([{ ...sort, options }, plugin])
       }
     }
 

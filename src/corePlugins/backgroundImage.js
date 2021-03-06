@@ -1,17 +1,15 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    bg: [
-      (modifier, { theme }) => {
-        let value = theme.backgroundImage[modifier]
+module.exports = function ({ matchUtilities, jit: { theme } }) {
+  matchUtilities({
+    bg: (modifier, { theme }) => {
+      let value = theme.backgroundImage[modifier]
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[nameClass('bg', modifier), { 'background-image': value }]]
-      },
-    ],
+      return { [nameClass('bg', modifier)]: { 'background-image': value } }
+    },
   })
 }

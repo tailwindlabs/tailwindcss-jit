@@ -430,6 +430,21 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'utilities' }, rule])
       }
     },
+    matchUtilities: function (utilities) {
+      let offset = offsets.utilities++
+
+      for (let identifier in utilities) {
+        let value = [].concat(utilities[identifier])
+
+        let withOffsets = value.map((rule) => [{ sort: offset, layer: 'utilities' }, rule])
+
+        if (!context.candidateRuleMap.has(identifier)) {
+          context.candidateRuleMap.set(identifier, [])
+        }
+
+        context.candidateRuleMap.get(identifier).push(...withOffsets)
+      }
+    },
     // ---
     jit: {
       e: escapeClassName,
@@ -446,21 +461,6 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
           let value = [].concat(components[identifier])
 
           let withOffsets = value.map((rule) => [{ sort: offset, layer: 'components' }, rule])
-
-          if (!context.candidateRuleMap.has(identifier)) {
-            context.candidateRuleMap.set(identifier, [])
-          }
-
-          context.candidateRuleMap.get(identifier).push(...withOffsets)
-        }
-      },
-      addUtilities(utilities) {
-        let offset = offsets.utilities++
-
-        for (let identifier in utilities) {
-          let value = [].concat(utilities[identifier])
-
-          let withOffsets = value.map((rule) => [{ sort: offset, layer: 'utilities' }, rule])
 
           if (!context.candidateRuleMap.has(identifier)) {
             context.candidateRuleMap.set(identifier, [])
@@ -576,6 +576,7 @@ function setupContext(configOrPath) {
       classCache: new Map(),
       notClassCache: new Set(),
       postCssNodeCache: new Map(),
+      newPostCssNodeCache: new Map(),
       candidateRuleMap: new Map(),
       configPath: userConfigPath,
       sourcePath: sourcePath,

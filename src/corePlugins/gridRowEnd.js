@@ -1,19 +1,15 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    'row-end': [
-      (modifier, { theme }) => {
-        let transformValue = transformThemeValue('gridRowEnd')
-        let value = transformValue(theme.gridRowEnd[modifier])
+module.exports = function ({ matchUtilities, jit: { theme } }) {
+  matchUtilities({
+    'row-end': (modifier, { theme }) => {
+      let value = theme.gridRowEnd[modifier]
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[nameClass('row-end', modifier), { 'grid-row-end': value }]]
-      },
-    ],
+      return { [nameClass('row-end', modifier)]: { 'grid-row-end': value } }
+    },
   })
 }

@@ -1,24 +1,20 @@
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const { asValue } = require('../pluginUtils')
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    'placeholder-opacity': [
-      (modifier, { theme }) => {
-        let value = asValue(modifier, theme.placeholderOpacity)
+module.exports = function ({ matchUtilities, jit: { theme } }) {
+  matchUtilities({
+    'placeholder-opacity': (modifier, { theme }) => {
+      let value = asValue(modifier, theme.placeholderOpacity)
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [
-          [
-            `${nameClass('placeholder-opacity', modifier)}::placeholder`,
-            { '--tw-placeholder-opacity': value },
-          ],
-        ]
-      },
-    ],
+      return {
+        [`${nameClass('placeholder-opacity', modifier)}::placeholder`]: {
+          '--tw-placeholder-opacity': value,
+        },
+      }
+    },
   })
 }
