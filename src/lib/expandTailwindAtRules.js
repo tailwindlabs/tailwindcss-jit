@@ -139,10 +139,6 @@ function expandTailwindAtRules(context, registerDependency) {
     }
     env.DEBUG && console.timeEnd('Finding changed files')
 
-    if (context.changedFiles.size === 0) {
-      return root
-    }
-
     // ---
 
     // Find potential rules in changed files
