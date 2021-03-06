@@ -7,5 +7,7 @@ module.exports = {
     DEBUG: process.env.DEBUG !== undefined,
   },
   contextMap: new Map(),
+  configContextMap: new Map(),
+  contextSourcesMap: new Map(),
   contentMatchCache: new LRU({ maxSize: 25000 }),
 }

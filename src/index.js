@@ -31,7 +31,18 @@ module.exports = (configOrPath = {}) => {
           })
         }
 
-        let context = setupContext(configOrPath)(result, root)
+        // TODO: Maybe we only set up a context + run context dependent plugins
+        // on files that contain @tailwind rules? I don't know.
+        let foundTailwind = false
+        root.walkAtRules('tailwind', (rule) => {
+          foundTailwind = true
+        })
+
+        let context = null
+
+        if (foundTailwind) {
+          context = setupContext(configOrPath)(result, root)
+        }
 
         if (context.configPath !== null) {
           registerDependency(context.configPath)

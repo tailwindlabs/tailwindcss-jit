@@ -1,9 +1,11 @@
 const fs = require('fs')
+const url = require('url')
 const os = require('os')
 const path = require('path')
 const crypto = require('crypto')
 const chokidar = require('chokidar')
 const postcss = require('postcss')
+const hash = require('object-hash')
 const dlv = require('dlv')
 const selectorParser = require('postcss-selector-parser')
 const LRU = require('quick-lru')
@@ -21,6 +23,8 @@ const { isPlainObject } = require('./utils')
 const { isBuffer } = require('util')
 
 let contextMap = sharedState.contextMap
+let configContextMap = sharedState.configContextMap
+let contextSourcesMap = sharedState.contextSourcesMap
 let env = sharedState.env
 
 // Earmarks a directory for our touch files.
@@ -148,19 +152,21 @@ function getTailwindConfig(configOrPath) {
   let userConfigPath = resolveConfigPath(configOrPath)
 
   if (userConfigPath !== null) {
-    let [prevConfig, prevModified = -Infinity] = configPathCache.get(userConfigPath) ?? []
+    let [prevConfig, prevModified = -Infinity, prevConfigHash] =
+      configPathCache.get(userConfigPath) ?? []
     let modified = fs.statSync(userConfigPath).mtimeMs
 
     // It hasn't changed (based on timestamp)
     if (modified <= prevModified) {
-      return [prevConfig, userConfigPath]
+      return [prevConfig, userConfigPath, prevConfigHash]
     }
 
     // It has changed (based on timestamp), or first run
     delete require.cache[userConfigPath]
     let newConfig = resolveConfig(require(userConfigPath))
-    configPathCache.set(userConfigPath, [newConfig, modified])
-    return [newConfig, userConfigPath]
+    let newHash = hash(newConfig)
+    configPathCache.set(userConfigPath, [newConfig, modified, newHash])
+    return [newConfig, userConfigPath, newHash]
   }
 
   // It's a plain object, not a path
@@ -168,7 +174,7 @@ function getTailwindConfig(configOrPath) {
     configOrPath.config === undefined ? configOrPath : configOrPath.config
   )
 
-  return [newConfig, null]
+  return [newConfig, null, hash(newConfig)]
 }
 
 let fileModifiedMap = new Map()
@@ -177,13 +183,14 @@ function trackModified(files) {
   let changed = false
 
   for (let file of files) {
-    let newModified = fs.statSync(file).mtimeMs
+    let pathname = url.parse(file).pathname
+    let newModified = fs.statSync(pathname).mtimeMs
 
-    if (!fileModifiedMap.has(file) || newModified > fileModifiedMap.get(file)) {
+    if (!fileModifiedMap.has(pathname) || newModified > fileModifiedMap.get(pathname)) {
       changed = true
     }
 
-    fileModifiedMap.set(file, newModified)
+    fileModifiedMap.set(pathname, newModified)
   }
 
   return changed
@@ -538,7 +545,7 @@ function cleanupContext(context) {
 function setupContext(configOrPath) {
   return (result, root) => {
     let sourcePath = result.opts.from
-    let [tailwindConfig, userConfigPath] = getTailwindConfig(configOrPath)
+    let [tailwindConfig, userConfigPath, tailwindConfigHash] = getTailwindConfig(configOrPath)
 
     let contextDependencies = new Set()
     contextDependencies.add(sourcePath)
@@ -557,12 +564,38 @@ function setupContext(configOrPath) {
       trackModified([...contextDependencies]) || userConfigPath === null
 
     process.env.DEBUG && console.log('Source path:', sourcePath)
+
+    // If this file already has a context in the cache and we don't need to
+    // reset the context, return the cached context.
     if (contextMap.has(sourcePath) && !contextDependenciesChanged) {
       return contextMap.get(sourcePath)
     }
 
+    // If the config file used already exists in the cache, return that.
+    console.log('dependencies changed: ', contextDependenciesChanged)
+    console.log(tailwindConfigHash)
+    console.log(configContextMap.keys())
+    console.log(configContextMap.has(tailwindConfigHash))
+
+    // DAMN YOU CONTEXTDEPENDENCIESCHANGED
+    // Ideas:
+    // - Can we incorporate the presence of @tailwind rules somehow? If it has no Tailwind rules, be
+    // more lenient about the dependencies changing?
+    if (!contextDependenciesChanged && configContextMap.has(tailwindConfigHash)) {
+      let context = configContextMap.get(tailwindConfigHash)
+      contextSourcesMap.get(context).add(sourcePath)
+      contextMap.set(sourcePath, context)
+      return context
+    }
+
+    // TODO: Update this to no longer associate this path with its old context
+    // and clean up that context if no one else is using it.
     if (contextMap.has(sourcePath)) {
-      cleanupContext(contextMap.get(sourcePath))
+      let oldContext = contextMap.get(sourcePath)
+      contextSourcesMap.get(oldContext).remove(sourcePath)
+      if (contextSourcesMap.get(oldContext).size === 0) {
+        cleanupContext(oldContext)
+      }
     }
 
     process.env.DEBUG && console.log('Setting up new context...')
@@ -579,7 +612,6 @@ function setupContext(configOrPath) {
       newPostCssNodeCache: new Map(),
       candidateRuleMap: new Map(),
       configPath: userConfigPath,
-      sourcePath: sourcePath,
       tailwindConfig: tailwindConfig,
       configDependencies: new Set(),
       candidateFiles: Array.isArray(tailwindConfig.purge)
@@ -588,7 +620,21 @@ function setupContext(configOrPath) {
       variantMap: new Map(),
       stylesheetCache: null,
     }
+
+    // ---
+
+    // Update all context tracking state
+
+    configContextMap.set(tailwindConfigHash, context)
     contextMap.set(sourcePath, context)
+
+    if (!contextSourcesMap.has(context)) {
+      contextSourcesMap.set(context, new Set())
+    }
+
+    contextSourcesMap.get(context).add(sourcePath)
+
+    // ---
 
     if (userConfigPath !== null) {
       for (let dependency of getModuleDependencies(userConfigPath)) {
@@ -598,6 +644,12 @@ function setupContext(configOrPath) {
 
         context.configDependencies.add(dependency.file)
       }
+    }
+
+    let prev = null
+    for (let [key, value] of contextSourcesMap) {
+      console.log(key === prev)
+      prev = key
     }
 
     rebootWatcher(context)
