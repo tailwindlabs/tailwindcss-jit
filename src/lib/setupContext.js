@@ -544,20 +544,33 @@ function cleanupContext(context) {
 // plugins) then return it
 function setupContext(configOrPath) {
   return (result, root) => {
+    let foundTailwind = false
+
+    root.walkAtRules('tailwind', (rule) => {
+      foundTailwind = true
+    })
+
     let sourcePath = result.opts.from
     let [tailwindConfig, userConfigPath, tailwindConfigHash] = getTailwindConfig(configOrPath)
 
     let contextDependencies = new Set()
-    contextDependencies.add(sourcePath)
+
+    // If there are no @tailwind rules, we don't consider this CSS file or it's dependencies
+    // to be dependencies of the context. Can reuse the context even if they change.
+    // We may want to think about `@layer` being part of this trigger too, but it's tough
+    // because it's impossible for a layer in one file to end up in the actual @tailwind rule
+    // in another file since independent sources are effectively isolated.
+    if (foundTailwind) {
+      contextDependencies.add(sourcePath)
+      for (let message of result.messages) {
+        if (message.type === 'dependency') {
+          contextDependencies.add(message.file)
+        }
+      }
+    }
 
     if (userConfigPath !== null) {
       contextDependencies.add(userConfigPath)
-    }
-
-    for (let message of result.messages) {
-      if (message.type === 'dependency') {
-        contextDependencies.add(message.file)
-      }
     }
 
     let contextDependenciesChanged =
@@ -572,15 +585,6 @@ function setupContext(configOrPath) {
     }
 
     // If the config file used already exists in the cache, return that.
-    console.log('dependencies changed: ', contextDependenciesChanged)
-    console.log(tailwindConfigHash)
-    console.log(configContextMap.keys())
-    console.log(configContextMap.has(tailwindConfigHash))
-
-    // DAMN YOU CONTEXTDEPENDENCIESCHANGED
-    // Ideas:
-    // - Can we incorporate the presence of @tailwind rules somehow? If it has no Tailwind rules, be
-    // more lenient about the dependencies changing?
     if (!contextDependenciesChanged && configContextMap.has(tailwindConfigHash)) {
       let context = configContextMap.get(tailwindConfigHash)
       contextSourcesMap.get(context).add(sourcePath)
@@ -588,13 +592,19 @@ function setupContext(configOrPath) {
       return context
     }
 
-    // TODO: Update this to no longer associate this path with its old context
-    // and clean up that context if no one else is using it.
+    // If this source is in the context map, get the old context.
+    // Remove this source from the context sources for the old context,
+    // and clean up that context if no one else is using it. This can be
+    // called by many processes in rapid succession, so we check for presence
+    // first because the first process to run this code will wipe it out first.
     if (contextMap.has(sourcePath)) {
       let oldContext = contextMap.get(sourcePath)
-      contextSourcesMap.get(oldContext).remove(sourcePath)
-      if (contextSourcesMap.get(oldContext).size === 0) {
-        cleanupContext(oldContext)
+      if (contextSourcesMap.has(oldContext)) {
+        contextSourcesMap.get(oldContext).remove(sourcePath)
+        if (contextSourcesMap.get(oldContext).size === 0) {
+          contextSourcesMap.delete(oldContext)
+          cleanupContext(oldContext)
+        }
       }
     }
 
@@ -644,12 +654,6 @@ function setupContext(configOrPath) {
 
         context.configDependencies.add(dependency.file)
       }
-    }
-
-    let prev = null
-    for (let [key, value] of contextSourcesMap) {
-      console.log(key === prev)
-      prev = key
     }
 
     rebootWatcher(context)
