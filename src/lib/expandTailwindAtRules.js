@@ -206,7 +206,7 @@ function expandTailwindAtRules(context, registerDependency) {
     if (env.DEBUG) {
       console.log('Changed files: ', context.changedFiles.size)
       console.log('Potential classes: ', candidates.size)
-      console.log('Active contexts: ', sharedState.contextMap.size)
+      console.log('Active contexts: ', sharedState.contextSourcesMap.size)
       console.log('Content match entries', contentMatchCache.size)
     }
 
