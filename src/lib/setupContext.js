@@ -186,11 +186,11 @@ function trackModified(files) {
     let pathname = url.parse(file).pathname
     let newModified = fs.statSync(pathname).mtimeMs
 
-    if (!fileModifiedMap.has(pathname) || newModified > fileModifiedMap.get(pathname)) {
+    if (!fileModifiedMap.has(file) || newModified > fileModifiedMap.get(file)) {
       changed = true
     }
 
-    fileModifiedMap.set(pathname, newModified)
+    fileModifiedMap.set(file, newModified)
   }
 
   return changed
