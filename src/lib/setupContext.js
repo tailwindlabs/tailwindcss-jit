@@ -600,7 +600,7 @@ function setupContext(configOrPath) {
     if (contextMap.has(sourcePath)) {
       let oldContext = contextMap.get(sourcePath)
       if (contextSourcesMap.has(oldContext)) {
-        contextSourcesMap.get(oldContext).remove(sourcePath)
+        contextSourcesMap.get(oldContext).delete(sourcePath)
         if (contextSourcesMap.get(oldContext).size === 0) {
           contextSourcesMap.delete(oldContext)
           cleanupContext(oldContext)

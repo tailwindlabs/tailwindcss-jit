@@ -1,5 +1,6 @@
 const postcss = require('postcss')
 const { default: parseObjectStyles } = require('tailwindcss/lib/util/parseObjectStyles')
+const { transformAllSelectors } = require('../pluginUtils')
 const { toPostCssNode, isPlainObject } = require('./utils')
 
 // Generate match permutations for a class candidate, like:

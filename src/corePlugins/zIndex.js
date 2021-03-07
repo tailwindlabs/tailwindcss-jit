@@ -4,7 +4,7 @@ const { asValue } = require('../pluginUtils')
 module.exports = function ({ matchUtilities, jit: { theme } }) {
   matchUtilities({
     z: (modifier, { theme }) => {
-      let value = asValue(modifier, theme.scale)
+      let value = asValue(modifier, theme.zIndex)
 
       if (value === undefined) {
         return []
