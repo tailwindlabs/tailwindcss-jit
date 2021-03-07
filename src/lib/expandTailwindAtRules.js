@@ -120,6 +120,9 @@ function expandTailwindAtRules(context, registerDependency) {
       } = parseGlob(maybeGlob)
 
       if (isGlob) {
+        // register base dir as `dependency` _and_ `context-dependency` for
+        // increased compatibility
+        registerDependency(path.resolve(base))
         registerDependency(path.resolve(base), 'context-dependency')
       } else {
         registerDependency(path.resolve(maybeGlob))
