@@ -18,6 +18,8 @@ This comes with a lot of advantages:
 
 ## Getting started
 
+> While this idea is still in the pre-release phase, we've published it under a separate package. Eventually, we'll merge it with `tailwindcss` and expose it as a configuration option.
+
 Install `@tailwindcss/jit` from npm:
 
 ```sh
