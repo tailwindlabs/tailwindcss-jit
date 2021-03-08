@@ -94,6 +94,11 @@
 - [x] Unify base styles into the same "rules" abstraction
 - [x] Design user-facing API for authoring on-demand plugins
 
+### Mar 8
+
+- [x] Put plugins in deliberate order
+- [x] Fix bug with `@apply` populating a cache that caused stale CSS
+
 #### Next
 
 - [ ] Support `modifySelectors` in variant API
@@ -105,7 +110,6 @@
 - [ ] Only use `transformThemeValue` where necessary
 - [ ] Support "dynamic" variants (like group-2, etc.)
 - [ ] Refactor plugins to an abstraction that handles negative values, transformThemeValue, etc.
-- [ ] Put plugins in deliberate order
 - [ ] Include vendor prefixes for modern browsers by default so autoprefixer is only needed in production?
 - [ ] Cache Preflight styles? They only change when the config changes (default font family, border color, etc.)
 - [ ] Cache entire PostCSS tree and re-use if no candidate cache misses

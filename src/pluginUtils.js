@@ -43,10 +43,6 @@ function updateLastClasses(selectors, updateClass) {
   return result
 }
 
-function ruleIsEmpty([selector, rules]) {
-  return Array.isArray(rules) && rules.length === 0
-}
-
 function transformAllSelectors(transformSelector, wrap = null) {
   return ({ container }) => {
     container.walkRules((rule) => {
@@ -120,11 +116,6 @@ function asUnit(modifier, units, lookup = {}) {
   })
 }
 
-function newFormat(plugin) {
-  plugin.format = 'new'
-  return plugin
-}
-
 module.exports = {
   updateAllClasses,
   updateLastClasses,
@@ -192,9 +183,5 @@ module.exports = {
       ],
       lookup
     )
-  },
-  newFormat(plugin) {
-    plugin.format = 'new'
-    return plugin
   },
 }
