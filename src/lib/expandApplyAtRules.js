@@ -1,5 +1,5 @@
 const postcss = require('postcss')
-const { generateRules, resolveMatches } = require('./generateRules')
+const { resolveMatches } = require('./generateRules')
 const { bigSign } = require('./utils')
 const escape = require('tailwindcss/lib/util/escapeClassName').default
 
