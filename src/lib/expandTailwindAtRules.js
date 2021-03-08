@@ -1,7 +1,7 @@
 const fs = require('fs')
 const fastGlob = require('fast-glob')
 const sharedState = require('./sharedState')
-const generateRules = require('./generateRules')
+const { generateRules } = require('./generateRules')
 const { bigSign } = require('./utils')
 
 let env = sharedState.env
@@ -150,11 +150,10 @@ function expandTailwindAtRules(context, registerDependency) {
     // ---
 
     // Generate the actual CSS
-
     let classCacheCount = context.classCache.size
 
     env.DEBUG && console.time('Generate rules')
-    let rules = generateRules(context.tailwindConfig, candidates, context)
+    let rules = generateRules(candidates, context)
     env.DEBUG && console.timeEnd('Generate rules')
 
     // We only ever add to the classCache, so if it didn't grow, there is nothing new.

@@ -82,81 +82,96 @@ function parseRules(rule, cache, options = {}) {
   return [cache.get(rule), options]
 }
 
-function generateRules(tailwindConfig, candidates, context) {
-  let { candidateRuleMap, classCache, notClassCache, postCssNodeCache } = context
-  let allRules = []
+function resolveMatchedPlugins(classCandidate, context) {
+  if (context.candidateRuleMap.has(classCandidate)) {
+    return [context.candidateRuleMap.get(classCandidate), 'DEFAULT']
+  }
 
-  for (let candidate of candidates) {
-    if (notClassCache.has(candidate)) {
-      continue
+  let candidatePrefix = classCandidate
+  let negative = false
+
+  if (candidatePrefix[0] === '-') {
+    negative = true
+    candidatePrefix = candidatePrefix.slice(1)
+  }
+
+  for (let [prefix, modifier] of candidatePermutations(candidatePrefix)) {
+    if (context.candidateRuleMap.has(prefix)) {
+      return [context.candidateRuleMap.get(prefix), negative ? `-${modifier}` : modifier]
     }
+  }
 
-    if (classCache.has(candidate)) {
-      allRules.push(classCache.get(candidate))
-      continue
-    }
+  return null
+}
 
-    let [classCandidate, ...variants] = candidate.split(':').reverse()
-    let matchedPlugins = null
+function resolveMatches(candidate, context) {
+  let [classCandidate, ...variants] = candidate.split(':').reverse()
+  let matchedPlugins = resolveMatchedPlugins(classCandidate, context)
 
-    if (candidateRuleMap.has(classCandidate)) {
-      matchedPlugins = [candidateRuleMap.get(classCandidate), 'DEFAULT']
-    } else {
-      let candidatePrefix = classCandidate
-      let negative = false
+  if (matchedPlugins === null) {
+    return []
+  }
 
-      if (candidatePrefix[0] === '-') {
-        negative = true
-        candidatePrefix = candidatePrefix.slice(1)
-      }
+  let pluginHelpers = {
+    candidate: classCandidate,
+    theme: context.tailwindConfig.theme,
+  }
 
-      for (let [prefix, modifier] of candidatePermutations(candidatePrefix)) {
-        if (candidateRuleMap.has(prefix)) {
-          matchedPlugins = [candidateRuleMap.get(prefix), negative ? `-${modifier}` : modifier]
-          break
-        }
-      }
-    }
+  let matches = []
+  let [plugins, modifier] = matchedPlugins
 
-    if (matchedPlugins === null) {
-      notClassCache.add(candidate)
-      continue
-    }
-
-    let pluginHelpers = {
-      candidate: classCandidate,
-      theme: tailwindConfig.theme,
-    }
-
-    let matches = []
-    let [plugins, modifier] = matchedPlugins
-
-    for (let [sort, plugin] of plugins) {
-      if (typeof plugin === 'function') {
-        for (let ruleSet of [].concat(plugin(modifier, pluginHelpers))) {
-          let [rules, options] = parseRules(ruleSet, context.newPostCssNodeCache)
-          for (let rule of rules) {
-            matches.push([{ ...sort, options }, rule])
-          }
-        }
-      } else {
-        let ruleSet = plugin
-        let [rules, options] = parseRules(ruleSet, context.newPostCssNodeCache)
+  for (let [sort, plugin] of plugins) {
+    if (typeof plugin === 'function') {
+      for (let ruleSet of [].concat(plugin(modifier, pluginHelpers))) {
+        let [rules, options] = parseRules(ruleSet, context.postCssNodeCache)
         for (let rule of rules) {
           matches.push([{ ...sort, options }, rule])
         }
       }
+    } else {
+      let ruleSet = plugin
+      let [rules, options] = parseRules(ruleSet, context.postCssNodeCache)
+      for (let rule of rules) {
+        matches.push([{ ...sort, options }, rule])
+      }
+    }
+  }
+
+  for (let variant of variants) {
+    matches = applyVariant(variant, matches, context)
+  }
+
+  return matches
+}
+
+function generateRules(candidates, context) {
+  let allRules = []
+
+  for (let candidate of candidates) {
+    if (context.notClassCache.has(candidate)) {
+      continue
     }
 
-    for (let variant of variants) {
-      matches = applyVariant(variant, matches, context)
+    if (context.classCache.has(candidate)) {
+      allRules.push(context.classCache.get(candidate))
+      continue
     }
 
-    classCache.set(candidate, matches)
+    let matches = resolveMatches(candidate, context)
+
+    if (matches.length === 0) {
+      context.notClassCache.add(candidate)
+      continue
+    }
+
+    context.classCache.set(candidate, matches)
     allRules.push(matches)
   }
 
   return allRules.flat(1).map(([{ sort, layer }, rule]) => [sort | context.layerOrder[layer], rule])
 }
 
-module.exports = generateRules
+module.exports = {
+  resolveMatches,
+  generateRules,
+}

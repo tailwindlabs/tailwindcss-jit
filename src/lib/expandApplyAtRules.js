@@ -1,7 +1,31 @@
 const postcss = require('postcss')
-const generateRules = require('./generateRules')
+const { generateRules, resolveMatches } = require('./generateRules')
 const { bigSign } = require('./utils')
 const escape = require('tailwindcss/lib/util/escapeClassName').default
+
+function buildApplyCache(applyCandidates, context) {
+  for (let candidate of applyCandidates) {
+    if (context.notClassCache.has(candidate) || context.applyClassCache.has(candidate)) {
+      continue
+    }
+
+    if (context.classCache.has(candidate)) {
+      context.applyClassCache.set(candidate, context.classCache.get(candidate))
+      continue
+    }
+
+    let matches = resolveMatches(candidate, context)
+
+    if (matches.length === 0) {
+      context.notClassCache.add(candidate)
+      continue
+    }
+
+    context.applyClassCache.set(candidate, matches)
+  }
+
+  return context.applyClassCache
+}
 
 function expandApplyAtRules(context) {
   return (root) => {
@@ -18,14 +42,8 @@ function expandApplyAtRules(context) {
 
     // Start the @apply process if we have rules with @apply in them
     if (applies.length > 0) {
-      let classCacheCount = context.classCache.size
-
       // Fill up some caches!
-      generateRules(context.tailwindConfig, applyCandidates, context)
-
-      if (context.classCache.size > classCacheCount) {
-        context.stylesheetCache = null
-      }
+      let applyClassCache = buildApplyCache(applyCandidates, context)
 
       /**
        * When we have an apply like this:
@@ -59,13 +77,13 @@ function expandApplyAtRules(context) {
         let siblings = []
         let applyCandidates = apply.params.split(/[\s\t\n]+/g)
         for (let applyCandidate of applyCandidates) {
-          if (!context.classCache.has(applyCandidate)) {
+          if (!applyClassCache.has(applyCandidate)) {
             throw new Error(
               `The ${applyCandidate} class does not exist. If it's a custom class, make sure it is defined within a \`@layer\` directive.`
             )
           }
 
-          let rules = context.classCache.get(applyCandidate)
+          let rules = applyClassCache.get(applyCandidate)
 
           for (let [meta, node] of rules) {
             let root = postcss.root({ nodes: [node] })
