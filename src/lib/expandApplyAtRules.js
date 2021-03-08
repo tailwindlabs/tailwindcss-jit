@@ -59,9 +59,10 @@ function expandApplyAtRules(context) {
         let siblings = []
         let applyCandidates = apply.params.split(/[\s\t\n]+/g)
         for (let applyCandidate of applyCandidates) {
-          // TODO: Check for user css rules?
           if (!context.classCache.has(applyCandidate)) {
-            throw new Error('Utility does not exist!')
+            throw new Error(
+              `The ${applyCandidate} class does not exist. If it's a custom class, make sure it is defined within a \`@layer\` directive.`
+            )
           }
 
           let rules = context.classCache.get(applyCandidate)
