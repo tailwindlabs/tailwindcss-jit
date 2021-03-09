@@ -14,7 +14,7 @@ function buildApplyCache(applyCandidates, context) {
       continue
     }
 
-    let matches = resolveMatches(candidate, context)
+    let matches = Array.from(resolveMatches(candidate, context))
 
     if (matches.length === 0) {
       context.notClassCache.add(candidate)

@@ -80,6 +80,9 @@ test('it works', () => {
     * {
       padding: 5px;
     }
+    .foo .bg-black {
+      appearance: none;
+    }
   }
   @layer base {
     div {

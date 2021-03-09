@@ -225,6 +225,9 @@ div {
 * {
   padding: 5px;
 }
+.foo .bg-black {
+  appearance: none;
+}
 .mt-6 {
   margin-top: 1.5rem;
 }
@@ -246,6 +249,10 @@ div {
 }
 .grid-cols-\[200px\,repeat\(auto-fill\,minmax\(15\%\,100px\)\)\,300px\] {
   grid-template-columns: 200px repeat(auto-fill, minmax(15%, 100px)) 300px;
+}
+.bg-black {
+  --tw-bg-opacity: 1;
+  background-color: rgba(0, 0, 0, var(--tw-bg-opacity));
 }
 .bg-green-500 {
   --tw-bg-opacity: 1;

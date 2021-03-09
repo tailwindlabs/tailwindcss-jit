@@ -17,17 +17,17 @@ function getClassNameFromSelector(selector) {
 // ['ring-offset', 'blue-100']
 // ['ring', 'offset-blue-100']
 function* candidatePermutations(prefix, modifier = '') {
-  yield [prefix, modifier]
-
   let dashIdx = prefix.lastIndexOf('-')
   if (dashIdx === -1) {
     return
   }
 
-  yield* candidatePermutations(
-    prefix.slice(0, dashIdx),
-    [prefix.slice(dashIdx + 1), modifier].filter(Boolean).join('-')
-  )
+  modifier = [prefix.slice(dashIdx + 1), modifier].filter(Boolean).join('-')
+  prefix = prefix.slice(0, dashIdx)
+
+  yield [prefix, modifier]
+
+  yield* candidatePermutations(prefix, modifier)
 }
 
 // Takes a list of rule tuples and applies a variant like `hover`, sm`,
@@ -109,9 +109,9 @@ function parseRules(rule, cache, options = {}) {
   return [cache.get(rule), options]
 }
 
-function resolveMatchedPlugins(classCandidate, context) {
+function* resolveMatchedPlugins(classCandidate, context) {
   if (context.candidateRuleMap.has(classCandidate)) {
-    return [context.candidateRuleMap.get(classCandidate), 'DEFAULT']
+    yield [context.candidateRuleMap.get(classCandidate), 'DEFAULT']
   }
 
   let candidatePrefix = classCandidate
@@ -124,11 +124,10 @@ function resolveMatchedPlugins(classCandidate, context) {
 
   for (let [prefix, modifier] of candidatePermutations(candidatePrefix)) {
     if (context.candidateRuleMap.has(prefix)) {
-      return [context.candidateRuleMap.get(prefix), negative ? `-${modifier}` : modifier]
+      yield [context.candidateRuleMap.get(prefix), negative ? `-${modifier}` : modifier]
+      return
     }
   }
-
-  return null
 }
 
 function sortAgainst(toSort, against) {
@@ -137,13 +136,11 @@ function sortAgainst(toSort, against) {
   })
 }
 
-function resolveMatches(candidate, context) {
+function* resolveMatches(candidate, context) {
   let [classCandidate, ...variants] = candidate.split(':').reverse()
 
   // Strip prefix
   // md:hover:tw-bg-black
-
-  let matchedPlugins = resolveMatchedPlugins(classCandidate, context)
 
   // TODO: Reintroduce this in ways that doesn't break on false positives
   // let sorted = sortAgainst(variants, context.variantMap)
@@ -152,40 +149,40 @@ function resolveMatches(candidate, context) {
   //   throw new Error(`Class ${candidate} should be written as ${corrected}`)
   // }
 
-  if (matchedPlugins === null) {
-    return []
-  }
+  for (let matchedPlugins of resolveMatchedPlugins(classCandidate, context)) {
+    let pluginHelpers = {
+      candidate: classCandidate,
+      theme: context.tailwindConfig.theme,
+    }
 
-  let pluginHelpers = {
-    candidate: classCandidate,
-    theme: context.tailwindConfig.theme,
-  }
+    let matches = []
+    let [plugins, modifier] = matchedPlugins
 
-  let matches = []
-  let [plugins, modifier] = matchedPlugins
-
-  for (let [sort, plugin] of plugins) {
-    if (typeof plugin === 'function') {
-      for (let ruleSet of [].concat(plugin(modifier, pluginHelpers))) {
+    for (let [sort, plugin] of plugins) {
+      if (typeof plugin === 'function') {
+        for (let ruleSet of [].concat(plugin(modifier, pluginHelpers))) {
+          let [rules, options] = parseRules(ruleSet, context.postCssNodeCache)
+          for (let rule of rules) {
+            matches.push([{ ...sort, options }, rule])
+          }
+        }
+      } else {
+        let ruleSet = plugin
         let [rules, options] = parseRules(ruleSet, context.postCssNodeCache)
         for (let rule of rules) {
           matches.push([{ ...sort, options }, rule])
         }
       }
-    } else {
-      let ruleSet = plugin
-      let [rules, options] = parseRules(ruleSet, context.postCssNodeCache)
-      for (let rule of rules) {
-        matches.push([{ ...sort, options }, rule])
-      }
+    }
+
+    for (let variant of variants) {
+      matches = applyVariant(variant, matches, context)
+    }
+
+    for (let match of matches) {
+      yield match
     }
   }
-
-  for (let variant of variants) {
-    matches = applyVariant(variant, matches, context)
-  }
-
-  return matches
 }
 
 function generateRules(candidates, context) {
@@ -201,7 +198,7 @@ function generateRules(candidates, context) {
       continue
     }
 
-    let matches = resolveMatches(candidate, context)
+    let matches = Array.from(resolveMatches(candidate, context))
 
     // apply prefix and important here?
 
