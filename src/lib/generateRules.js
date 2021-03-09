@@ -145,11 +145,12 @@ function resolveMatches(candidate, context) {
 
   let matchedPlugins = resolveMatchedPlugins(classCandidate, context)
 
-  let sorted = sortAgainst(variants, context.variantMap)
-  if (sorted.toString() !== variants.toString()) {
-    let corrected = sorted.reverse().concat(classCandidate).join(':')
-    throw new Error(`Class ${candidate} should be written as ${corrected}`)
-  }
+  // TODO: Reintroduce this in ways that doesn't break on false positives
+  // let sorted = sortAgainst(variants, context.variantMap)
+  // if (sorted.toString() !== variants.toString()) {
+  //   let corrected = sorted.reverse().concat(classCandidate).join(':')
+  //   throw new Error(`Class ${candidate} should be written as ${corrected}`)
+  // }
 
   if (matchedPlugins === null) {
     return []
