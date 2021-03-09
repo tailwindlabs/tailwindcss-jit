@@ -1,7 +1,7 @@
 const postcss = require('postcss')
 const { default: parseObjectStyles } = require('tailwindcss/lib/util/parseObjectStyles')
 const { transformAllSelectors } = require('../pluginUtils')
-const { toPostCssNode, isPlainObject } = require('./utils')
+const { toPostCssNode, isPlainObject, bigSign } = require('./utils')
 const selectorParser = require('postcss-selector-parser')
 
 let classNameParser = selectorParser((selectors) => {
@@ -131,9 +131,21 @@ function resolveMatchedPlugins(classCandidate, context) {
   return null
 }
 
+function sortAgainst(toSort, against) {
+  return toSort.slice().sort((a, z) => {
+    return bigSign(against.get(a)[0] - against.get(z)[0])
+  })
+}
+
 function resolveMatches(candidate, context) {
   let [classCandidate, ...variants] = candidate.split(':').reverse()
   let matchedPlugins = resolveMatchedPlugins(classCandidate, context)
+
+  let sorted = sortAgainst(variants, context.variantMap)
+  if (sorted.toString() !== variants.toString()) {
+    let corrected = sorted.reverse().concat(classCandidate).join(':')
+    throw new Error(`Class ${candidate} should be written as ${corrected}`)
+  }
 
   if (matchedPlugins === null) {
     return []

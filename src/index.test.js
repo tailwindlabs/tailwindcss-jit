@@ -139,9 +139,6 @@ test('it works', () => {
   .apply-dark-group-example-a {
     @apply dark:group-hover:bg-green-500;
   }
-  .apply-dark-group-example-b {
-    @apply group-hover:dark:bg-green-500;
-  }
   .crazy-example {
     @apply sm:motion-safe:group-active:focus:opacity-10;
   }

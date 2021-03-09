@@ -119,10 +119,6 @@
   --tw-bg-opacity: 1;
   background-color: rgba(16, 185, 129, var(--tw-bg-opacity));
 }
-.group:hover .group-hover\:dark .apply-dark-group-example-b {
-  --tw-bg-opacity: 1;
-  background-color: rgba(16, 185, 129, var(--tw-bg-opacity));
-}
 @media (min-width: 640px) {
   @media (prefers-reduced-motion: no-preference) {
     .group:active .crazy-example:focus {
@@ -357,7 +353,7 @@ div {
   --tw-ring-opacity: 1;
   --tw-ring-color: rgba(59, 130, 246, var(--tw-ring-opacity));
 }
-.hover\:focus\:font-light:hover:focus {
+.focus\:hover\:font-light:focus:hover {
   font-weight: 300;
 }
 .disabled\:font-bold:disabled {
@@ -512,14 +508,12 @@ div {
     }
   }
   @media (prefers-reduced-motion: no-preference) {
-    .dark .md\:dark\:motion-safe\:foo\:active\:custom-util:active {
+    .foo\:dark .md\:dark\:motion-safe\:active\:custom-util:active {
       background: #abcdef !important;
     }
   }
-}
-@media (min-width: 640px) {
-  @media (min-width: 768px) {
-    .sm\:md\:text-center {
+  @media (min-width: 640px) {
+    .md\:sm\:text-center {
       text-align: center;
     }
   }
