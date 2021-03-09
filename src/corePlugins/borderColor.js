@@ -21,7 +21,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
 
       return {
         [nameClass('border', modifier)]: withAlphaVariable({
-          color: colorPalette[modifier],
+          color: value,
           property: 'border-color',
           variable: '--tw-border-opacity',
         }),
