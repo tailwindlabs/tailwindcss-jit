@@ -2,6 +2,15 @@ const postcss = require('postcss')
 const { default: parseObjectStyles } = require('tailwindcss/lib/util/parseObjectStyles')
 const { transformAllSelectors } = require('../pluginUtils')
 const { toPostCssNode, isPlainObject } = require('./utils')
+const selectorParser = require('postcss-selector-parser')
+
+let classNameParser = selectorParser((selectors) => {
+  return selectors.first.filter(({ type }) => type === 'class').pop().value
+})
+
+function getClassNameFromSelector(selector) {
+  return classNameParser.transformSync(selector)
+}
 
 // Generate match permutations for a class candidate, like:
 // ['ring-offset-blue', '100']
@@ -47,7 +56,25 @@ function applyVariant(variant, matches, { variantMap }) {
 
       let container = postcss.root({ nodes: [rule] })
 
-      let ruleWithVariant = applyThisVariant({ container })
+      function modifySelectors(modifierFunction) {
+        container.each((rule) => {
+          if (rule.type !== 'rule') {
+            return
+          }
+
+          rule.selectors = rule.selectors.map((selector) => {
+            return modifierFunction({
+              get className() {
+                return getClassNameFromSelector(selector)
+              },
+              selector,
+            })
+          })
+        })
+        return container
+      }
+
+      let ruleWithVariant = applyThisVariant({ container, separator: ':', modifySelectors })
 
       if (ruleWithVariant === null) {
         continue
