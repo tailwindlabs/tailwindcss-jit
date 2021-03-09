@@ -32,7 +32,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
         return [
           keyframes[animationName],
           { [nameClass('animate', modifier)]: { animation: value } },
-        ]
+        ].filter(Boolean)
       },
     ],
   })
