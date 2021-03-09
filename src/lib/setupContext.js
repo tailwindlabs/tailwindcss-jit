@@ -504,7 +504,7 @@ function registerPlugins(tailwindConfig, plugins, context) {
     }
   }
 
-  let highestOffset = ((...args) => args.reduce((m, e) => (e > m ? e : m)))([
+  let highestOffset = ((args) => args.reduce((m, e) => (e > m ? e : m)))([
     offsets.base,
     offsets.components,
     offsets.utilities,
