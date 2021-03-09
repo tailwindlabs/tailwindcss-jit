@@ -27,6 +27,17 @@ function buildApplyCache(applyCandidates, context) {
   return context.applyClassCache
 }
 
+// TODO: Apply `!important` stuff correctly instead of just skipping it
+function extractApplyCandidates(params) {
+  let candidates = params.split(/[\s\t\n]+/g)
+
+  if (candidates[candidates.length - 1] === '!important') {
+    candidates = candidates.slice(0, -1)
+  }
+
+  return candidates
+}
+
 function expandApplyAtRules(context) {
   return (root) => {
     let applyCandidates = new Set()
@@ -34,7 +45,9 @@ function expandApplyAtRules(context) {
     // Collect all @apply rules and candidates
     let applies = []
     root.walkAtRules('apply', (rule) => {
-      for (let util of rule.params.split(/[\s\t\n]+/g)) {
+      let candidates = extractApplyCandidates(rule.params)
+
+      for (let util of candidates) {
         applyCandidates.add(util)
       }
       applies.push(rule)
@@ -75,7 +88,8 @@ function expandApplyAtRules(context) {
 
       for (let apply of applies) {
         let siblings = []
-        let applyCandidates = apply.params.split(/[\s\t\n]+/g)
+        let applyCandidates = extractApplyCandidates(apply.params)
+
         for (let applyCandidate of applyCandidates) {
           if (!applyClassCache.has(applyCandidate)) {
             throw new Error(
