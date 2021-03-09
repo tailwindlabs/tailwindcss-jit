@@ -139,6 +139,10 @@ function sortAgainst(toSort, against) {
 
 function resolveMatches(candidate, context) {
   let [classCandidate, ...variants] = candidate.split(':').reverse()
+
+  // Strip prefix
+  // md:hover:tw-bg-black
+
   let matchedPlugins = resolveMatchedPlugins(classCandidate, context)
 
   let sorted = sortAgainst(variants, context.variantMap)
@@ -197,6 +201,8 @@ function generateRules(candidates, context) {
     }
 
     let matches = resolveMatches(candidate, context)
+
+    // apply prefix and important here?
 
     if (matches.length === 0) {
       context.notClassCache.add(candidate)
