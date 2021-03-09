@@ -350,7 +350,6 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
   }
 
   return {
-    // Classic plugin API
     addVariant(variantName, applyThisVariant, options = {}) {
       insertInto(variantList, variantName, options)
       variantMap.set(variantName, applyThisVariant)
