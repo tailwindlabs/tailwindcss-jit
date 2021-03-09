@@ -11,7 +11,7 @@ const {
 } = require('../pluginUtils')
 
 module.exports = {
-  variants: function ({ jit: { config, theme, addUtilities, addVariant, e } }) {
+  pseudoClassVariants: function ({ jit: { config, theme, addUtilities, addVariant, e } }) {
     let pseudoVariants = [
       ['first', 'first-child'],
       ['last', 'last-child'],
@@ -57,7 +57,8 @@ module.exports = {
         })
       )
     }
-
+  },
+  reducedMotionVariants: function ({ jit: { config, theme, addUtilities, addVariant, e } }) {
     addVariant(
       'motion-safe',
       transformLastClasses(
@@ -77,7 +78,8 @@ module.exports = {
         () => postcss.atRule({ name: 'media', params: '(prefers-reduced-motion: reduce)' })
       )
     )
-
+  },
+  directionVariants: function ({ jit: { config, theme, addUtilities, addVariant, e } }) {
     addVariant(
       'ltr',
       transformAllSelectors(
@@ -91,7 +93,8 @@ module.exports = {
         (selector) => `[dir="rtl"] ${updateAllClasses(selector, (className) => `rtl:${className}`)}`
       )
     )
-
+  },
+  darkVariants: function ({ jit: { config, theme, addUtilities, addVariant, e } }) {
     if (config.darkMode === 'class') {
       addVariant(
         'dark',
@@ -118,7 +121,8 @@ module.exports = {
         )
       )
     }
-
+  },
+  screenVariants: function ({ jit: { config, theme, addUtilities, addVariant, e } }) {
     for (let screen in theme.screens) {
       let size = theme.screens[screen]
       let query = buildMediaQuery(size)

@@ -368,6 +368,12 @@ div {
 .group:active .group-active\:opacity-10 {
   opacity: 0.1;
 }
+.foo\:custom-util {
+  background: #abcdef !important;
+}
+.foo\:hover\:custom-util:hover {
+  background: #abcdef !important;
+}
 @media (prefers-reduced-motion: no-preference) {
   .motion-safe\:transition {
     transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow,
@@ -389,12 +395,6 @@ div {
 }
 .dark .dark\:custom-util {
   background: #abcdef;
-}
-.foo\:custom-util {
-  background: #abcdef !important;
-}
-.foo\:hover\:custom-util:hover {
-  background: #abcdef !important;
 }
 @media (min-width: 640px) {
   .sm\:container {
@@ -508,7 +508,7 @@ div {
     }
   }
   @media (prefers-reduced-motion: no-preference) {
-    .foo\:dark .md\:dark\:motion-safe\:active\:custom-util:active {
+    .dark .md\:dark\:motion-safe\:foo\:active\:custom-util:active {
       background: #abcdef !important;
     }
   }

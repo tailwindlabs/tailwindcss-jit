@@ -659,11 +659,6 @@ function setupContext(configOrPath) {
 
     let corePluginList = Object.entries(corePlugins)
       .map(([name, plugin]) => {
-        // TODO: Make variants a real core plugin so we don't special case it
-        if (name === 'variants') {
-          return plugin
-        }
-
         if (!tailwindConfig.corePlugins.includes(name)) {
           return null
         }
@@ -707,9 +702,19 @@ function setupContext(configOrPath) {
       }
     })
 
+    // TODO: This is a workaround for backwards compatibility, since custom variants
+    // were historically sorted before screen/stackable variants.
+    let beforeVariants = [corePlugins['pseudoClassVariants']]
+    let afterVariants = [
+      corePlugins['directionVariants'],
+      corePlugins['reducedMotionVariants'],
+      corePlugins['darkVariants'],
+      corePlugins['screenVariants'],
+    ]
+
     registerPlugins(
       context.tailwindConfig,
-      [...corePluginList, ...userPlugins, ...layerPlugins],
+      [...corePluginList, ...beforeVariants, ...userPlugins, ...afterVariants, ...layerPlugins],
       context
     )
 
