@@ -409,7 +409,9 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
           context.candidateRuleMap.set(identifier, [])
         }
 
-        context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'components' }, rule])
+        context.candidateRuleMap
+          .get(identifier)
+          .push([{ sort: offset, layer: 'components', options }, rule])
       }
     },
     addUtilities(utilities, options) {
@@ -433,7 +435,9 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
           context.candidateRuleMap.set(identifier, [])
         }
 
-        context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'utilities' }, rule])
+        context.candidateRuleMap
+          .get(identifier)
+          .push([{ sort: offset, layer: 'utilities', options }, rule])
       }
     },
     matchBase: function (base) {
@@ -451,13 +455,22 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         context.candidateRuleMap.get(identifier).push(...withOffsets)
       }
     },
-    matchUtilities: function (utilities) {
+    matchUtilities: function (utilities, options) {
+      let defaultOptions = {
+        variants: [],
+        respectPrefix: true,
+        respectImportant: true,
+        respectVariants: true,
+      }
+
+      options = { ...defaultOptions, ...options }
+
       let offset = offsets.utilities++
 
       for (let identifier in utilities) {
         let value = [].concat(utilities[identifier])
 
-        let withOffsets = value.map((rule) => [{ sort: offset, layer: 'utilities' }, rule])
+        let withOffsets = value.map((rule) => [{ sort: offset, layer: 'utilities', options }, rule])
 
         if (!context.candidateRuleMap.has(identifier)) {
           context.candidateRuleMap.set(identifier, [])

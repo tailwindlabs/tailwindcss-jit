@@ -168,14 +168,14 @@ function* resolveMatches(candidate, context) {
         for (let ruleSet of [].concat(plugin(modifier, pluginHelpers))) {
           let [rules, options] = parseRules(ruleSet, context.postCssNodeCache)
           for (let rule of rules) {
-            matches.push([{ ...sort, options }, rule])
+            matches.push([{ ...sort, options: { ...sort.options, ...options } }, rule])
           }
         }
       } else {
         let ruleSet = plugin
         let [rules, options] = parseRules(ruleSet, context.postCssNodeCache)
         for (let rule of rules) {
-          matches.push([{ ...sort, options }, rule])
+          matches.push([{ ...sort, options: { ...sort.options, ...options } }, rule])
         }
       }
     }
@@ -216,7 +216,14 @@ function generateRules(candidates, context) {
     allRules.push(matches)
   }
 
-  return allRules.flat(1).map(([{ sort, layer }, rule]) => [sort | context.layerOrder[layer], rule])
+  return allRules.flat(1).map(([{ sort, layer, options }, rule]) => {
+    if (context.tailwindConfig.important === true && options.respectImportant) {
+      rule.walkDecls((d) => {
+        d.important = true
+      })
+    }
+    return [sort | context.layerOrder[layer], rule]
+  })
 }
 
 module.exports = {
