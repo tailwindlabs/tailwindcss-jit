@@ -79,10 +79,20 @@ function expandApplyAtRules(context) {
        * Which means that we can replace `.hover\:font-bold` with `.abc` in `.hover\:font-bold:hover` resulting in `.abc:hover`
        */
       // TODO: Should we use postcss-selector-parser for this instead?
-      function replaceSelector(selector, utilitySelector, candidate) {
+      function replaceSelector(selector, utilitySelectors, candidate) {
         return selector
           .split(/\s*,\s*/g)
-          .map((s) => utilitySelector.replace(`.${escape(candidate)}`, s))
+          .map((s) => {
+            let replaced = []
+            for (let utilitySelector of utilitySelectors.split(/\s*,\s*/g)) {
+              let replacedSelector = utilitySelector.replace(`.${escape(candidate)}`, s)
+              if (replacedSelector === utilitySelector) {
+                continue
+              }
+              replaced.push(replacedSelector)
+            }
+            return replaced.join(', ')
+          })
           .join(', ')
       }
 

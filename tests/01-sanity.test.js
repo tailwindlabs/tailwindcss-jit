@@ -72,6 +72,9 @@ test('it works', () => {
     }
   }
   @layer components {
+    .test-apply-font-variant {
+      @apply ordinal tabular-nums;
+    }
     .custom-component {
       background: #123456;
     }

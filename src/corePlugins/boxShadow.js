@@ -8,19 +8,19 @@ let shadowReset = {
   },
 }
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
+module.exports = function ({ addBase, matchUtilities, jit: { theme } }) {
+  addBase(shadowReset)
   matchUtilities({
     shadow: (modifier, { theme }) => {
       modifier = modifier === '' ? 'DEFAULT' : modifier
 
       let value = transformValue(theme.boxShadow[modifier])
 
-      if (modifier === '' || value === undefined) {
+      if (value === undefined) {
         return []
       }
 
       return [
-        [shadowReset, { respectVariants: false }],
         {
           [nameClass('shadow', modifier)]: {
             '--tw-shadow': value === 'none' ? '0 0 #0000' : value,

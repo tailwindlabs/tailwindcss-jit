@@ -12,7 +12,7 @@ function safeCall(callback, defaultValue) {
   }
 }
 
-module.exports = function ({ matchUtilities, addUtilities, jit: { theme } }) {
+module.exports = function ({ addBase, matchUtilities, addUtilities, jit: { theme } }) {
   let ringColorDefault = (([r, g, b]) => {
     return `rgba(${r}, ${g}, ${b}, ${dlv(theme, ['ringOpacity', 'DEFAULT'], '0.5')})`
   })(safeCall(() => toRgba(dlv(theme, ['ringColor', 'DEFAULT'])), ['147', '197', '253']))
@@ -28,6 +28,8 @@ module.exports = function ({ matchUtilities, addUtilities, jit: { theme } }) {
     },
   }
 
+  addBase(ringReset)
+
   matchUtilities({
     ring: (modifier, { theme }) => {
       let value = asLength(modifier, theme['ringWidth'])
@@ -37,12 +39,6 @@ module.exports = function ({ matchUtilities, addUtilities, jit: { theme } }) {
       }
 
       return [
-        [
-          ringReset,
-          {
-            respectVariants: false,
-          },
-        ],
         {
           [nameClass('ring', modifier)]: {
             '--tw-ring-offset-shadow': `var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color)`,
