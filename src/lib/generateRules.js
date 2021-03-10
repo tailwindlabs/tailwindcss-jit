@@ -39,13 +39,13 @@ function* candidatePermutations(prefix, modifier = '') {
 // and `focus:hover:text-center` in the same project, but it doesn't feel
 // worth the complexity for that case.
 
-function applyVariant(variant, matches, { variantMap }) {
+function applyVariant(variant, matches, context) {
   if (matches.length === 0) {
     return matches
   }
 
-  if (variantMap.has(variant)) {
-    let [variantSort, applyThisVariant] = variantMap.get(variant)
+  if (context.variantMap.has(variant)) {
+    let [variantSort, applyThisVariant] = context.variantMap.get(variant)
     let result = []
 
     for (let [{ sort, layer, options }, rule] of matches) {
@@ -74,7 +74,11 @@ function applyVariant(variant, matches, { variantMap }) {
         return container
       }
 
-      let ruleWithVariant = applyThisVariant({ container, separator: ':', modifySelectors })
+      let ruleWithVariant = applyThisVariant({
+        container,
+        separator: context.tailwindConfig.separator,
+        modifySelectors,
+      })
 
       if (ruleWithVariant === null) {
         continue
@@ -137,7 +141,8 @@ function sortAgainst(toSort, against) {
 }
 
 function* resolveMatches(candidate, context) {
-  let [classCandidate, ...variants] = candidate.split(':').reverse()
+  let separator = context.tailwindConfig.separator
+  let [classCandidate, ...variants] = candidate.split(separator).reverse()
 
   // Strip prefix
   // md:hover:tw-bg-black
