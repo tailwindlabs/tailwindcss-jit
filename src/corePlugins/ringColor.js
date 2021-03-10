@@ -9,6 +9,10 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
 
   matchUtilities({
     ring: (modifier, { theme }) => {
+      if (modifier === 'DEFAULT') {
+        return []
+      }
+
       let value = asColor(modifier, colorPalette)
 
       if (value === undefined) {

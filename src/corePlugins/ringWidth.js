@@ -15,7 +15,7 @@ function safeCall(callback, defaultValue) {
 module.exports = function ({ matchUtilities, addUtilities, jit: { theme } }) {
   let ringColorDefault = (([r, g, b]) => {
     return `rgba(${r}, ${g}, ${b}, ${dlv(theme, ['ringOpacity', 'DEFAULT'], '0.5')})`
-  })(safeCall(() => toRgba(dlv(theme, ['ringOpacity', 'DEFAULT'])), ['147', '197', '253']))
+  })(safeCall(() => toRgba(dlv(theme, ['ringColor', 'DEFAULT'])), ['147', '197', '253']))
 
   let ringReset = {
     '*': {
