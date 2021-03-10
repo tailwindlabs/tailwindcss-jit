@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "main": "src/index.js",
   "scripts": {
-    "test": "jest"
+    "test": "TAILWIND_MODE=build jest"
   },
   "prettier": {
     "printWidth": 100,
