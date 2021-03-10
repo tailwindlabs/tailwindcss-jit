@@ -39,6 +39,14 @@ test('important boolean', () => {
   let css = `
     @tailwind base;
     @tailwind components;
+    @layer components {
+      .custom-component {
+        @apply font-bold;
+      }
+      .custom-important-component {
+        @apply text-center !important;
+      }
+    }
     @tailwind utilities;
   `
 

@@ -38,6 +38,12 @@
 .btn {
   button: yes !important;
 }
+.custom-component {
+  font-weight: 700;
+}
+.custom-important-component {
+  text-align: center !important;
+}
 .font-bold {
   font-weight: 700 !important;
 }

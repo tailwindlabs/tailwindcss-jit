@@ -32,10 +32,10 @@ function extractApplyCandidates(params) {
   let candidates = params.split(/[\s\t\n]+/g)
 
   if (candidates[candidates.length - 1] === '!important') {
-    candidates = candidates.slice(0, -1)
+    return [candidates.slice(0, -1), true]
   }
 
-  return candidates
+  return [candidates, false]
 }
 
 function expandApplyAtRules(context) {
@@ -45,7 +45,7 @@ function expandApplyAtRules(context) {
     // Collect all @apply rules and candidates
     let applies = []
     root.walkAtRules('apply', (rule) => {
-      let candidates = extractApplyCandidates(rule.params)
+      let [candidates, important] = extractApplyCandidates(rule.params)
 
       for (let util of candidates) {
         applyCandidates.add(util)
@@ -98,7 +98,7 @@ function expandApplyAtRules(context) {
 
       for (let apply of applies) {
         let siblings = []
-        let applyCandidates = extractApplyCandidates(apply.params)
+        let [applyCandidates, important] = extractApplyCandidates(apply.params)
 
         for (let applyCandidate of applyCandidates) {
           if (!applyClassCache.has(applyCandidate)) {
@@ -110,10 +110,13 @@ function expandApplyAtRules(context) {
           let rules = applyClassCache.get(applyCandidate)
 
           for (let [meta, node] of rules) {
-            let root = postcss.root({ nodes: [node] })
+            let root = postcss.root({ nodes: [node.clone()] })
 
             root.walkRules((rule) => {
               rule.selector = replaceSelector(apply.parent.selector, rule.selector, applyCandidate)
+              rule.walkDecls((d) => {
+                d.important = important
+              })
             })
 
             siblings.push([meta, root.nodes[0]])
