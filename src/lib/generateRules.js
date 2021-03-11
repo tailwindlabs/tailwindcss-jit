@@ -217,10 +217,19 @@ function generateRules(candidates, context) {
   }
 
   return allRules.flat(1).map(([{ sort, layer, options }, rule]) => {
-    if (context.tailwindConfig.important === true && options.respectImportant) {
-      rule.walkDecls((d) => {
-        d.important = true
-      })
+    if (options.respectImportant) {
+      if (context.tailwindConfig.important === true && options.respectImportant) {
+        rule.walkDecls((d) => {
+          d.important = true
+        })
+      } else if (typeof context.tailwindConfig.important === 'string') {
+        if (rule.type === 'rule') {
+          rule.selectors = rule.selectors.map((s) => `${context.tailwindConfig.important} ${s}`)
+        }
+        rule.walkRules((r) => {
+          r.selectors = r.selectors.map((s) => `${context.tailwindConfig.important} ${s}`)
+        })
+      }
     }
     return [sort | context.layerOrder[layer], rule]
   })

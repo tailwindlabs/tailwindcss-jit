@@ -27,7 +27,6 @@ function buildApplyCache(applyCandidates, context) {
   return context.applyClassCache
 }
 
-// TODO: Apply `!important` stuff correctly instead of just skipping it
 function extractApplyCandidates(params) {
   let candidates = params.split(/[\s\t\n]+/g)
 
