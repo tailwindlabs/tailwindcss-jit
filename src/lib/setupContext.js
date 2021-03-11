@@ -349,6 +349,14 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
     return prefixSelector(tailwindConfig.prefix, selector)
   }
 
+  function prefixIdentifier(identifier, options) {
+    if (identifier === '*') {
+      return '*'
+    }
+
+    return options.respectPrefix ? context.tailwindConfig.prefix + identifier : identifier
+  }
+
   return {
     addVariant(variantName, applyThisVariant, options = {}) {
       insertInto(variantList, variantName, options)
@@ -379,13 +387,7 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
     },
     addBase(base) {
       for (let [identifier, rule] of withIdentifiers(base)) {
-        let prefixedIdentifier =
-          identifier === '*'
-            ? '*'
-            : options.respectPrefix
-            ? context.tailwindConfig.prefix + identifier
-            : identifier
-
+        let prefixedIdentifier = prefixIdentifier(identifier, {})
         let offset = offsets.base++
 
         if (!context.candidateRuleMap.has(prefixedIdentifier)) {
@@ -412,12 +414,7 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       )
 
       for (let [identifier, rule] of withIdentifiers(components)) {
-        let prefixedIdentifier =
-          identifier === '*'
-            ? '*'
-            : options.respectPrefix
-            ? context.tailwindConfig.prefix + identifier
-            : identifier
+        let prefixedIdentifier = prefixIdentifier(identifier, options)
         let offset = offsets.components++
 
         if (!context.candidateRuleMap.has(prefixedIdentifier)) {
@@ -444,12 +441,7 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       )
 
       for (let [identifier, rule] of withIdentifiers(utilities)) {
-        let prefixedIdentifier =
-          identifier === '*'
-            ? '*'
-            : options.respectPrefix
-            ? context.tailwindConfig.prefix + identifier
-            : identifier
+        let prefixedIdentifier = prefixIdentifier(identifier, options)
         let offset = offsets.utilities++
 
         if (!context.candidateRuleMap.has(prefixedIdentifier)) {
@@ -465,12 +457,7 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       let offset = offsets.base++
 
       for (let identifier in base) {
-        let prefixedIdentifier =
-          identifier === '*'
-            ? '*'
-            : options.respectPrefix
-            ? context.tailwindConfig.prefix + identifier
-            : identifier
+        let prefixedIdentifier = prefixIdentifier(identifier, options)
         let value = [].concat(base[identifier])
 
         let withOffsets = value.map((rule) => [{ sort: offset, layer: 'base' }, rule])
@@ -495,13 +482,7 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       let offset = offsets.utilities++
 
       for (let identifier in utilities) {
-        let prefixedIdentifier =
-          identifier === '*'
-            ? '*'
-            : options.respectPrefix
-            ? context.tailwindConfig.prefix + identifier
-            : identifier
-
+        let prefixedIdentifier = prefixIdentifier(identifier, options)
         let value = [].concat(utilities[identifier])
 
         let withOffsets = value.map((rule) => [{ sort: offset, layer: 'utilities', options }, rule])
