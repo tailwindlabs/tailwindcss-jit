@@ -379,13 +379,22 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
     },
     addBase(base) {
       for (let [identifier, rule] of withIdentifiers(base)) {
+        let prefixedIdentifier =
+          identifier === '*'
+            ? '*'
+            : options.respectPrefix
+            ? context.tailwindConfig.prefix + identifier
+            : identifier
+
         let offset = offsets.base++
 
-        if (!context.candidateRuleMap.has(identifier)) {
-          context.candidateRuleMap.set(identifier, [])
+        if (!context.candidateRuleMap.has(prefixedIdentifier)) {
+          context.candidateRuleMap.set(prefixedIdentifier, [])
         }
 
-        context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'base' }, rule])
+        context.candidateRuleMap
+          .get(prefixedIdentifier)
+          .push([{ sort: offset, layer: 'base' }, rule])
       }
     },
     addComponents(components, options) {
@@ -403,14 +412,20 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       )
 
       for (let [identifier, rule] of withIdentifiers(components)) {
+        let prefixedIdentifier =
+          identifier === '*'
+            ? '*'
+            : options.respectPrefix
+            ? context.tailwindConfig.prefix + identifier
+            : identifier
         let offset = offsets.components++
 
-        if (!context.candidateRuleMap.has(identifier)) {
-          context.candidateRuleMap.set(identifier, [])
+        if (!context.candidateRuleMap.has(prefixedIdentifier)) {
+          context.candidateRuleMap.set(prefixedIdentifier, [])
         }
 
         context.candidateRuleMap
-          .get(identifier)
+          .get(prefixedIdentifier)
           .push([{ sort: offset, layer: 'components', options }, rule])
       }
     },
@@ -429,14 +444,20 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       )
 
       for (let [identifier, rule] of withIdentifiers(utilities)) {
+        let prefixedIdentifier =
+          identifier === '*'
+            ? '*'
+            : options.respectPrefix
+            ? context.tailwindConfig.prefix + identifier
+            : identifier
         let offset = offsets.utilities++
 
-        if (!context.candidateRuleMap.has(identifier)) {
-          context.candidateRuleMap.set(identifier, [])
+        if (!context.candidateRuleMap.has(prefixedIdentifier)) {
+          context.candidateRuleMap.set(prefixedIdentifier, [])
         }
 
         context.candidateRuleMap
-          .get(identifier)
+          .get(prefixedIdentifier)
           .push([{ sort: offset, layer: 'utilities', options }, rule])
       }
     },
@@ -444,15 +465,21 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       let offset = offsets.base++
 
       for (let identifier in base) {
+        let prefixedIdentifier =
+          identifier === '*'
+            ? '*'
+            : options.respectPrefix
+            ? context.tailwindConfig.prefix + identifier
+            : identifier
         let value = [].concat(base[identifier])
 
         let withOffsets = value.map((rule) => [{ sort: offset, layer: 'base' }, rule])
 
-        if (!context.candidateRuleMap.has(identifier)) {
-          context.candidateRuleMap.set(identifier, [])
+        if (!context.candidateRuleMap.has(prefixedIdentifier)) {
+          context.candidateRuleMap.set(prefixedIdentifier, [])
         }
 
-        context.candidateRuleMap.get(identifier).push(...withOffsets)
+        context.candidateRuleMap.get(prefixedIdentifier).push(...withOffsets)
       }
     },
     matchUtilities: function (utilities, options) {
@@ -468,15 +495,22 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       let offset = offsets.utilities++
 
       for (let identifier in utilities) {
+        let prefixedIdentifier =
+          identifier === '*'
+            ? '*'
+            : options.respectPrefix
+            ? context.tailwindConfig.prefix + identifier
+            : identifier
+
         let value = [].concat(utilities[identifier])
 
         let withOffsets = value.map((rule) => [{ sort: offset, layer: 'utilities', options }, rule])
 
-        if (!context.candidateRuleMap.has(identifier)) {
-          context.candidateRuleMap.set(identifier, [])
+        if (!context.candidateRuleMap.has(prefixedIdentifier)) {
+          context.candidateRuleMap.set(prefixedIdentifier, [])
         }
 
-        context.candidateRuleMap.get(identifier).push(...withOffsets)
+        context.candidateRuleMap.get(prefixedIdentifier).push(...withOffsets)
       }
     },
     // ---
@@ -487,21 +521,6 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       addVariant(variantName, applyVariant, options = {}) {
         insertInto(variantList, variantName, options)
         variantMap.set(variantName, applyVariant)
-      },
-      addComponents(components) {
-        let offset = offsets.components++
-
-        for (let identifier in components) {
-          let value = [].concat(components[identifier])
-
-          let withOffsets = value.map((rule) => [{ sort: offset, layer: 'components' }, rule])
-
-          if (!context.candidateRuleMap.has(identifier)) {
-            context.candidateRuleMap.set(identifier, [])
-          }
-
-          context.candidateRuleMap.get(identifier).push(...withOffsets)
-        }
       },
     },
   }
@@ -710,21 +729,21 @@ function setupContext(configOrPath) {
       if (layerNode.params === 'base') {
         for (let node of layerNode.nodes) {
           layerPlugins.push(function ({ addBase }) {
-            addBase(node)
+            addBase(node, { respectPrefix: false })
           })
         }
       }
       if (layerNode.params === 'components') {
         for (let node of layerNode.nodes) {
           layerPlugins.push(function ({ addComponents }) {
-            addComponents(node)
+            addComponents(node, { respectPrefix: false })
           })
         }
       }
       if (layerNode.params === 'utilities') {
         for (let node of layerNode.nodes) {
           layerPlugins.push(function ({ addUtilities }) {
-            addUtilities(node)
+            addUtilities(node, { respectPrefix: false })
           })
         }
       }

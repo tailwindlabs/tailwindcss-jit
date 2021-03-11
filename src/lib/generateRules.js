@@ -1,8 +1,8 @@
 const postcss = require('postcss')
-const { default: parseObjectStyles } = require('tailwindcss/lib/util/parseObjectStyles')
-const { transformAllSelectors } = require('../pluginUtils')
-const { toPostCssNode, isPlainObject, bigSign } = require('./utils')
+const parseObjectStyles = require('tailwindcss/lib/util/parseObjectStyles').default
+const { isPlainObject, bigSign } = require('./utils')
 const selectorParser = require('postcss-selector-parser')
+const prefixSelector = require('tailwindcss/lib/util/prefixSelector').default
 
 let classNameParser = selectorParser((selectors) => {
   return selectors.first.filter(({ type }) => type === 'class').pop().value
@@ -28,6 +28,25 @@ function* candidatePermutations(prefix, modifier = '') {
   yield [prefix, modifier]
 
   yield* candidatePermutations(prefix, modifier)
+}
+
+function applyPrefix(matches, context) {
+  if (matches.length === 0 || context.tailwindConfig.prefix === '') {
+    return matches
+  }
+
+  for (let match of matches) {
+    let [meta] = match
+    if (meta.options.respectPrefix) {
+      let container = postcss.root({ nodes: [match[1]] })
+      container.walkRules((r) => {
+        r.selector = prefixSelector(context.tailwindConfig.prefix, r.selector)
+      })
+      match[1] = container.nodes[0]
+    }
+  }
+
+  return matches
 }
 
 // Takes a list of rule tuples and applies a variant like `hover`, sm`,
@@ -180,6 +199,8 @@ function* resolveMatches(candidate, context) {
       }
     }
 
+    matches = applyPrefix(matches, context)
+
     for (let variant of variants) {
       matches = applyVariant(variant, matches, context)
     }
@@ -204,8 +225,6 @@ function generateRules(candidates, context) {
     }
 
     let matches = Array.from(resolveMatches(candidate, context))
-
-    // apply prefix and important here?
 
     if (matches.length === 0) {
       context.notClassCache.add(candidate)

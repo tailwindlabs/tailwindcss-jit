@@ -1,7 +1,6 @@
 const postcss = require('postcss')
-const nameClass = require('tailwindcss/lib/util/nameClass').default
 const buildMediaQuery = require('tailwindcss/lib/util/buildMediaQuery').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const prefixSelector = require('tailwindcss/lib/util/prefixSelector').default
 const {
   updateLastClasses,
   updateAllClasses,
@@ -53,7 +52,12 @@ module.exports = {
             return null
           }
 
-          return `.group${config('separator')}${state} ${variantSelector}`
+          let groupSelector = prefixSelector(
+            config('prefix'),
+            `.group${config('separator')}${state}`
+          )
+
+          return `${groupSelector} ${variantSelector}`
         })
       )
     }
@@ -115,7 +119,9 @@ module.exports = {
             return null
           }
 
-          return `.dark ${variantSelector}`
+          let darkSelector = prefixSelector(config('prefix'), `.dark`)
+
+          return `${darkSelector} ${variantSelector}`
         })
       )
     } else if (config('darkMode') === 'media') {
