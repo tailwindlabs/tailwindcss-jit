@@ -11,7 +11,7 @@ test('important boolean', () => {
   let config = {
     important: true,
     darkMode: 'class',
-    purge: [path.resolve(__dirname, './03-important-boolean.test.html')],
+    purge: [path.resolve(__dirname, './04-important-boolean.test.html')],
     corePlugins: { preflight: false },
     theme: {},
     plugins: [
@@ -51,7 +51,7 @@ test('important boolean', () => {
   `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './03-important-boolean.test.css')
+    let expectedPath = path.resolve(__dirname, './04-important-boolean.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)

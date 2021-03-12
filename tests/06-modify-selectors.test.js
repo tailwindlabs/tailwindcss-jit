@@ -11,7 +11,7 @@ function run(input, config = {}) {
 test('modify selectors', () => {
   let config = {
     darkMode: 'class',
-    purge: [path.resolve(__dirname, './05-modify-selectors.test.html')],
+    purge: [path.resolve(__dirname, './06-modify-selectors.test.html')],
     corePlugins: { preflight: false },
     theme: {},
     plugins: [
@@ -42,7 +42,7 @@ test('modify selectors', () => {
   `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './05-modify-selectors.test.css')
+    let expectedPath = path.resolve(__dirname, './06-modify-selectors.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)

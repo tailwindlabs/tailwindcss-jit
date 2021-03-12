@@ -10,7 +10,7 @@ function run(input, config = {}) {
 test('custom separator', () => {
   let config = {
     darkMode: 'class',
-    purge: [path.resolve(__dirname, './02-custom-separator.test.html')],
+    purge: [path.resolve(__dirname, './03-custom-separator.test.html')],
     separator: '_',
     corePlugins: {},
     theme: {},
@@ -20,7 +20,7 @@ test('custom separator', () => {
   let css = `@tailwind utilities`
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './02-custom-separator.test.css')
+    let expectedPath = path.resolve(__dirname, './03-custom-separator.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)
