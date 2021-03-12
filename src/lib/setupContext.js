@@ -537,15 +537,13 @@ function collectLayerPlugins(root) {
           addBase(node, { respectPrefix: false })
         })
       }
-    }
-    if (layerNode.params === 'components') {
+    } else if (layerNode.params === 'components') {
       for (let node of layerNode.nodes) {
         layerPlugins.push(function ({ addComponents }) {
           addComponents(node, { respectPrefix: false })
         })
       }
-    }
-    if (layerNode.params === 'utilities') {
+    } else if (layerNode.params === 'utilities') {
       for (let node of layerNode.nodes) {
         layerPlugins.push(function ({ addUtilities }) {
           addUtilities(node, { respectPrefix: false })
