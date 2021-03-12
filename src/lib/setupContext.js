@@ -629,6 +629,7 @@ function setupContext(configOrPath) {
 
     let sourcePath = result.opts.from
     let [tailwindConfig, userConfigPath, tailwindConfigHash] = getTailwindConfig(configOrPath)
+    let isConfigFile = userConfigPath !== null
 
     let contextDependencies = new Set()
 
@@ -646,27 +647,28 @@ function setupContext(configOrPath) {
       }
     }
 
-    if (userConfigPath !== null) {
+    if (isConfigFile) {
       contextDependencies.add(userConfigPath)
     }
 
-    let contextDependenciesChanged =
-      trackModified([...contextDependencies]) || userConfigPath === null
+    let contextDependenciesChanged = trackModified([...contextDependencies])
 
     process.env.DEBUG && console.log('Source path:', sourcePath)
 
-    // If this file already has a context in the cache and we don't need to
-    // reset the context, return the cached context.
-    if (contextMap.has(sourcePath) && !contextDependenciesChanged) {
-      return contextMap.get(sourcePath)
-    }
+    if (!contextDependenciesChanged) {
+      // If this file already has a context in the cache and we don't need to
+      // reset the context, return the cached context.
+      if (isConfigFile && contextMap.has(sourcePath)) {
+        return contextMap.get(sourcePath)
+      }
 
-    // If the config file used already exists in the cache, return that.
-    if (!contextDependenciesChanged && configContextMap.has(tailwindConfigHash)) {
-      let context = configContextMap.get(tailwindConfigHash)
-      contextSourcesMap.get(context).add(sourcePath)
-      contextMap.set(sourcePath, context)
-      return context
+      // If the config used already exists in the cache, return that.
+      if (configContextMap.has(tailwindConfigHash)) {
+        let context = configContextMap.get(tailwindConfigHash)
+        contextSourcesMap.get(context).add(sourcePath)
+        contextMap.set(sourcePath, context)
+        return context
+      }
     }
 
     // If this source is in the context map, get the old context.
@@ -723,7 +725,7 @@ function setupContext(configOrPath) {
 
     // ---
 
-    if (userConfigPath !== null) {
+    if (isConfigFile) {
       for (let dependency of getModuleDependencies(userConfigPath)) {
         if (dependency.file === userConfigPath) {
           continue
