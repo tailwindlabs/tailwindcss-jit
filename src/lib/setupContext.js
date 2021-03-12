@@ -507,6 +507,56 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
   }
 }
 
+function extractVariantAtRules(node) {
+  node.walkAtRules((atRule) => {
+    if (['responsive', 'variants'].includes(atRule.name)) {
+      extractVariantAtRules(atRule)
+      atRule.before(atRule.nodes)
+      atRule.remove()
+    }
+  })
+}
+
+function collectLayerPlugins(root) {
+  let layerPlugins = []
+
+  root.each((node) => {
+    if (node.type === 'atrule' && ['responsive', 'variants'].includes(node.name)) {
+      node.name = 'layer'
+      node.params = 'utilities'
+    }
+  })
+
+  // Walk @layer rules and treat them like plugins
+  root.walkAtRules('layer', (layerNode) => {
+    extractVariantAtRules(layerNode)
+
+    if (layerNode.params === 'base') {
+      for (let node of layerNode.nodes) {
+        layerPlugins.push(function ({ addBase }) {
+          addBase(node, { respectPrefix: false })
+        })
+      }
+    }
+    if (layerNode.params === 'components') {
+      for (let node of layerNode.nodes) {
+        layerPlugins.push(function ({ addComponents }) {
+          addComponents(node, { respectPrefix: false })
+        })
+      }
+    }
+    if (layerNode.params === 'utilities') {
+      for (let node of layerNode.nodes) {
+        layerPlugins.push(function ({ addUtilities }) {
+          addUtilities(node, { respectPrefix: false })
+        })
+      }
+    }
+  })
+
+  return layerPlugins
+}
+
 function registerPlugins(tailwindConfig, plugins, context) {
   let variantList = []
   let variantMap = new Map()
@@ -703,32 +753,7 @@ function setupContext(configOrPath) {
       return typeof plugin === 'function' ? plugin : plugin.handler
     })
 
-    let layerPlugins = []
-
-    // Walk @layer rules and treat them like plugins
-    root.walkAtRules('layer', (layerNode) => {
-      if (layerNode.params === 'base') {
-        for (let node of layerNode.nodes) {
-          layerPlugins.push(function ({ addBase }) {
-            addBase(node, { respectPrefix: false })
-          })
-        }
-      }
-      if (layerNode.params === 'components') {
-        for (let node of layerNode.nodes) {
-          layerPlugins.push(function ({ addComponents }) {
-            addComponents(node, { respectPrefix: false })
-          })
-        }
-      }
-      if (layerNode.params === 'utilities') {
-        for (let node of layerNode.nodes) {
-          layerPlugins.push(function ({ addUtilities }) {
-            addUtilities(node, { respectPrefix: false })
-          })
-        }
-      }
-    })
+    let layerPlugins = collectLayerPlugins(root)
 
     // TODO: This is a workaround for backwards compatibility, since custom variants
     // were historically sorted before screen/stackable variants.
