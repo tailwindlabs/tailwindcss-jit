@@ -62,27 +62,6 @@ module.exports = {
       )
     }
   },
-  reducedMotionVariants: function ({ config, theme, addVariant }) {
-    addVariant(
-      'motion-safe',
-      transformLastClasses(
-        (className) => {
-          return `motion-safe${config('separator')}${className}`
-        },
-        () => postcss.atRule({ name: 'media', params: '(prefers-reduced-motion: no-preference)' })
-      )
-    )
-
-    addVariant(
-      'motion-reduce',
-      transformLastClasses(
-        (className) => {
-          return `motion-reduce${config('separator')}${className}`
-        },
-        () => postcss.atRule({ name: 'media', params: '(prefers-reduced-motion: reduce)' })
-      )
-    )
-  },
   directionVariants: function ({ config, theme, addVariant }) {
     addVariant(
       'ltr',
@@ -103,6 +82,27 @@ module.exports = {
             selector,
             (className) => `rtl${config('separator')}${className}`
           )}`
+      )
+    )
+  },
+  reducedMotionVariants: function ({ config, theme, addVariant }) {
+    addVariant(
+      'motion-safe',
+      transformLastClasses(
+        (className) => {
+          return `motion-safe${config('separator')}${className}`
+        },
+        () => postcss.atRule({ name: 'media', params: '(prefers-reduced-motion: no-preference)' })
+      )
+    )
+
+    addVariant(
+      'motion-reduce',
+      transformLastClasses(
+        (className) => {
+          return `motion-reduce${config('separator')}${className}`
+        },
+        () => postcss.atRule({ name: 'media', params: '(prefers-reduced-motion: reduce)' })
       )
     )
   },
