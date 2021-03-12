@@ -143,18 +143,6 @@
 .inline-grid {
   display: inline-grid;
 }
-.inline {
-  display: inline;
-}
-.flex {
-  display: flex;
-}
-.grid {
-  display: grid;
-}
-.table {
-  display: table;
-}
 .hidden {
   display: none;
 }
@@ -269,9 +257,6 @@
 .resize-none {
   resize: none;
 }
-.resize {
-  resize: both;
-}
 .list-inside {
   list-style-position: inside;
 }
@@ -298,9 +283,6 @@
 }
 .flex-row-reverse {
   flex-direction: row-reverse;
-}
-.flex-row {
-  flex-direction: row;
 }
 .flex-wrap {
   flex-wrap: wrap;

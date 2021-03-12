@@ -190,7 +190,9 @@ function* resolveMatches(candidate, context) {
             matches.push([{ ...sort, options: { ...sort.options, ...options } }, rule])
           }
         }
-      } else {
+      }
+      // Only process static plugins on exact matches
+      else if (modifier === 'DEFAULT') {
         let ruleSet = plugin
         let [rules, options] = parseRules(ruleSet, context.postCssNodeCache)
         for (let rule of rules) {
