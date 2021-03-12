@@ -1,6 +1,6 @@
 {
   "name": "@tailwindcss/jit",
-  "version": "0.0.0",
+  "version": "0.0.0-d7396a7a8",
   "main": "src/index.js",
   "scripts": {
     "test": "TAILWIND_MODE=build jest"
