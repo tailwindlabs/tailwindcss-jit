@@ -25,6 +25,7 @@ const { isBuffer } = require('util')
 let contextMap = sharedState.contextMap
 let configContextMap = sharedState.configContextMap
 let contextSourcesMap = sharedState.contextSourcesMap
+let configHashMap = sharedState.configHashMap
 let env = sharedState.env
 
 // Earmarks a directory for our touch files.
@@ -629,6 +630,8 @@ function setupContext(configOrPath) {
     let [tailwindConfig, userConfigPath, tailwindConfigHash] = getTailwindConfig(configOrPath)
     let isConfigFile = userConfigPath !== null
 
+    const { _cacheGroup = 'default', _hash } = tailwindConfig
+
     let contextDependencies = new Set()
 
     // If there are no @tailwind rules, we don't consider this CSS file or it's dependencies
@@ -656,8 +659,13 @@ function setupContext(configOrPath) {
     if (!contextDependenciesChanged) {
       // If this file already has a context in the cache and we don't need to
       // reset the context, return the cached context.
-      if (isConfigFile && contextMap.has(sourcePath)) {
-        return contextMap.get(sourcePath)
+      if (contextMap.has(sourcePath)) {
+        if (
+          isConfigFile ||
+          (_hash && configHashMap.has(_cacheGroup) && _hash === configHashMap.get(_cacheGroup))
+        ) {
+          return contextMap.get(sourcePath)
+        }
       }
 
       // If the config used already exists in the cache, return that.
@@ -667,6 +675,10 @@ function setupContext(configOrPath) {
         contextMap.set(sourcePath, context)
         return context
       }
+    }
+
+    if (_hash) {
+      configHashMap.set(_cacheGroup, _hash)
     }
 
     // If this source is in the context map, get the old context.
