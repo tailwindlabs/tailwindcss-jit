@@ -1,6 +1,5 @@
 const dlv = require('dlv')
 const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const toRgba = require('tailwindcss/lib/util/withAlphaVariable').toRgba
 const { asLength } = require('../pluginUtils')
 
@@ -20,8 +19,8 @@ module.exports = function ({ addBase, matchUtilities, addUtilities, jit: { theme
   let ringReset = {
     '*': {
       '--tw-ring-inset': 'var(--tw-empty,/*!*/ /*!*/)',
-      '--tw-ring-offset-width': theme.ringOffsetWidth?.DEFAULT ?? '0px',
-      '--tw-ring-offset-color': theme.ringOffsetColor?.DEFAULT ?? '#fff',
+      '--tw-ring-offset-width': dlv(theme, ['ringOffsetWidth', 'DEFAULT'], '0px'),
+      '--tw-ring-offset-color': dlv(theme, ['ringOffsetColor', 'DEFAULT'], '#fff'),
       '--tw-ring-color': ringColorDefault,
       '--tw-ring-offset-shadow': '0 0 #0000',
       '--tw-ring-shadow': '0 0 #0000',

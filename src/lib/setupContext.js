@@ -153,7 +153,7 @@ function getTailwindConfig(configOrPath) {
 
   if (userConfigPath !== null) {
     let [prevConfig, prevModified = -Infinity, prevConfigHash] =
-      configPathCache.get(userConfigPath) ?? []
+      configPathCache.get(userConfigPath) || []
     let modified = fs.statSync(userConfigPath).mtimeMs
 
     // It hasn't changed (based on timestamp)
