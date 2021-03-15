@@ -110,8 +110,15 @@ function asValue(modifier, lookup = {}, { validate = () => true, transform = (v)
 function asUnit(modifier, units, lookup = {}) {
   return asValue(modifier, lookup, {
     validate: (value) => {
-      let pattern = new RegExp(`.+(${units.join('|')})$`, 'g')
-      return value.match(pattern) !== null
+      let unitsPattern = `(?:${units.join('|')})`
+      return (
+        new RegExp(`${unitsPattern}$`).test(value) ||
+        new RegExp(`^calc\\(.+?${unitsPattern}`).test(value)
+      )
+    },
+    transform: (value) => {
+      // add spaces around operators inside calc() that do not follow an operator or (
+      return value.replace(/(?<=^calc\(.+?)(?<![-+*/(])([-+*/])/g, ' $1 ')
     },
   })
 }
