@@ -1,6 +1,11 @@
 
 ![Tailwind CSS Just-In-Time](.github/logo.svg?raw=true)
 
+<p align="center">
+    <a href="https://github.com/tailwindlabs/tailwindcss-jit/releases"><img src="https://badgen.net/npm/v/@tailwindcss/jit" alt="Latest Release"></a>
+    <a href="https://github.com/tailwindlabs/tailwindcss-jit/blob/master/LICENSE"><img src="https://badgen.net/npm/license/@tailwindcss/jit" alt="License"></a>
+</p>
+
 ## Overview
 
 **An experimental just-in-time compiler for Tailwind CSS** that generates your styles on-demand as you author your templates instead of generating everything in advance at initial build time.
