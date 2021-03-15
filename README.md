@@ -142,3 +142,7 @@ module.exports = {
 Once it's been heavily tested by the community and we've worked out any kinks, we hope to make it the default mode for Tailwind CSS v3.0 later this year.
 
 We'll always provide a `mode: 'aot'` option for people who want to generate the stylesheet in advance and purge later — we'll need that ourselves for our CDN builds.
+
+## License
+
+This library is MIT licensed.
