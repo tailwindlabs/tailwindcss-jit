@@ -14,6 +14,7 @@ const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').
 const parseObjectStyles = require('tailwindcss/lib/util/parseObjectStyles').default
 const getModuleDependencies = require('tailwindcss/lib/lib/getModuleDependencies').default
 const escapeClassName = require('tailwindcss/lib/util/escapeClassName').default
+const prefixSelector = require('tailwindcss/lib/util/prefixSelector').default
 
 const resolveConfig = require('tailwindcss/resolveConfig')
 
