@@ -19,7 +19,10 @@ function collapseAdjacentRules(context) {
       }
 
       let property = comparisonMap[node.type]
-      if (node[property] === currentRule[property]) {
+
+      if (node.type === 'atrule' && node.name === 'font-face') {
+        currentRule = node
+      } else if (node[property] === currentRule[property]) {
         currentRule.append(node.nodes)
         node.remove()
       } else {
