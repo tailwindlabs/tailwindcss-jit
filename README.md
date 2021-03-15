@@ -36,7 +36,7 @@ Add `@tailwindcss/jit` to your PostCSS configuration instead of `tailwindcss`:
     plugins: {
 -     tailwindcss: {},
 +     '@tailwindcss/jit': {},
-      autoprefxier: {},
+      autoprefixer: {},
     }
   }
 ```
@@ -59,9 +59,9 @@ module.exports = {
 
 Now start your dev server or build tool as you normally would and you're good to go.
 
-> Make sure `NODE_ENV` is set to `development` if you are running a watcher, or Tailwind won't watch your template files for changes. Use `production` for one-off builds.
+> Make sure you set `NODE_ENV=development` if you are running a watcher, or Tailwind won't watch your template files for changes. Set `NODE_ENV=production` for one-off builds.
 >
-> If you want to control whether Tailwind watches files or not more explicitly, set the `TAILWIND_MODE` environment variable to either `watch` or `build`.
+> If you want to control whether Tailwind watches files or not more explicitly, set `TAILWIND_MODE=watch` or `TAILWIND_MODE=build` to override the default `NODE_ENV`-based behavior.
 
 ---
 
