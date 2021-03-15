@@ -1,7 +1,9 @@
 
 ![Tailwind CSS Just-In-Time](.github/logo.svg?raw=true)
 
-An experimental library that generates CSS with the same API you already know from [Tailwind CSS](https://tailwindcss.com), but on-demand as you author your templates instead of generating everything in advance at initial build time.
+## Overview
+
+**An experimental just-in-time compiler for Tailwind CSS** that generates your styles on-demand as you author your templates instead of generating everything in advance at initial build time.
 
 This comes with a lot of advantages:
 
