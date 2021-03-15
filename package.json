@@ -1,6 +1,6 @@
 {
   "name": "@tailwindcss/jit",
-  "version": "0.0.0",
+  "version": "0.0.0-15ee4ac4dc",
   "license": "MIT",
   "main": "src/index.js",
   "scripts": {
