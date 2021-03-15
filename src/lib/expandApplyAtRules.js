@@ -102,8 +102,8 @@ function expandApplyAtRules(context) {
 
         for (let applyCandidate of applyCandidates) {
           if (!applyClassCache.has(applyCandidate)) {
-            throw new Error(
-              `The ${applyCandidate} class does not exist. If it's a custom class, make sure it is defined within a \`@layer\` directive.`
+            throw apply.error(
+              `The \`${applyCandidate}\` class does not exist. If \`${applyCandidate}\` is a custom class, make sure it is defined within a \`@layer\` directive.`
             )
           }
 
