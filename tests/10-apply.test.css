@@ -178,3 +178,29 @@
     font-weight: 400;
   }
 }
+.multiple-apply-directives {
+  text-align: center;
+  font-weight: 600;
+}
+.multiple-apply-directives:hover {
+  font-weight: 700;
+}
+.multiple-apply-directives:focus {
+  font-weight: 500;
+}
+@media (min-width: 1024px) {
+  .multiple-apply-directives {
+    font-weight: 300;
+  }
+}
+@media (min-width: 1280px) {
+  .multiple-apply-directives:focus {
+    font-weight: 900;
+  }
+}
+.apply-sandwich {
+  font-weight: 300;
+  text-align: right;
+  font-weight: 500;
+  text-align: center;
+}

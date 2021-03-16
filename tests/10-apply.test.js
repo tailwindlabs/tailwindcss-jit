@@ -65,6 +65,16 @@ test('@apply', () => {
         @apply font-bold hover:font-normal;
       }
     }
+    .multiple-apply-directives {
+      @apply xl:focus:font-black hover:font-bold;
+      @apply lg:font-light focus:font-medium;
+      @apply font-semibold text-center;
+    }
+    .apply-sandwich {
+      @apply p-4;
+      padding-top: 11px;
+      @apply py-3;
+    }
   }
 
   @layer utilities {
@@ -82,4 +92,5 @@ test('@apply', () => {
   })
 })
 
+// TODO: Test @apply !important
 // TODO: Test stuff that should throw

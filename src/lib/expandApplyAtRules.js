@@ -43,18 +43,24 @@ function expandApplyAtRules(context) {
     let applyCandidates = new Set()
 
     // Collect all @apply rules and candidates
-    let applies = []
+    let ruleApplies = new Map()
     root.walkAtRules('apply', (rule) => {
       let [candidates, important] = extractApplyCandidates(rule.params)
 
+      if (!ruleApplies.has(rule.parent)) {
+        ruleApplies.set(rule.parent, new Set())
+      }
+
+      let applies = ruleApplies.get(rule.parent)
       for (let util of candidates) {
+        applies.add([util, important])
         applyCandidates.add(util)
       }
-      applies.push(rule)
+      rule.remove()
     })
 
     // Start the @apply process if we have rules with @apply in them
-    if (applies.length > 0) {
+    if (ruleApplies.size > 0) {
       // Fill up some caches!
       let applyClassCache = buildApplyCache(applyCandidates, context)
 
@@ -96,11 +102,9 @@ function expandApplyAtRules(context) {
           .join(', ')
       }
 
-      for (let apply of applies) {
+      for (let [applyParentRule, applyCandidates] of ruleApplies.entries()) {
         let siblings = []
-        let [applyCandidates, important] = extractApplyCandidates(apply.params)
-
-        for (let applyCandidate of applyCandidates) {
+        for (let [applyCandidate, important] of applyCandidates) {
           if (!applyClassCache.has(applyCandidate)) {
             throw apply.error(
               `The \`${applyCandidate}\` class does not exist. If \`${applyCandidate}\` is a custom class, make sure it is defined within a \`@layer\` directive.`
@@ -113,7 +117,11 @@ function expandApplyAtRules(context) {
             let root = postcss.root({ nodes: [node.clone()] })
 
             root.walkRules((rule) => {
-              rule.selector = replaceSelector(apply.parent.selector, rule.selector, applyCandidate)
+              rule.selector = replaceSelector(
+                applyParentRule.selector,
+                rule.selector,
+                applyCandidate
+              )
               rule.walkDecls((d) => {
                 d.important = important
               })
@@ -125,16 +133,13 @@ function expandApplyAtRules(context) {
 
         // Inject the rules, sorted, correctly
         for (let [, sibling] of siblings.sort(([a], [z]) => bigSign(z.sort - a.sort))) {
-          // `apply.parent` is referring to the node at `.abc` in: .abc { @apply mt-2 }
-          apply.parent.after(sibling)
+          // `applyParentRule` is referring to the node at `.abc` in: .abc { @apply mt-2 }
+          applyParentRule.after(sibling)
         }
 
-        // If there are left-over declarations, just remove the @apply
-        if (apply.parent.nodes.length > 1) {
-          apply.remove()
-        } else {
-          // The node is empty, drop the full node
-          apply.parent.remove()
+        // The node is empty, drop the full node
+        if (applyParentRule.nodes.length === 0) {
+          applyParentRule.remove()
         }
       }
     }
