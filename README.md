@@ -42,7 +42,7 @@ Add `@tailwindcss/jit` to your PostCSS configuration _(instead of `tailwindcss`)
   }
 ```
 
-> If you are using autoprefixer, make sure you are on the latest version using `npm install -D autoprefixer@latest`, there's a bug in older versions that makes it incompatible with this library.
+> If you are using autoprefixer, make sure you are on the latest version using `npm install -D autoprefixer@latest` — there's a bug in older versions that makes it incompatible with this library.
 
 Configure the `purge` option in your `tailwind.config.js` file with all of your template paths:
 
