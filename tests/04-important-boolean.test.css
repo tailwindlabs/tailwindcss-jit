@@ -38,11 +38,25 @@
 .btn {
   button: yes !important;
 }
+@font-face {
+  font-family: Inter;
+}
+@page {
+  margin: 1cm;
+}
 .custom-component {
   font-weight: 700;
 }
 .custom-important-component {
   text-align: center !important;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin {
+  animation: spin 1s linear infinite !important;
 }
 .font-bold {
   font-weight: 700 !important;

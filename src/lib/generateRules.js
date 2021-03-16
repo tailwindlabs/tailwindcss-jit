@@ -213,6 +213,20 @@ function* resolveMatches(candidate, context) {
   }
 }
 
+function inKeyframes(d) {
+  return (
+    d.parent.parent && d.parent.parent.type === 'atrule' && d.parent.parent.name === 'keyframes'
+  )
+}
+
+function makeImportant(rule) {
+  rule.walkDecls((d) => {
+    if (d.parent.type === 'rule' && !inKeyframes(d)) {
+      d.important = true
+    }
+  })
+}
+
 function generateRules(candidates, context) {
   let allRules = []
 
@@ -239,9 +253,7 @@ function generateRules(candidates, context) {
 
   return allRules.flat(1).map(([{ sort, layer, options }, rule]) => {
     if (context.tailwindConfig.important === true && options.respectImportant) {
-      rule.walkDecls((d) => {
-        d.important = true
-      })
+      makeImportant(rule)
     }
     return [sort | context.layerOrder[layer], rule]
   })

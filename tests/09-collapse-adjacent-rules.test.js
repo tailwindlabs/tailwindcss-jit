@@ -27,6 +27,9 @@ test('collapse adjacent rules', () => {
       src: url("/fonts/Gilroy.woff2") format("woff2"),
             url("/fonts/Gilroy.woff") format("woff");
     }
+    @page {
+      margin: 1cm;
+    }
     @tailwind components;
     @tailwind utilities;
     @layer base {
