@@ -13,14 +13,13 @@ const LRU = require('quick-lru')
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const parseObjectStyles = require('tailwindcss/lib/util/parseObjectStyles').default
 const getModuleDependencies = require('tailwindcss/lib/lib/getModuleDependencies').default
-const escapeClassName = require('tailwindcss/lib/util/escapeClassName').default
 const prefixSelector = require('tailwindcss/lib/util/prefixSelector').default
 
 const resolveConfig = require('tailwindcss/resolveConfig')
 
 const sharedState = require('./sharedState')
 const corePlugins = require('../corePlugins')
-const { isPlainObject } = require('./utils')
+const { isPlainObject, escapeClassName } = require('./utils')
 const { isBuffer } = require('util')
 
 let contextMap = sharedState.contextMap

@@ -1,6 +1,7 @@
 const selectorParser = require('postcss-selector-parser')
 const postcss = require('postcss')
 const { toRgba } = require('tailwindcss/lib/util/withAlphaVariable')
+const { nameClass } = require('./lib/utils')
 
 function updateAllClasses(selectors, updateClass) {
   let parser = selectorParser((selectors) => {
@@ -124,6 +125,7 @@ function asUnit(modifier, units, lookup = {}) {
 }
 
 module.exports = {
+  nameClass,
   updateAllClasses,
   updateLastClasses,
   transformAllSelectors,
