@@ -2,8 +2,8 @@
 ![Tailwind CSS Just-In-Time](.github/logo.svg?raw=true)
 
 <p align="center">
-    <a href="https://github.com/tailwindlabs/tailwindcss-jit/releases"><img src="https://badgen.net/npm/v/@tailwindcss/jit" alt="Latest Release"></a>
-    <a href="https://github.com/tailwindlabs/tailwindcss-jit/blob/master/LICENSE"><img src="https://badgen.net/npm/license/@tailwindcss/jit" alt="License"></a>
+    <a href="https://github.com/tailwindlabs/tailwindcss-jit/releases"><img src="https://img.shields.io/npm/v/@tailwindcss/jit" alt="Latest Release"></a>
+    <a href="https://github.com/tailwindlabs/tailwindcss-jit/blob/master/LICENSE"><img src="https://img.shields.io/npm/l/@tailwindcss/jit.svg" alt="License"></a>
 </p>
 
 ## Overview
