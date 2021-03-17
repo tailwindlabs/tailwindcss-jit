@@ -1,7 +1,9 @@
 
 <p align="center">
     <img src="https://raw.githubusercontent.com/tailwindlabs/tailwindcss-jit/main/.github/logo.svg" alt="Tailwind CSS Just-In-Time">
+</p>
 
+<p align="center">
     <a href="https://github.com/tailwindlabs/tailwindcss-jit/releases"><img src="https://img.shields.io/npm/v/@tailwindcss/jit" alt="Latest Release"></a>
     <a href="https://github.com/tailwindlabs/tailwindcss-jit/blob/master/LICENSE"><img src="https://img.shields.io/npm/l/@tailwindcss/jit.svg" alt="License"></a>
 </p>
