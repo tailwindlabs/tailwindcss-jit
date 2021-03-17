@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet!
 
+## [0.1.2] - 2021-03-17
+
+### Fixed
+
+- Don't apply !important to direct children of at-rules or in keyframes ([#69](https://github.com/tailwindlabs/tailwindcss-jit/pull/69))
+- Fix handling of outline offsets ([#89](https://github.com/tailwindlabs/tailwindcss-jit/pull/89))
+
 ## [0.1.1] - 2021-03-15
 
 ### Fixed
@@ -21,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Everything!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.1...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/tailwindlabs/tailwindcss-jit/releases/tag/v0.1.0
