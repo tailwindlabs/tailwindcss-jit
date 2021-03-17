@@ -1,7 +1,6 @@
 const postcss = require('postcss')
 const { resolveMatches } = require('./generateRules')
-const { bigSign } = require('./utils')
-const escape = require('tailwindcss/lib/util/escapeClassName').default
+const { bigSign, escapeClassName } = require('./utils')
 
 function buildApplyCache(applyCandidates, context) {
   for (let candidate of applyCandidates) {
@@ -85,7 +84,7 @@ function expandApplyAtRules(context) {
           .map((s) => {
             let replaced = []
             for (let utilitySelector of utilitySelectors.split(/\s*,\s*/g)) {
-              let replacedSelector = utilitySelector.replace(`.${escape(candidate)}`, s)
+              let replacedSelector = utilitySelector.replace(`.${escapeClassName(candidate)}`, s)
               if (replacedSelector === utilitySelector) {
                 continue
               }

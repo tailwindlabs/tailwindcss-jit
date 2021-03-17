@@ -25,7 +25,7 @@
 .rotate-\[1\.5turn\] {
   --tw-rotate: 1.5turn;
 }
-.grid-cols-\[200px\,repeat\(auto-fill\,minmax\(15\%\,100px\)\)\,300px\] {
+.grid-cols-\[200px\2c repeat\(auto-fill\2c minmax\(15\%\2c 100px\)\)\2c 300px\] {
   grid-template-columns: 200px repeat(auto-fill, minmax(15%, 100px)) 300px;
 }
 .space-x-\[20cm\] > :not([hidden]) ~ :not([hidden]) {
@@ -56,18 +56,18 @@
 .bg-\[\#0000ffcc\] {
   background-color: #0000ffcc;
 }
-.bg-\[rgb\(123\,123\,123\)\] {
+.bg-\[rgb\(123\2c 123\2c 123\)\] {
   --tw-bg-opacity: 1;
   background-color: rgba(123, 123, 123, var(--tw-bg-opacity));
 }
-.bg-\[rgba\(123\,123\,123\,0\.5\)\] {
+.bg-\[rgba\(123\2c 123\2c 123\2c 0\.5\)\] {
   background-color: rgba(123, 123, 123, 0.5);
 }
-.bg-\[hsl\(0\,100\%\,50\%\)\] {
+.bg-\[hsl\(0\2c 100\%\2c 50\%\)\] {
   --tw-bg-opacity: 1;
   background-color: rgba(255, 0, 0, var(--tw-bg-opacity));
 }
-.bg-\[hsla\(0\,100\%\,50\%\,0\.3\)\] {
+.bg-\[hsla\(0\2c 100\%\2c 50\%\2c 0\.3\)\] {
   background-color: hsla(0, 100%, 50%, 0.3);
 }
 .bg-opacity-\[0\.11\] {

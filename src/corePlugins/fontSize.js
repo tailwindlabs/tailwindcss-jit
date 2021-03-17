@@ -1,5 +1,4 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const { asLength } = require('../pluginUtils')
+const { asLength, nameClass } = require('../pluginUtils')
 const { isPlainObject } = require('../lib/utils')
 
 module.exports = function ({ matchUtilities, jit: { theme } }) {

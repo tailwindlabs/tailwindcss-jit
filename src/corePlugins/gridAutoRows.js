@@ -1,5 +1,4 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const { asList } = require('../pluginUtils')
+const { asList, nameClass } = require('../pluginUtils')
 
 module.exports = function ({ matchUtilities, jit: { theme } }) {
   matchUtilities({
