@@ -31,9 +31,9 @@ body:
   - type: input
     attributes:
       label: Reproduction repository
-      description: A public GitHub repo that demonstrates the bug. Use "N/A" if you really think it's unnecessary.
+      description: A public GitHub repo that demonstrates the bug. If it's really unnecessary, link me to a YouTube video you think is awesome instead.
     validations:
       required: true
   - type: markdown
     attributes:
-      value: Describe your issue below, including any important steps to reproduce and what behavior you expect.
+      value: "## Describe your issue\nDescribe the problem you're seeing, any important steps to reproduce and what behavior you expect instead"
