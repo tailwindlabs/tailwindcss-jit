@@ -4,7 +4,7 @@
   "license": "MIT",
   "main": "src/index.js",
   "scripts": {
-    "test": "TAILWIND_MODE=build jest"
+    "test": "cross-env TAILWIND_MODE=build jest"
   },
   "prettier": {
     "printWidth": 100,
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "chokidar": "^3.5.1",
+    "cross-env": "^7.0.3",
     "dlv": "^1.1.3",
     "fast-glob": "^3.2.5",
     "lodash.topath": "^4.5.2",

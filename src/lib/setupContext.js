@@ -1,5 +1,4 @@
 const fs = require('fs')
-const url = require('url')
 const os = require('os')
 const path = require('path')
 const crypto = require('crypto')
@@ -183,8 +182,7 @@ function trackModified(files) {
   let changed = false
 
   for (let file of files) {
-    let pathname = url.parse(file).pathname
-    let newModified = fs.statSync(pathname).mtimeMs
+    let newModified = fs.statSync(file).mtimeMs
 
     if (!fileModifiedMap.has(file) || newModified > fileModifiedMap.get(file)) {
       changed = true
