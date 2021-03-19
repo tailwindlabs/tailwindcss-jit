@@ -1,7 +1,7 @@
 const selectorParser = require('postcss-selector-parser')
 const postcss = require('postcss')
 const { toRgba } = require('tailwindcss/lib/util/withAlphaVariable')
-const { nameClass } = require('./lib/utils')
+const { nameClass, escapeCommas } = require('./lib/utils')
 
 function updateAllClasses(selectors, updateClass) {
   let parser = selectorParser((selectors) => {
@@ -13,6 +13,9 @@ function updateAllClasses(selectors, updateClass) {
         },
       })
       sel.value = updatedClass
+      if (sel.raws && sel.raws.value) {
+        sel.raws.value = escapeCommas(sel.raws.value)
+      }
     })
   })
 
@@ -37,6 +40,9 @@ function updateLastClasses(selectors, updateClass) {
         },
       })
       lastClass.value = updatedClass
+      if (lastClass.raws && lastClass.raws.value) {
+        lastClass.raws.value = escapeCommas(lastClass.raws.value)
+      }
     })
   })
   let result = parser.processSync(selectors)
