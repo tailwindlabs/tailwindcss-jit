@@ -1,4 +1,4 @@
-const { asLength, nameClass } = require('../pluginUtils')
+const { asLength, nameClass, asValue } = require('../pluginUtils')
 
 module.exports = function ({ matchUtilities, jit: { theme } }) {
   matchUtilities({
@@ -34,7 +34,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
   })
   matchUtilities({
     mt: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
