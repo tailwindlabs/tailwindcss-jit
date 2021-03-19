@@ -7,10 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Nothing yet!
+
+## [0.1.4] - 2021-03-19
+
 ### Added
 
 - Support arbitrary values for `transition-duration` ([#99](https://github.com/tailwindlabs/tailwindcss-jit/pull/99))
-- Support arbitrary values for `margin` ([#105](https://github.com/tailwindlabs/tailwindcss-jit/pull/105))
+- Support completely arbitrary values for `margin` ([#105](https://github.com/tailwindlabs/tailwindcss-jit/pull/105))
+- Support CSS custom properties in arbitrary values ([d628fbc](https://github.com/tailwindlabs/tailwindcss-jit/commit/d628fbc3d393267ce3d1a1d11eed6c3025e6b8f0))
+- Support completely arbitrary values for `inset` ([3ea5421](https://github.com/tailwindlabs/tailwindcss-jit/commit/3ea542170c8631afbfaf5ea341e9860178cf9843)
+- Support completely arbitrary `width`/`height`/`min-width`/`max-width`/`min-height`/`max-height` ([76ba529](https://github.com/tailwindlabs/tailwindcss-jit/commit/76ba529d3b120481d153066d348b5dc316cc581f), [6e55976](https://github.com/tailwindlabs/tailwindcss-jit/commit/6e55976ed9c86cc749509c239c751af066d57152))
 
 ### Fixed
 
@@ -44,7 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Everything!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.3...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.0...v0.1.1
