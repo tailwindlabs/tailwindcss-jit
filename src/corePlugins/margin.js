@@ -1,9 +1,9 @@
-const { asLength, nameClass, asValue } = require('../pluginUtils')
+const { asValue, nameClass } = require('../pluginUtils')
 
 module.exports = function ({ matchUtilities, jit: { theme } }) {
   matchUtilities({
     m: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
@@ -14,7 +14,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
   })
   matchUtilities({
     mx: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
@@ -23,7 +23,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
       return { [nameClass('mx', modifier)]: { 'margin-left': value, 'margin-right': value } }
     },
     my: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
@@ -43,7 +43,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
       return { [nameClass('mt', modifier)]: { 'margin-top': value } }
     },
     mr: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
@@ -52,7 +52,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
       return { [nameClass('mr', modifier)]: { 'margin-right': value } }
     },
     mb: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
@@ -61,7 +61,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
       return { [nameClass('mb', modifier)]: { 'margin-bottom': value } }
     },
     ml: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
