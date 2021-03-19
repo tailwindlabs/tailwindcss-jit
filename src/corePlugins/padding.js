@@ -1,9 +1,9 @@
-const { asLength, nameClass } = require('../pluginUtils')
+const { asValue, nameClass } = require('../pluginUtils')
 
 module.exports = function ({ matchUtilities, jit: { theme } }) {
   matchUtilities({
     p: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['padding'])
+      let value = asValue(modifier, theme['padding'])
 
       if (value === undefined) {
         return []
@@ -14,7 +14,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
   })
   matchUtilities({
     px: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['padding'])
+      let value = asValue(modifier, theme['padding'])
 
       if (value === undefined) {
         return []
@@ -23,7 +23,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
       return { [nameClass('px', modifier)]: { 'padding-left': value, 'padding-right': value } }
     },
     py: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['padding'])
+      let value = asValue(modifier, theme['padding'])
 
       if (value === undefined) {
         return []
@@ -34,7 +34,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
   })
   matchUtilities({
     pt: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['padding'])
+      let value = asValue(modifier, theme['padding'])
 
       if (value === undefined) {
         return []
@@ -43,7 +43,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
       return { [nameClass('pt', modifier)]: { 'padding-top': value } }
     },
     pr: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['padding'])
+      let value = asValue(modifier, theme['padding'])
 
       if (value === undefined) {
         return []
@@ -52,7 +52,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
       return { [nameClass('pr', modifier)]: { 'padding-right': value } }
     },
     pb: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['padding'])
+      let value = asValue(modifier, theme['padding'])
 
       if (value === undefined) {
         return []
@@ -61,7 +61,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
       return { [nameClass('pb', modifier)]: { 'padding-bottom': value } }
     },
     pl: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['padding'])
+      let value = asValue(modifier, theme['padding'])
 
       if (value === undefined) {
         return []
