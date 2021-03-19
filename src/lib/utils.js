@@ -89,5 +89,6 @@ module.exports = {
   bigSign,
   isPlainObject,
   escapeClassName,
+  escapeCommas,
   nameClass,
 }
