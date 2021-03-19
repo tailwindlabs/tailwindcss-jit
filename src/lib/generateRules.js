@@ -17,8 +17,15 @@ function getClassNameFromSelector(selector) {
 // ['ring-offset', 'blue-100']
 // ['ring', 'offset-blue-100']
 function* candidatePermutations(prefix, modifier = '') {
-  let dashIdx = prefix.lastIndexOf('-')
-  if (dashIdx === -1) {
+  let dashIdx
+
+  if (modifier.endsWith(']')) {
+    dashIdx = prefix.lastIndexOf('[') - 1
+  } else {
+    dashIdx = prefix.lastIndexOf('-')
+  }
+
+  if (dashIdx < 0) {
     return
   }
 
