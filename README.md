@@ -67,6 +67,8 @@ Now start your dev server or build tool as you normally would and you're good to
 > Make sure you set `NODE_ENV=development` if you are running a watcher, or Tailwind won't watch your template files for changes. Set `NODE_ENV=production` for one-off builds.
 >
 > If you want to control whether Tailwind watches files or not more explicitly, set `TAILWIND_MODE=watch` or `TAILWIND_MODE=build` to override the default `NODE_ENV`-based behavior.
+> 
+> For example if you want to do one-off builds with `NODE_ENV=development`, explicitly set `TAILWIND_MODE=build` so that Tailwind knows you are just doing a one-off build and doesn't hang.
 
 ## Documentation
 
