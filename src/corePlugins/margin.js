@@ -1,8 +1,8 @@
 const { asValue, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
+module.exports = function ({ matchUtilities }) {
   matchUtilities({
-    m: (modifier, { theme, candidate }) => {
+    m: (modifier, { theme }) => {
       let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
@@ -13,7 +13,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
     },
   })
   matchUtilities({
-    mx: (modifier, { theme, candidate }) => {
+    mx: (modifier, { theme }) => {
       let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
@@ -22,7 +22,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
 
       return { [nameClass('mx', modifier)]: { 'margin-left': value, 'margin-right': value } }
     },
-    my: (modifier, { theme, candidate }) => {
+    my: (modifier, { theme }) => {
       let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
@@ -33,7 +33,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
     },
   })
   matchUtilities({
-    mt: (modifier, { theme, candidate }) => {
+    mt: (modifier, { theme }) => {
       let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
@@ -42,7 +42,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
 
       return { [nameClass('mt', modifier)]: { 'margin-top': value } }
     },
-    mr: (modifier, { theme, candidate }) => {
+    mr: (modifier, { theme }) => {
       let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
@@ -51,7 +51,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
 
       return { [nameClass('mr', modifier)]: { 'margin-right': value } }
     },
-    mb: (modifier, { theme, candidate }) => {
+    mb: (modifier, { theme }) => {
       let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
@@ -60,7 +60,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
 
       return { [nameClass('mb', modifier)]: { 'margin-bottom': value } }
     },
-    ml: (modifier, { theme, candidate }) => {
+    ml: (modifier, { theme }) => {
       let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
