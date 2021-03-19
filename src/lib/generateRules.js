@@ -140,9 +140,11 @@ function* resolveMatchedPlugins(classCandidate, context) {
   let candidatePrefix = classCandidate
   let negative = false
 
-  if (candidatePrefix[0] === '-') {
+  const twConfigPrefix = context.tailwindConfig.prefix || ''
+  const twConfigPrefixLen = twConfigPrefix.length
+  if (candidatePrefix[twConfigPrefixLen] === '-') {
     negative = true
-    candidatePrefix = candidatePrefix.slice(1)
+    candidatePrefix = twConfigPrefix + candidatePrefix.slice(twConfigPrefixLen + 1)
   }
 
   for (let [prefix, modifier] of candidatePermutations(candidatePrefix)) {
