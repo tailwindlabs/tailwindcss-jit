@@ -9,7 +9,10 @@ function buildApplyCache(applyCandidates, context) {
     }
 
     if (context.classCache.has(candidate)) {
-      context.applyClassCache.set(candidate, context.classCache.get(candidate))
+      context.applyClassCache.set(
+        candidate,
+        context.classCache.get(candidate).map(([meta, rule]) => [meta, rule.clone()])
+      )
       continue
     }
 
@@ -38,7 +41,7 @@ function extractApplyCandidates(params) {
 }
 
 function expandApplyAtRules(context) {
-  return (root) => {
+  return function processApply(root) {
     let applyCandidates = new Set()
 
     // Collect all @apply rules and candidates
@@ -79,12 +82,16 @@ function expandApplyAtRules(context) {
        */
       // TODO: Should we use postcss-selector-parser for this instead?
       function replaceSelector(selector, utilitySelectors, candidate) {
+        let needle = `.${escapeClassName(candidate)}`
+        let utilitySelectorsList = utilitySelectors.split(/\s*,\s*/g)
+
         return selector
           .split(/\s*,\s*/g)
           .map((s) => {
             let replaced = []
-            for (let utilitySelector of utilitySelectors.split(/\s*,\s*/g)) {
-              let replacedSelector = utilitySelector.replace(`.${escapeClassName(candidate)}`, s)
+
+            for (let utilitySelector of utilitySelectorsList) {
+              let replacedSelector = utilitySelector.replace(needle, s)
               if (replacedSelector === utilitySelector) {
                 continue
               }
@@ -136,6 +143,9 @@ function expandApplyAtRules(context) {
           apply.parent.remove()
         }
       }
+
+      // Do it again, in case we have other `@apply` rules
+      processApply(root)
     }
   }
 }
