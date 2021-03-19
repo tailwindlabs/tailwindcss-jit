@@ -16,11 +16,23 @@
 .mt-\[clamp\(30px\2c 100px\)\] {
   margin-top: clamp(30px, 100px);
 }
+.h-\[3\.23rem\] {
+  height: 3.23rem;
+}
+.h-\[calc\(100\%\+1rem\)\] {
+  height: calc(100% + 1rem);
+}
+.h-\[var\(--height\)\] {
+  height: var(--height);
+}
 .w-\[3\.23rem\] {
   width: 3.23rem;
 }
 .w-\[calc\(100\%\+1rem\)\] {
   width: calc(100% + 1rem);
+}
+.w-\[var\(--width\)\] {
+  width: var(--width);
 }
 .rotate-\[23deg\] {
   --tw-rotate: 23deg;

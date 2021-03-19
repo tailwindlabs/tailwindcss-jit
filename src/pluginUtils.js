@@ -111,7 +111,8 @@ function asValue(modifier, lookup = {}, { validate = () => true, transform = (v)
     return undefined
   }
 
-  return transform(value)
+  // add spaces around operators inside calc() that do not follow an operator or (
+  return transform(value).replace(/(?<=^calc\(.+?)(?<![-+*/(])([-+*/])/g, ' $1 ')
 }
 
 function asUnit(modifier, units, lookup = {}) {
@@ -124,8 +125,7 @@ function asUnit(modifier, units, lookup = {}) {
       )
     },
     transform: (value) => {
-      // add spaces around operators inside calc() that do not follow an operator or (
-      return value.replace(/(?<=^calc\(.+?)(?<![-+*/(])([-+*/])/g, ' $1 ')
+      return value
     },
   })
 }
