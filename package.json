@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "repository": "https://github.com/tailwindlabs/tailwindcss-jit",
   "scripts": {
-    "test": "TAILWIND_MODE=build jest"
+    "test": "cross-env TAILWIND_MODE=build jest"
   },
   "prettier": {
     "printWidth": 100,
@@ -30,6 +30,7 @@
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.2.0",
     "autoprefixer": "^10.2.4",
+    "cross-env": "^7.0.3",
     "jest": "^26.6.3",
     "postcss": "^8.2.6",
     "postcss-cli": "^8.3.1",
