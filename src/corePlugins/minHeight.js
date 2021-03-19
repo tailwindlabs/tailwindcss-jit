@@ -1,10 +1,9 @@
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
-const { asLength, nameClass } = require('../pluginUtils')
+const { asValue, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
+module.exports = function ({ matchUtilities }) {
   matchUtilities({
     'min-h': (modifier, { theme }) => {
-      let value = asLength(modifier, theme['minHeight'])
+      let value = asValue(modifier, theme['minHeight'])
 
       if (value === undefined) {
         return []

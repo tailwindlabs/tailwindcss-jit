@@ -25,6 +25,24 @@
 .h-\[var\(--height\)\] {
   height: var(--height);
 }
+.max-h-\[3\.23rem\] {
+  max-height: 3.23rem;
+}
+.max-h-\[calc\(100\%\+1rem\)\] {
+  max-height: calc(100% + 1rem);
+}
+.max-h-\[var\(--height\)\] {
+  max-height: var(--height);
+}
+.min-h-\[3\.23rem\] {
+  min-height: 3.23rem;
+}
+.min-h-\[calc\(100\%\+1rem\)\] {
+  min-height: calc(100% + 1rem);
+}
+.min-h-\[var\(--height\)\] {
+  min-height: var(--height);
+}
 .w-\[3\.23rem\] {
   width: 3.23rem;
 }
@@ -33,6 +51,24 @@
 }
 .w-\[var\(--width\)\] {
   width: var(--width);
+}
+.min-w-\[3\.23rem\] {
+  min-width: 3.23rem;
+}
+.min-w-\[calc\(100\%\+1rem\)\] {
+  min-width: calc(100% + 1rem);
+}
+.min-w-\[var\(--width\)\] {
+  min-width: var(--width);
+}
+.max-w-\[3\.23rem\] {
+  max-width: 3.23rem;
+}
+.max-w-\[calc\(100\%\+1rem\)\] {
+  max-width: calc(100% + 1rem);
+}
+.max-w-\[var\(--width\)\] {
+  max-width: var(--width);
 }
 .rotate-\[23deg\] {
   --tw-rotate: 23deg;

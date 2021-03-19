@@ -1,10 +1,9 @@
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
-const { asLength, nameClass } = require('../pluginUtils')
+const { asValue, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
+module.exports = function ({ matchUtilities }) {
   matchUtilities({
     'max-h': (modifier, { theme }) => {
-      let value = asLength(modifier, theme['maxHeight'])
+      let value = asValue(modifier, theme['maxHeight'])
 
       if (value === undefined) {
         return []
