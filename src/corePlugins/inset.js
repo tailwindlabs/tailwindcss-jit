@@ -1,9 +1,9 @@
-const { asLength, nameClass } = require('../pluginUtils')
+const { asValue, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
+module.exports = function ({ matchUtilities }) {
   matchUtilities({
     inset: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['inset'])
+      let value = asValue(modifier, theme['inset'])
 
       if (value === undefined) {
         return []
@@ -16,7 +16,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
   })
   matchUtilities({
     'inset-x': (modifier, { theme }) => {
-      let value = asLength(modifier, theme['inset'])
+      let value = asValue(modifier, theme['inset'])
 
       if (value === undefined) {
         return []
@@ -25,7 +25,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
       return { [nameClass('inset-x', modifier)]: { left: value, right: value } }
     },
     'inset-y': (modifier, { theme }) => {
-      let value = asLength(modifier, theme['inset'])
+      let value = asValue(modifier, theme['inset'])
 
       if (value === undefined) {
         return []
@@ -36,7 +36,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
   })
   matchUtilities({
     top: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['inset'])
+      let value = asValue(modifier, theme['inset'])
 
       if (value === undefined) {
         return []
@@ -45,7 +45,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
       return { [nameClass('top', modifier)]: { top: value } }
     },
     right: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['inset'])
+      let value = asValue(modifier, theme['inset'])
 
       if (value === undefined) {
         return []
@@ -54,7 +54,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
       return { [nameClass('right', modifier)]: { right: value } }
     },
     bottom: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['inset'])
+      let value = asValue(modifier, theme['inset'])
 
       if (value === undefined) {
         return []
@@ -63,7 +63,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
       return { [nameClass('bottom', modifier)]: { bottom: value } }
     },
     left: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['inset'])
+      let value = asValue(modifier, theme['inset'])
 
       if (value === undefined) {
         return []

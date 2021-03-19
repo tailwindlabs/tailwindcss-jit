@@ -7,6 +7,12 @@
   --tw-ring-offset-shadow: 0 0 #0000;
   --tw-ring-shadow: 0 0 #0000;
 }
+.inset-\[11px\] {
+  top: 11px;
+  right: 11px;
+  bottom: 11px;
+  left: 11px;
+}
 .mt-\[clamp\(30px\2c 100px\)\] {
   margin-top: clamp(30px, 100px);
 }
