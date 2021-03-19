@@ -8,7 +8,7 @@
   --tw-ring-shadow: 0 0 #0000;
 }
 .mt-\[clamp\(30px\2c 100px\)\] {
-	margin-top: clamp(30px, 100px);
+  margin-top: clamp(30px, 100px);
 }
 .w-\[3\.23rem\] {
   width: 3.23rem;
