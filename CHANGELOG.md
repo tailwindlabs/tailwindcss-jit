@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Nothing yet!
+### Added
+
+- Support arbitrary values for `transition-duration` ([#99](https://github.com/tailwindlabs/tailwindcss-jit/pull/99))
+
+### Fixed
+
+- Fix issues when project paths have spaces ([#106](https://github.com/tailwindlabs/tailwindcss-jit/pull/106))
+- Fix negative classes when using a prefix ([#114](https://github.com/tailwindlabs/tailwindcss-jit/pull/114))
+- Fix issues with Windows-style paths ([#118](https://github.com/tailwindlabs/tailwindcss-jit/pull/118))
+- Ensure commas are escaped when applying variants ([#119](https://github.com/tailwindlabs/tailwindcss-jit/pull/119)
 
 ## [0.1.3] - 2021-03-17
 
