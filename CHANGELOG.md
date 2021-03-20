@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet!
 
+## [0.1.5] - 2021-03-20
+
+### Fixed
+
+- Fix extending gradient colors directly ([#127](https://github.com/tailwindlabs/tailwindcss-jit/pull/127))
+
 ## [0.1.4] - 2021-03-19
 
 ### Added
@@ -51,7 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Everything!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.4...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.1...v0.1.2
