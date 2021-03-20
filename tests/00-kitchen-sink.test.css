@@ -288,6 +288,13 @@ div {
 .bg-opacity-50 {
   --tw-bg-opacity: 0.5;
 }
+.bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+.from-foo {
+  --tw-gradient-from: #bada55;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(186, 218, 85, 0));
+}
 .text-center {
   text-align: center;
 }
