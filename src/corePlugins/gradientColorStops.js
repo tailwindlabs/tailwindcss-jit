@@ -1,4 +1,3 @@
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const flattenColorPalette = require('tailwindcss/lib/util/flattenColorPalette').default
 const toColorValue = require('tailwindcss/lib/util/toColorValue').default
 const toRgba = require('tailwindcss/lib/util/withAlphaVariable').toRgba
@@ -17,11 +16,11 @@ function transparentTo(value) {
   }
 }
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
-  let colorPalette = flattenColorPalette(theme.backgroundColor)
+module.exports = function ({ matchUtilities, theme }) {
+  let colorPalette = flattenColorPalette(theme('gradientColorStops'))
 
   matchUtilities({
-    from: (modifier, { theme }) => {
+    from: (modifier) => {
       let value = asColor(modifier, colorPalette)
 
       if (value === undefined) {
@@ -39,7 +38,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
     },
   })
   matchUtilities({
-    via: (modifier, { theme }) => {
+    via: (modifier) => {
       let value = asColor(modifier, colorPalette)
 
       if (value === undefined) {
@@ -59,7 +58,7 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
     },
   })
   matchUtilities({
-    to: (modifier, { theme }) => {
+    to: (modifier) => {
       let value = asColor(modifier, colorPalette)
 
       if (value === undefined) {

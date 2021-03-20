@@ -19,6 +19,9 @@ test('it works', () => {
           range: { min: '1280px', max: '1535px' },
           multi: [{ min: '640px', max: '767px' }, { max: '868px' }],
         },
+        gradientColorStops: {
+          foo: '#bada55',
+        },
       },
     },
     plugins: [
