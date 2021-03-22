@@ -676,11 +676,9 @@ function setupContext(configOrPath) {
           isConfigFile ||
           (_cacheKey && configHashMap.get(_cacheKey) === _cacheVersion)
         ) {
-          console.log('>> HIT')
           return contextMap.get(sourcePath)
         }
       }
-      console.log('>> MISS')
 
       // If the config used already exists in the cache, return that.
       if (configContextMap.has(tailwindConfigHash)) {
