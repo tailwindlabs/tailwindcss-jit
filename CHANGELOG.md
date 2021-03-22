@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Nothing yet!
+- Add initial support for recursive `@apply` ([#136](https://github.com/tailwindlabs/tailwindcss-jit/pull/136))
 
 ## [0.1.5] - 2021-03-20
 
