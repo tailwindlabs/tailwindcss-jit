@@ -65,6 +65,40 @@ test('@apply', () => {
         @apply font-bold hover:font-normal;
       }
     }
+    .use-base-only-a {
+      @apply font-bold;
+    }
+    .use-base-only-b {
+      @apply use-base-only-a font-normal;
+    }
+    .use-dependant-only-a {
+      @apply font-bold;
+    }
+    .use-dependant-only-b {
+      @apply use-dependant-only-a font-normal;
+    }
+    .btn {
+      @apply font-bold py-2 px-4 rounded; 
+    }
+    .btn-blue {
+      @apply btn bg-blue-500 hover:bg-blue-700 text-white;
+    }
+    .recursive-apply-a {
+      @apply font-black sm:font-thin;
+    }
+    .recursive-apply-b {
+      @apply recursive-apply-a font-semibold md:font-extralight;
+    }
+    .recursive-apply-c {
+      @apply recursive-apply-b font-bold lg:font-light;
+    }
+    .use-with-other-properties-base {
+      color: green;
+      @apply font-bold;
+    }
+    .use-with-other-properties-component {
+      @apply use-with-other-properties-base;
+    }
   }
 
   @layer utilities {
