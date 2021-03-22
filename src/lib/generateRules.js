@@ -3,6 +3,7 @@ const parseObjectStyles = require('tailwindcss/lib/util/parseObjectStyles').defa
 const { isPlainObject, bigSign } = require('./utils')
 const selectorParser = require('postcss-selector-parser')
 const prefixSelector = require('tailwindcss/lib/util/prefixSelector').default
+const { updateAllClasses } = require('../pluginUtils')
 
 let classNameParser = selectorParser((selectors) => {
   return selectors.first.filter(({ type }) => type === 'class').pop().value
@@ -62,6 +63,27 @@ function applyPrefix(matches, context) {
   }
 
   return matches
+}
+
+function applyImportant(matches) {
+  if (matches.length === 0) {
+    return matches
+  }
+  let result = []
+
+  for (let [{ sort, layer, options }, rule] of matches) {
+    let container = postcss.root({ nodes: [rule] })
+    container.walkRules((r) => {
+      r.selector = updateAllClasses(r.selector, (className) => {
+        return `!${className}`
+      })
+      r.walkDecls((d) => (d.important = true))
+    })
+    let withOffset = [{ sort: sort, layer, options }, container.nodes[0]]
+    result.push(withOffset)
+  }
+
+  return result
 }
 
 // Takes a list of rule tuples and applies a variant like `hover`, sm`,
@@ -155,8 +177,9 @@ function* resolveMatchedPlugins(classCandidate, context) {
   let candidatePrefix = classCandidate
   let negative = false
 
-  const twConfigPrefix = context.tailwindConfig.prefix || ''
-  const twConfigPrefixLen = twConfigPrefix.length
+  let twConfigPrefix = context.tailwindConfig.prefix || ''
+  let twConfigPrefixLen = twConfigPrefix.length
+
   if (candidatePrefix[twConfigPrefixLen] === '-') {
     negative = true
     candidatePrefix = twConfigPrefix + candidatePrefix.slice(twConfigPrefixLen + 1)
@@ -179,6 +202,12 @@ function sortAgainst(toSort, against) {
 function* resolveMatches(candidate, context) {
   let separator = context.tailwindConfig.separator
   let [classCandidate, ...variants] = candidate.split(separator).reverse()
+  let important = false
+
+  if (classCandidate.startsWith('!')) {
+    important = true
+    classCandidate = classCandidate.slice(1)
+  }
 
   // Strip prefix
   // md:hover:tw-bg-black
@@ -219,6 +248,10 @@ function* resolveMatches(candidate, context) {
     }
 
     matches = applyPrefix(matches, context)
+
+    if (important) {
+      matches = applyImportant(matches, context)
+    }
 
     for (let variant of variants) {
       matches = applyVariant(variant, matches, context)
