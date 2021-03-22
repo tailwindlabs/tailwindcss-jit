@@ -84,6 +84,18 @@ function nameClass(...args) {
   return escapeCommas(tailwindUtils.nameClass(...args))
 }
 
+/**
+ * Clone generated and/or cached nodes to ensure no future
+ * postcss plugins can mutate the rules and mess up our cache
+ *
+ * NOTE: Only clone the nodes you pass to root.append()
+ *
+ * @param {import('postcss').Node[]} nodes
+ * */
+function cloneNodes(nodes) {
+  return nodes.map(node => node.clone())
+}
+
 module.exports = {
   toPostCssNode,
   bigSign,
@@ -91,4 +103,5 @@ module.exports = {
   escapeClassName,
   escapeCommas,
   nameClass,
+  cloneNodes,
 }

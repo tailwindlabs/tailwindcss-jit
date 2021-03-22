@@ -2,7 +2,7 @@ const fs = require('fs')
 const fastGlob = require('fast-glob')
 const sharedState = require('./sharedState')
 const { generateRules } = require('./generateRules')
-const { bigSign } = require('./utils')
+const { bigSign, cloneNodes } = require('./utils')
 
 let env = sharedState.env
 let contentMatchCache = sharedState.contentMatchCache
@@ -179,25 +179,25 @@ function expandTailwindAtRules(context, registerDependency) {
     // Replace any Tailwind directives with generated CSS
 
     if (layerNodes.base) {
-      layerNodes.base.before([...baseNodes])
+      layerNodes.base.before(cloneNodes([...baseNodes]))
       layerNodes.base.remove()
     }
 
     if (layerNodes.components) {
-      layerNodes.components.before([...componentNodes])
+      layerNodes.components.before(cloneNodes([...componentNodes]))
       layerNodes.components.remove()
     }
 
     if (layerNodes.utilities) {
-      layerNodes.utilities.before([...utilityNodes])
+      layerNodes.utilities.before(cloneNodes([...utilityNodes]))
       layerNodes.utilities.remove()
     }
 
     if (layerNodes.screens) {
-      layerNodes.screens.before([...screenNodes])
+      layerNodes.screens.before(cloneNodes([...screenNodes]))
       layerNodes.screens.remove()
     } else {
-      root.append([...screenNodes])
+      root.append(cloneNodes([...screenNodes]))
     }
 
     // ---
