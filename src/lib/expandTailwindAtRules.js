@@ -1,4 +1,5 @@
 const fs = require('fs')
+const path = require('path')
 const fastGlob = require('fast-glob')
 const sharedState = require('./sharedState')
 const { generateRules } = require('./generateRules')
@@ -7,10 +8,39 @@ const { bigSign, cloneNodes } = require('./utils')
 let env = sharedState.env
 let contentMatchCache = sharedState.contentMatchCache
 
+const BROAD_MATCH_GLOBAL_REGEXP = /[^<>"'`\s]*[^<>"'`\s:]/g
+const INNER_MATCH_GLOBAL_REGEXP = /[^<>"'`\s.(){}[\]#=%]*[^<>"'`\s.(){}[\]#=%:]/g
+
+function defaultJitExtractor(content) {
+  let broadMatches = content.match(BROAD_MATCH_GLOBAL_REGEXP) || []
+  let innerMatches = content.match(INNER_MATCH_GLOBAL_REGEXP) || []
+
+  return [...broadMatches, ...innerMatches]
+}
+
+function getExtractor(fileName, tailwindConfig) {
+  const purgeOptions = tailwindConfig && tailwindConfig.purge && tailwindConfig.purge.options
+
+  if (!purgeOptions) {
+    return defaultJitExtractor
+  }
+
+  const fileExtension = path.extname(fileName).slice(1)
+  const fileSpecificExtractor = (purgeOptions.extractors || []).find((extractor) =>
+    extractor.extensions.includes(fileExtension)
+  )
+
+  if (fileSpecificExtractor) {
+    return fileSpecificExtractor.extractor
+  }
+
+  return purgeOptions.defaultExtractor || defaultJitExtractor
+}
+
 // Scans template contents for possible classes. This is a hot path on initial build but
 // not too important for subsequent builds. The faster the better though — if we can speed
 // up these regexes by 50% that could cut initial build time by like 20%.
-function getClassCandidates(content, contentMatchCache, candidates, seen) {
+function getClassCandidates(content, extractor, contentMatchCache, candidates, seen) {
   for (let line of content.split('\n')) {
     line = line.trim()
 
@@ -24,20 +54,14 @@ function getClassCandidates(content, contentMatchCache, candidates, seen) {
         candidates.add(match)
       }
     } else {
-      let allMatches = new Set()
-      let broadMatches = line.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || []
-      let innerMatches = line.match(/[^<>"'`\s.(){}[\]#=%]*[^<>"'`\s.(){}[\]#=%:]/g) || []
+      let extractorMatches = extractor(line)
+      let lineMatchesSet = new Set(extractorMatches)
 
-      for (let match of broadMatches) {
-        allMatches.add(match)
-        candidates.add(match)
-      }
-      for (let match of innerMatches) {
-        allMatches.add(match)
+      for (let match of lineMatchesSet) {
         candidates.add(match)
       }
 
-      contentMatchCache.set(line, allMatches)
+      contentMatchCache.set(line, lineMatchesSet)
     }
   }
 }
@@ -143,7 +167,8 @@ function expandTailwindAtRules(context, registerDependency) {
     env.DEBUG && console.time('Reading changed files')
     for (let file of context.changedFiles) {
       let content = fs.readFileSync(file, 'utf8')
-      getClassCandidates(content, contentMatchCache, candidates, seen)
+      let extractor = getExtractor(file, context.tailwindConfig)
+      getClassCandidates(content, extractor, contentMatchCache, candidates, seen)
     }
     env.DEBUG && console.timeEnd('Reading changed files')
 
