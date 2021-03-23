@@ -3,25 +3,22 @@ function rewriteTailwindImports(root) {
     if (atRule.params === '"tailwindcss/base"' || atRule.params === "'tailwindcss/base'") {
       atRule.name = 'tailwind'
       atRule.params = 'base'
-    }
-
-    if (
+    } else if (
       atRule.params === '"tailwindcss/components"' ||
       atRule.params === "'tailwindcss/components'"
     ) {
       atRule.name = 'tailwind'
       atRule.params = 'components'
-    }
-
-    if (
+    } else if (
       atRule.params === '"tailwindcss/utilities"' ||
       atRule.params === "'tailwindcss/utilities'"
     ) {
       atRule.name = 'tailwind'
       atRule.params = 'utilities'
-    }
-
-    if (atRule.params === '"tailwindcss/screens"' || atRule.params === "'tailwindcss/screens'") {
+    } else if (
+      atRule.params === '"tailwindcss/screens"' ||
+      atRule.params === "'tailwindcss/screens'"
+    ) {
       atRule.name = 'tailwind'
       atRule.params = 'screens'
     }
