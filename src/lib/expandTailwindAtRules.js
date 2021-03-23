@@ -77,36 +77,6 @@ function buildStylesheet(rules, context) {
   return returnValue
 }
 
-function rewriteTailwindImports(root) {
-  root.walkAtRules('import', (atRule) => {
-    if (atRule.params === '"tailwindcss/base"' || atRule.params === "'tailwindcss/base'") {
-      atRule.name = 'tailwind'
-      atRule.params = 'base'
-    }
-
-    if (
-      atRule.params === '"tailwindcss/components"' ||
-      atRule.params === "'tailwindcss/components'"
-    ) {
-      atRule.name = 'tailwind'
-      atRule.params = 'components'
-    }
-
-    if (
-      atRule.params === '"tailwindcss/utilities"' ||
-      atRule.params === "'tailwindcss/utilities'"
-    ) {
-      atRule.name = 'tailwind'
-      atRule.params = 'utilities'
-    }
-
-    if (atRule.params === '"tailwindcss/screens"' || atRule.params === "'tailwindcss/screens'") {
-      atRule.name = 'tailwind'
-      atRule.params = 'screens'
-    }
-  })
-}
-
 function expandTailwindAtRules(context, registerDependency) {
   return (root) => {
     let foundTailwind = false
@@ -116,8 +86,6 @@ function expandTailwindAtRules(context, registerDependency) {
       utilities: null,
       screens: null,
     }
-
-    rewriteTailwindImports(root)
 
     // Make sure this file contains Tailwind directives. If not, we can save
     // a lot of work and bail early. Also we don't have to register our touch
