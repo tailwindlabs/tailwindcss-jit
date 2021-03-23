@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Nothing yet!
+### Added
+
+- Direct support for @import 'tailwindcss/{layer}' syntax ([#145](https://github.com/tailwindlabs/tailwindcss-jit/pull/145))
+- Support for custom extractors ([#125](https://github.com/tailwindlabs/tailwindcss-jit/pull/125))
 
 ## [0.1.7] - 2021-03-22
 
