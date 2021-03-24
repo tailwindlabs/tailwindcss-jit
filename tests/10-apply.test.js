@@ -99,6 +99,15 @@ test('@apply', () => {
     .use-with-other-properties-component {
       @apply use-with-other-properties-base;
     }
+
+    h1 {
+      @apply text-2xl lg:text-2xl sm:text-3xl;
+    }
+    h2 {
+      @apply text-2xl;
+      @apply lg:text-2xl;
+      @apply sm:text-2xl;
+    }
   }
 
   @layer utilities {

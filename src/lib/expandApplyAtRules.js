@@ -102,8 +102,15 @@ function expandApplyAtRules(context) {
           .join(', ')
       }
 
+      /** @type {Map<import('postcss').Node, [string, boolean, import('postcss').Node[]][]>} */
+      let perParentApplies = new Map()
+
+      // Collect all apply candidates and their rules
       for (let apply of applies) {
-        let siblings = []
+        let candidates = perParentApplies.get(apply.parent) || []
+
+        perParentApplies.set(apply.parent, candidates)
+
         let [applyCandidates, important] = extractApplyCandidates(apply.params)
 
         for (let applyCandidate of applyCandidates) {
@@ -115,13 +122,22 @@ function expandApplyAtRules(context) {
 
           let rules = applyClassCache.get(applyCandidate)
 
+          candidates.push([applyCandidate, important, rules])
+        }
+      }
+
+      for (const [parent, candidates] of perParentApplies) {
+        let siblings = []
+
+        for (let [applyCandidate, important, rules] of candidates) {
           for (let [meta, node] of rules) {
             let root = postcss.root({ nodes: [node.clone()] })
-            let canRewriteSelector = node.type !== 'atrule' || (node.type === 'atrule' && node.name !== 'keyframes');
+            let canRewriteSelector =
+              node.type !== 'atrule' || (node.type === 'atrule' && node.name !== 'keyframes')
 
             if (canRewriteSelector) {
               root.walkRules((rule) => {
-                rule.selector = replaceSelector(apply.parent.selector, rule.selector, applyCandidate)
+                rule.selector = replaceSelector(parent.selector, rule.selector, applyCandidate)
 
                 rule.walkDecls((d) => {
                   d.important = important
@@ -134,11 +150,13 @@ function expandApplyAtRules(context) {
         }
 
         // Inject the rules, sorted, correctly
-        const nodes = siblings.sort(([a], [z]) => bigSign(a.sort - z.sort)).map(s => s[1])
+        const nodes = siblings.sort(([a], [z]) => bigSign(a.sort - z.sort)).map((s) => s[1])
 
-        // `apply.parent` is referring to the node at `.abc` in: .abc { @apply mt-2 }
-        apply.parent.after(nodes)
+        // `parent` refers to the node at `.abc` in: .abc { @apply mt-2 }
+        parent.after(nodes)
+      }
 
+      for (let apply of applies) {
         // If there are left-over declarations, just remove the @apply
         if (apply.parent.nodes.length > 1) {
           apply.remove()
