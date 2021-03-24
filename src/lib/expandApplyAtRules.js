@@ -129,10 +129,7 @@ function expandApplyAtRules(context) {
       for (const [parent, candidates] of perParentApplies) {
         let siblings = []
 
-        for (let candidate of candidates) {
-          let applyCandidate = candidate[0]
-          let important = candidate[1]
-          let rules = candidate[2]
+        for (let [applyCandidate, important, rules] of candidates) {
           for (let [meta, node] of rules) {
             let root = postcss.root({ nodes: [node.clone()] })
             let canRewriteSelector =
