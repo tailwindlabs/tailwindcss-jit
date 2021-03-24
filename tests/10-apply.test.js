@@ -105,6 +105,10 @@ test('@apply', () => {
     .custom-util {
       custom: stuff;
     }
+
+    .foo {
+      @apply animate-spin;
+    }
   }
 `
 

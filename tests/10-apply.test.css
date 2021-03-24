@@ -265,3 +265,11 @@
   color: green;
   font-weight: 700;
 }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.foo {
+  animation: spin 1s linear infinite;
+}
