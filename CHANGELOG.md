@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Direct support for @import 'tailwindcss/{layer}' syntax ([#145](https://github.com/tailwindlabs/tailwindcss-jit/pull/145))
 - Support for custom extractors ([#125](https://github.com/tailwindlabs/tailwindcss-jit/pull/125))
 
+### Fixed
+
+- Fix `@apply` with animation utilities stripping keyframe names ([#150](https://github.com/tailwindlabs/tailwindcss-jit/pull/150))
+- Fix using `@apply` multiple times within a single rule ([#151](https://github.com/tailwindlabs/tailwindcss-jit/pull/151))
+
 ## [0.1.7] - 2021-03-22
 
 ### Fixed
