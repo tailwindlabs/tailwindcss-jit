@@ -130,10 +130,10 @@ function expandApplyAtRules(context) {
         }
 
         // Inject the rules, sorted, correctly
-        for (let [, sibling] of siblings.sort(([a], [z]) => bigSign(z.sort - a.sort))) {
-          // `apply.parent` is referring to the node at `.abc` in: .abc { @apply mt-2 }
-          apply.parent.after(sibling)
-        }
+        const nodes = siblings.sort(([a], [z]) => bigSign(a.sort - z.sort)).map(s => s[1])
+
+        // `apply.parent` is referring to the node at `.abc` in: .abc { @apply mt-2 }
+        apply.parent.after(nodes)
 
         // If there are left-over declarations, just remove the @apply
         if (apply.parent.nodes.length > 1) {
