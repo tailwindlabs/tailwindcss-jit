@@ -265,6 +265,38 @@
   color: green;
   font-weight: 700;
 }
+h1 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+@media (min-width: 640px) {
+  h1 {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+}
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+h2 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+@media (min-width: 640px) {
+  h2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+@media (min-width: 1024px) {
+  h2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
 @keyframes spin {
   to {
     transform: rotate(360deg);
