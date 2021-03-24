@@ -119,15 +119,15 @@ function expandApplyAtRules(context) {
             let root = postcss.root({ nodes: [node.clone()] })
             let canRewriteSelector = node.type !== 'atrule' || (node.type === 'atrule' && node.name !== 'keyframes');
 
-            root.walkRules((rule) => {
-              if (canRewriteSelector) {
+            if (canRewriteSelector) {
+              root.walkRules((rule) => {
                 rule.selector = replaceSelector(apply.parent.selector, rule.selector, applyCandidate)
-              }
 
-              rule.walkDecls((d) => {
-                d.important = important
+                rule.walkDecls((d) => {
+                  d.important = important
+                })
               })
-            })
+            }
 
             siblings.push([meta, root.nodes[0]])
           }

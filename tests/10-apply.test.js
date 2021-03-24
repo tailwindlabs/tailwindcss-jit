@@ -109,6 +109,10 @@ test('@apply', () => {
     .foo {
       @apply animate-spin;
     }
+
+    .bar {
+      @apply animate-pulse !important;
+    }
   }
 `
 

@@ -273,3 +273,11 @@
 .foo {
   animation: spin 1s linear infinite;
 }
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+.bar {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
