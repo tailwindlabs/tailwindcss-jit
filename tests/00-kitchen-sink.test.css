@@ -243,8 +243,8 @@ div {
   --tw-numeric-fraction: var(--tw-empty, /*!*/ /*!*/);
   font-variant-numeric: var(--tw-ordinal) var(--tw-slashed-zero) var(--tw-numeric-figure)
     var(--tw-numeric-spacing) var(--tw-numeric-fraction);
-  --tw-numeric-spacing: tabular-nums;
   --tw-ordinal: ordinal;
+  --tw-numeric-spacing: tabular-nums;
 }
 .custom-component {
   background: #123456;

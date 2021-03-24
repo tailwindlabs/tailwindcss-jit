@@ -11,19 +11,19 @@
   border-radius: 0.375rem;
   --tw-bg-opacity: 1;
   background-color: rgba(59, 130, 246, var(--tw-bg-opacity));
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
   padding-left: 1rem;
   padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 .class-order {
   padding: 2rem;
-  padding-top: 1.75rem;
-  padding-bottom: 1.75rem;
   padding-left: 0.75rem;
   padding-right: 0.75rem;
-  padding-right: 0.25rem;
+  padding-top: 1.75rem;
+  padding-bottom: 1.75rem;
   padding-top: 1rem;
+  padding-right: 0.25rem;
 }
 .with-additional-properties {
   font-weight: 500;
@@ -104,10 +104,10 @@
   border-radius: 0.375rem;
   --tw-bg-opacity: 1;
   background-color: rgba(59, 130, 246, var(--tw-bg-opacity));
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
   padding-left: 1rem;
   padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 .multiple-variants:hover,
 .selectors-variants:hover {
@@ -149,8 +149,8 @@
   --tw-numeric-fraction: var(--tw-empty, /*!*/ /*!*/);
   font-variant-numeric: var(--tw-ordinal) var(--tw-slashed-zero) var(--tw-numeric-figure)
     var(--tw-numeric-spacing) var(--tw-numeric-fraction);
-  --tw-numeric-spacing: tabular-nums;
   --tw-ordinal: ordinal;
+  --tw-numeric-spacing: tabular-nums;
   --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
     var(--tw-shadow);
@@ -187,18 +187,18 @@
 }
 .btn {
   border-radius: 0.25rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
   font-weight: 700;
 }
 .btn-blue {
   border-radius: 0.25rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
   font-weight: 700;
   --tw-bg-opacity: 1;
   background-color: rgba(59, 130, 246, var(--tw-bg-opacity));
@@ -264,4 +264,20 @@
 .use-with-other-properties-component {
   color: green;
   font-weight: 700;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.foo {
+  animation: spin 1s linear infinite;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+.bar {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
 }

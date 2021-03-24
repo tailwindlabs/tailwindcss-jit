@@ -105,6 +105,14 @@ test('@apply', () => {
     .custom-util {
       custom: stuff;
     }
+
+    .foo {
+      @apply animate-spin;
+    }
+
+    .bar {
+      @apply animate-pulse !important;
+    }
   }
 `
 
