@@ -265,6 +265,32 @@
   color: green;
   font-weight: 700;
 }
+.add-sibling-properties {
+  padding: 2rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.add-sibling-properties:hover {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+@media (min-width: 1024px) {
+  .add-sibling-properties {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+@media (min-width: 1280px) {
+  .add-sibling-properties:focus {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+}
+.add-sibling-properties {
+  padding-top: 3px;
+  color: green;
+  font-weight: 700;
+}
 h1 {
   font-size: 1.5rem;
   line-height: 2rem;
@@ -285,13 +311,13 @@ h2 {
   font-size: 1.5rem;
   line-height: 2rem;
 }
-@media (min-width: 640px) {
+@media (min-width: 1024px) {
   h2 {
     font-size: 1.5rem;
     line-height: 2rem;
   }
 }
-@media (min-width: 1024px) {
+@media (min-width: 640px) {
   h2 {
     font-size: 1.5rem;
     line-height: 2rem;

@@ -78,7 +78,7 @@ test('@apply', () => {
       @apply use-dependant-only-a font-normal;
     }
     .btn {
-      @apply font-bold py-2 px-4 rounded; 
+      @apply font-bold py-2 px-4 rounded;
     }
     .btn-blue {
       @apply btn bg-blue-500 hover:bg-blue-700 text-white;
@@ -97,6 +97,12 @@ test('@apply', () => {
       @apply font-bold;
     }
     .use-with-other-properties-component {
+      @apply use-with-other-properties-base;
+    }
+    .add-sibling-properties {
+      padding: 2rem;
+      @apply px-4 hover:px-2 lg:px-10 xl:focus:px-1;
+      padding-top: 3px;
       @apply use-with-other-properties-base;
     }
 
