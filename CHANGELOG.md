@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet!
 
+## [0.1.9] - 2021-03-25
+
+### Fixed
+
+- Respect order of sibling declarations when mixing `@apply` with regular CSS properties ([#155](https://github.com/tailwindlabs/tailwindcss-jit/pull/155))
+
 ## [0.1.8] - 2021-03-24
 
 ### Added
@@ -82,7 +88,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Everything!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.8...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.5...v0.1.6
