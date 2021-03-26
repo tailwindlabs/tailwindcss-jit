@@ -163,3 +163,29 @@ test('@apply error with unknown utility', async () => {
 
   await expect(run(css, config)).rejects.toThrowError("class does not exist")
 })
+test('@apply error with nested @anyatrulehere', async () => {
+  let config = {
+    // TODO: Remove this. Some kind of caching causes multiple tests in the same file to break.
+    __name: "at-anything",
+
+    darkMode: 'class',
+    purge: [path.resolve(__dirname, './10-apply.test.html')],
+    corePlugins: { preflight: false },
+    plugins: [],
+  }
+
+  let css = `
+  @tailwind components;
+  @tailwind utilities;
+
+  @layer components {
+    .foo {
+      @genie {
+        @apply text-black;
+      }
+    }
+  }
+`
+
+  await expect(run(css, config)).rejects.toThrowError("Nesting inside an @genie is not supported")
+})

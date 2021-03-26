@@ -153,6 +153,12 @@ function processApply(root, context) {
 
       let [applyCandidates, important] = extractApplyCandidates(apply.params)
 
+      if (apply.parent.type === 'atrule') {
+        throw apply.error(
+          `@apply only works for elements and classes. Nesting inside an @${apply.parent.name} is not supported. Please move the @${apply.parent.name} around the element/class selector`
+        )
+      }
+
       for (let applyCandidate of applyCandidates) {
         if (!applyClassCache.has(applyCandidate)) {
           throw apply.error(
