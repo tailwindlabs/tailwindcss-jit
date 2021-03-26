@@ -142,37 +142,56 @@ function expandTailwindAtRules(context, registerDependency) {
 
     // ---
 
-    for (let maybeGlob of context.candidateFiles) {
-      let {
-        is: { glob: isGlob },
-        base,
-      } = parseGlob(maybeGlob)
+    if (sharedState.env.TAILWIND_DISABLE_TOUCH) {
+      for (let maybeGlob of context.candidateFiles) {
+        let {
+          is: { glob: isGlob },
+          base,
+        } = parseGlob(maybeGlob)
 
-      if (isGlob) {
-        // register base dir as `dependency` _and_ `context-dependency` for
-        // increased compatibility
-        registerDependency(path.resolve(base))
-        registerDependency(path.resolve(base), 'context-dependency')
-      } else {
-        registerDependency(path.resolve(maybeGlob))
+        if (isGlob) {
+          // register base dir as `dependency` _and_ `context-dependency` for
+          // increased compatibility
+          registerDependency(path.resolve(base))
+          registerDependency(path.resolve(base), 'context-dependency')
+        } else {
+          registerDependency(path.resolve(maybeGlob))
+        }
+      }
+
+      env.DEBUG && console.time('Finding changed files')
+      let files = fastGlob.sync(context.candidateFiles)
+      for (let file of files) {
+        let prevModified = sharedState.fileModifiedCache.has(file)
+          ? sharedState.fileModifiedCache.get(file)
+          : -Infinity
+        let modified = fs.statSync(file).mtimeMs
+
+        if (!context.scannedContent || modified > prevModified) {
+          context.changedFiles.add(file)
+          sharedState.fileModifiedCache.set(file, modified)
+        }
+      }
+      context.scannedContent = true
+      env.DEBUG && console.timeEnd('Finding changed files')
+    } else {
+      // Register our temp file as a dependency — we write to this file
+      // to trigger rebuilds.
+      if (context.touchFile) {
+        registerDependency(context.touchFile)
+      }
+
+      // If we're not set up and watching files ourselves, we need to do
+      // the work of grabbing all of the template files for candidate
+      // detection.
+      if (!context.scannedContent) {
+        let files = fastGlob.sync(context.candidateFiles)
+        for (let file of files) {
+          context.changedFiles.add(file)
+        }
+        context.scannedContent = true
       }
     }
-
-    env.DEBUG && console.time('Finding changed files')
-    let files = fastGlob.sync(context.candidateFiles)
-    for (let file of files) {
-      let prevModified = sharedState.fileModifiedCache.has(file)
-        ? sharedState.fileModifiedCache.get(file)
-        : -Infinity
-      let modified = fs.statSync(file).mtimeMs
-
-      if (!context.scannedContent || modified > prevModified) {
-        context.changedFiles.add(file)
-        sharedState.fileModifiedCache.set(file, modified)
-      }
-    }
-    context.scannedContent = true
-    env.DEBUG && console.timeEnd('Finding changed files')
 
     // ---
 
