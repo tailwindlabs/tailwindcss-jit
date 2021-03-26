@@ -23,9 +23,9 @@ module.exports = (configOrPath = {}) => {
           return root
         },
       function (root, result) {
-        function registerDependency(fileName) {
+        function registerDependency(fileName, type = 'dependency') {
           result.messages.push({
-            type: 'dependency',
+            type,
             plugin: 'tailwindcss-jit',
             parent: result.opts.from,
             file: fileName,
@@ -36,8 +36,10 @@ module.exports = (configOrPath = {}) => {
 
         let context = setupContext(configOrPath)(result, root)
 
-        if (context.configPath !== null) {
-          registerDependency(context.configPath)
+        if (!env.TAILWIND_DISABLE_TOUCH) {
+          if (context.configPath !== null) {
+            registerDependency(context.configPath)
+          }
         }
 
         return postcss([
