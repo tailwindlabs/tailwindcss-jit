@@ -164,11 +164,12 @@ function expandTailwindAtRules(context, registerDependency) {
       let prevModified = sharedState.fileModifiedCache.get(file) ?? -Infinity
       let modified = fs.statSync(file).mtimeMs
 
-      if (modified > prevModified) {
+      if (!context.scannedContent || modified > prevModified) {
         context.changedFiles.add(file)
         sharedState.fileModifiedCache.set(file, modified)
       }
     }
+    context.scannedContent = true
     env.DEBUG && console.timeEnd('Finding changed files')
 
     // ---
