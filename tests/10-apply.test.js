@@ -7,7 +7,7 @@ function run(input, config = {}) {
   const { currentTestName } = expect.getState()
 
   return postcss([tailwind(config)]).process(input, {
-    from: `${path.resolve(__filename)}?test=${currentTestName}`
+    from: `${path.resolve(__filename)}?test=${currentTestName}`,
   })
 }
 
@@ -162,7 +162,7 @@ test('@apply error with unknown utility', async () => {
   }
 `
 
-  await expect(run(css, config)).rejects.toThrowError("class does not exist")
+  await expect(run(css, config)).rejects.toThrowError('class does not exist')
 })
 
 test('@apply error with nested @screen', async () => {
@@ -186,7 +186,9 @@ test('@apply error with nested @screen', async () => {
   }
 `
 
-  await expect(run(css, config)).rejects.toThrowError("@apply nested inside @screen is not supported")
+  await expect(run(css, config)).rejects.toThrowError(
+    '@apply is not supported within nested at-rules like @screen'
+  )
 })
 
 test('@apply error with nested @anyatrulehere', async () => {
@@ -210,5 +212,7 @@ test('@apply error with nested @anyatrulehere', async () => {
   }
 `
 
-  await expect(run(css, config)).rejects.toThrowError("Nesting inside an @genie is not supported")
+  await expect(run(css, config)).rejects.toThrowError(
+    '@apply is not supported within nested at-rules like @genie'
+  )
 })

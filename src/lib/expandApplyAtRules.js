@@ -158,12 +158,14 @@ function processApply(root, context) {
           const screenType = apply.parent.params
 
           throw apply.error(
-            `@apply nested inside @screen is not supported. We suggest you write this as @apply ${applyCandidates.map(c => `${screenType}:${c}`).join(' ')} instead.`
+            `@apply is not supported within nested at-rules like @screen. We suggest you write this as @apply ${applyCandidates
+              .map((c) => `${screenType}:${c}`)
+              .join(' ')} instead.`
           )
         }
 
         throw apply.error(
-          `@apply only works for elements and classes. Nesting inside an @${apply.parent.name} is not supported. Please move the @${apply.parent.name} around the element/class selector`
+          `@apply is not supported within nested at-rules like @${apply.parent.name}. You can fix this by un-nesting @${apply.parent.name}.`
         )
       }
 
