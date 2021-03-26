@@ -154,6 +154,14 @@ function processApply(root, context) {
       let [applyCandidates, important] = extractApplyCandidates(apply.params)
 
       if (apply.parent.type === 'atrule') {
+        if (apply.parent.name === 'screen') {
+          const screenType = apply.parent.params
+
+          throw apply.error(
+            `@apply nested inside @screen is not supported. We suggest you write this as @apply ${applyCandidates.map(c => `${screenType}:${c}`).join(' ')} instead.`
+          )
+        }
+
         throw apply.error(
           `@apply only works for elements and classes. Nesting inside an @${apply.parent.name} is not supported. Please move the @${apply.parent.name} around the element/class selector`
         )

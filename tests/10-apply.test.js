@@ -163,6 +163,34 @@ test('@apply error with unknown utility', async () => {
 
   await expect(run(css, config)).rejects.toThrowError("class does not exist")
 })
+
+test('@apply error with nested @screen', async () => {
+  let config = {
+    // TODO: Remove this. Some kind of caching causes multiple tests in the same file to break.
+    __name: "at-screen",
+
+    darkMode: 'class',
+    purge: [path.resolve(__dirname, './10-apply.test.html')],
+    corePlugins: { preflight: false },
+    plugins: [],
+  }
+
+  let css = `
+  @tailwind components;
+  @tailwind utilities;
+
+  @layer components {
+    .foo {
+      @screen md {
+        @apply text-black;
+      }
+    }
+  }
+`
+
+  await expect(run(css, config)).rejects.toThrowError("@apply nested inside @screen is not supported")
+})
+
 test('@apply error with nested @anyatrulehere', async () => {
   let config = {
     // TODO: Remove this. Some kind of caching causes multiple tests in the same file to break.
