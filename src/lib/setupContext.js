@@ -123,21 +123,34 @@ function getTailwindConfig(configOrPath) {
   let userConfigPath = resolveConfigPath(configOrPath)
 
   if (userConfigPath !== null) {
-    let [prevConfig, prevModified = -Infinity, prevConfigHash] =
+    let [prevConfig, prevConfigHash, prevDeps, prevModified] =
       configPathCache.get(userConfigPath) || []
-    let modified = fs.statSync(userConfigPath).mtimeMs
 
-    // It hasn't changed (based on timestamp)
-    if (modified <= prevModified) {
-      return [prevConfig, userConfigPath, prevConfigHash]
+    let newDeps = getModuleDependencies(userConfigPath).map((dep) => dep.file)
+
+    let modified = false
+    let newModified = new Map()
+    for (let file of newDeps) {
+      let time = fs.statSync(file).mtimeMs
+      newModified.set(file, time)
+      if (!prevModified || !prevModified.has(file) || time > prevModified.get(file)) {
+        modified = true
+      }
     }
 
-    // It has changed (based on timestamp), or first run
-    delete require.cache[userConfigPath]
+    // It hasn't changed (based on timestamps)
+    if (!modified) {
+      return [prevConfig, userConfigPath, prevConfigHash, prevDeps]
+    }
+
+    // It has changed (based on timestamps), or first run
+    for (let file of newDeps) {
+      delete require.cache[file]
+    }
     let newConfig = resolveConfig(require(userConfigPath))
     let newHash = hash(newConfig)
-    configPathCache.set(userConfigPath, [newConfig, modified, newHash])
-    return [newConfig, userConfigPath, newHash]
+    configPathCache.set(userConfigPath, [newConfig, newHash, newDeps, newModified])
+    return [newConfig, userConfigPath, newHash, newDeps]
   }
 
   // It's a plain object, not a path
@@ -145,7 +158,7 @@ function getTailwindConfig(configOrPath) {
     configOrPath.config === undefined ? configOrPath : configOrPath.config
   )
 
-  return [newConfig, null, hash(newConfig)]
+  return [newConfig, null, hash(newConfig), []]
 }
 
 function trackModified(files) {
@@ -519,10 +532,15 @@ function setupContext(configOrPath) {
     })
 
     let sourcePath = result.opts.from
-    let [tailwindConfig, userConfigPath, tailwindConfigHash] = getTailwindConfig(configOrPath)
+    let [
+      tailwindConfig,
+      userConfigPath,
+      tailwindConfigHash,
+      configDependencies,
+    ] = getTailwindConfig(configOrPath)
     let isConfigFile = userConfigPath !== null
 
-    let contextDependencies = new Set()
+    let contextDependencies = new Set(configDependencies)
 
     // If there are no @tailwind rules, we don't consider this CSS file or it's dependencies
     // to be dependencies of the context. Can reuse the context even if they change.
@@ -538,14 +556,13 @@ function setupContext(configOrPath) {
       }
     }
 
-    if (isConfigFile) {
-      contextDependencies.add(userConfigPath)
-    }
-
-    if (contextMap.has(sourcePath)) {
-      for (let dependency of contextMap.get(sourcePath).configDependencies) {
-        contextDependencies.add(dependency)
-      }
+    for (let file of configDependencies) {
+      result.messages.push({
+        type: 'dependency',
+        plugin: 'tailwindcss-jit',
+        parent: result.opts.from,
+        file,
+      })
     }
 
     let contextDependenciesChanged = trackModified([...contextDependencies])
@@ -596,7 +613,6 @@ function setupContext(configOrPath) {
       candidateRuleMap: new Map(),
       configPath: userConfigPath,
       tailwindConfig: tailwindConfig,
-      configDependencies: new Set(),
       candidateFiles: (Array.isArray(tailwindConfig.purge)
         ? tailwindConfig.purge
         : tailwindConfig.purge.content
@@ -619,25 +635,6 @@ function setupContext(configOrPath) {
     contextSourcesMap.get(context).add(sourcePath)
 
     // ---
-
-    if (isConfigFile) {
-      for (let dependency of getModuleDependencies(userConfigPath)) {
-        if (dependency.file === userConfigPath) {
-          continue
-        }
-
-        context.configDependencies.add(dependency.file)
-
-        result.messages.push({
-          type: 'dependency',
-          plugin: 'tailwindcss-jit',
-          parent: result.opts.from,
-          file: dependency.file,
-        })
-
-        trackModified([dependency.file])
-      }
-    }
 
     let corePluginList = Object.entries(corePlugins)
       .map(([name, plugin]) => {

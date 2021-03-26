@@ -36,10 +36,6 @@ module.exports = (configOrPath = {}) => {
 
         let context = setupContext(configOrPath)(result, root)
 
-        if (context.configPath !== null) {
-          registerDependency(context.configPath)
-        }
-
         return postcss([
           removeLayerAtRules(context),
           expandTailwindAtRules(context, registerDependency),
