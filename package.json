@@ -20,6 +20,7 @@
     "lodash.topath": "^4.5.2",
     "normalize-path": "^3.0.0",
     "object-hash": "^2.1.1",
+    "parse-glob": "^3.0.4",
     "postcss-selector-parser": "^6.0.4",
     "quick-lru": "^5.1.1"
   },
