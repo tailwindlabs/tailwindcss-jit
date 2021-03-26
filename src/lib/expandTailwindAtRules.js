@@ -162,14 +162,14 @@ function expandTailwindAtRules(context, registerDependency) {
       env.DEBUG && console.time('Finding changed files')
       let files = fastGlob.sync(context.candidateFiles)
       for (let file of files) {
-        let prevModified = sharedState.fileModifiedCache.has(file)
-          ? sharedState.fileModifiedCache.get(file)
+        let prevModified = context.fileModifiedMap.has(file)
+          ? context.fileModifiedMap.get(file)
           : -Infinity
         let modified = fs.statSync(file).mtimeMs
 
         if (!context.scannedContent || modified > prevModified) {
           context.changedFiles.add(file)
-          sharedState.fileModifiedCache.set(file, modified)
+          context.fileModifiedMap.set(file, modified)
         }
       }
       context.scannedContent = true

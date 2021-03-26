@@ -768,6 +768,7 @@ function setupContext(configOrPath) {
       ).map((path) => normalizePath(path)),
       variantMap: new Map(),
       stylesheetCache: null,
+      fileModifiedMap: new Map(),
     }
 
     // ---
