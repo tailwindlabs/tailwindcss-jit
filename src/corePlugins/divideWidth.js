@@ -9,6 +9,8 @@ module.exports = function ({ addUtilities, matchUtilities, jit: { theme } }) {
         return []
       }
 
+      value = value === '0' ? '0px' : value
+
       return {
         [`${nameClass('divide-x', modifier)} > :not([hidden]) ~ :not([hidden])`]: {
           '--tw-divide-x-reverse': '0',
@@ -23,6 +25,8 @@ module.exports = function ({ addUtilities, matchUtilities, jit: { theme } }) {
       if (value === undefined) {
         return []
       }
+
+      value = value === '0' ? '0px' : value
 
       return {
         [`${nameClass('divide-y', modifier)} > :not([hidden]) ~ :not([hidden])`]: {
