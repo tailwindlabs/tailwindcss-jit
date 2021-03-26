@@ -31,8 +31,8 @@ let env = sharedState.env
 // Earmarks a directory for our touch files.
 // If the directory already exists we delete any existing touch files,
 // invalidating any caches associated with them.
-
-const touchDir = path.join(os.homedir() || os.tmpdir(), '.tailwindcss', 'touch')
+const touchDir =
+  process.env.TAILWIND_TOUCH_DIR || path.join(os.homedir() || os.tmpdir(), '.tailwindcss', 'touch')
 
 if (!sharedState.env.TAILWIND_DISABLE_TOUCH) {
   if (fs.existsSync(touchDir)) {
