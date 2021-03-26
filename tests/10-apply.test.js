@@ -139,4 +139,27 @@ test('@apply', () => {
   })
 })
 
-// TODO: Test stuff that should throw
+test('@apply error with unknown utility', async () => {
+  let config = {
+    // TODO: Remove this. Some kind of caching causes multiple tests in the same file to break.
+    __name: "unknown-utility",
+
+    darkMode: 'class',
+    purge: [path.resolve(__dirname, './10-apply.test.html')],
+    corePlugins: { preflight: false },
+    plugins: [],
+  }
+
+  let css = `
+  @tailwind components;
+  @tailwind utilities;
+
+  @layer components {
+    .foo {
+      @apply a-utility-that-does-not-exist;
+    }
+  }
+`
+
+  await expect(run(css, config)).rejects.toThrowError("class does not exist")
+})
