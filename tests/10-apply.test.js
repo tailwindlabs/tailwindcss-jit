@@ -4,7 +4,11 @@ const fs = require('fs')
 const path = require('path')
 
 function run(input, config = {}) {
-  return postcss([tailwind(config)]).process(input, { from: path.resolve(__filename) })
+  const { currentTestName } = expect.getState()
+
+  return postcss([tailwind(config)]).process(input, {
+    from: `${path.resolve(__filename)}?test=${currentTestName}`
+  })
 }
 
 test('@apply', () => {
@@ -141,9 +145,6 @@ test('@apply', () => {
 
 test('@apply error with unknown utility', async () => {
   let config = {
-    // TODO: Remove this. Some kind of caching causes multiple tests in the same file to break.
-    __name: "unknown-utility",
-
     darkMode: 'class',
     purge: [path.resolve(__dirname, './10-apply.test.html')],
     corePlugins: { preflight: false },
@@ -166,9 +167,6 @@ test('@apply error with unknown utility', async () => {
 
 test('@apply error with nested @screen', async () => {
   let config = {
-    // TODO: Remove this. Some kind of caching causes multiple tests in the same file to break.
-    __name: "at-screen",
-
     darkMode: 'class',
     purge: [path.resolve(__dirname, './10-apply.test.html')],
     corePlugins: { preflight: false },
@@ -193,9 +191,6 @@ test('@apply error with nested @screen', async () => {
 
 test('@apply error with nested @anyatrulehere', async () => {
   let config = {
-    // TODO: Remove this. Some kind of caching causes multiple tests in the same file to break.
-    __name: "at-anything",
-
     darkMode: 'class',
     purge: [path.resolve(__dirname, './10-apply.test.html')],
     corePlugins: { preflight: false },
