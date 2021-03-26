@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet!
 
+## [0.1.10] - 2021-03-25
+
+### Fixed
+
+- Fix divide-style not generating, and divide-width not handling '0' properly ([#157](https://github.com/tailwindlabs/tailwindcss-jit/pull/157))
+
 ## [0.1.9] - 2021-03-25
 
 ### Fixed
@@ -88,7 +94,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Everything!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.9...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.10...HEAD
+[0.1.10]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.6...v0.1.7
