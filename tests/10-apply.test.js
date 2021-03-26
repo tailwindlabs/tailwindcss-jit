@@ -4,7 +4,11 @@ const fs = require('fs')
 const path = require('path')
 
 function run(input, config = {}) {
-  return postcss([tailwind(config)]).process(input, { from: path.resolve(__filename) })
+  const { currentTestName } = expect.getState()
+
+  return postcss([tailwind(config)]).process(input, {
+    from: `${path.resolve(__filename)}?test=${currentTestName}`,
+  })
 }
 
 test('@apply', () => {
@@ -139,4 +143,76 @@ test('@apply', () => {
   })
 })
 
-// TODO: Test stuff that should throw
+test('@apply error with unknown utility', async () => {
+  let config = {
+    darkMode: 'class',
+    purge: [path.resolve(__dirname, './10-apply.test.html')],
+    corePlugins: { preflight: false },
+    plugins: [],
+  }
+
+  let css = `
+  @tailwind components;
+  @tailwind utilities;
+
+  @layer components {
+    .foo {
+      @apply a-utility-that-does-not-exist;
+    }
+  }
+`
+
+  await expect(run(css, config)).rejects.toThrowError('class does not exist')
+})
+
+test('@apply error with nested @screen', async () => {
+  let config = {
+    darkMode: 'class',
+    purge: [path.resolve(__dirname, './10-apply.test.html')],
+    corePlugins: { preflight: false },
+    plugins: [],
+  }
+
+  let css = `
+  @tailwind components;
+  @tailwind utilities;
+
+  @layer components {
+    .foo {
+      @screen md {
+        @apply text-black;
+      }
+    }
+  }
+`
+
+  await expect(run(css, config)).rejects.toThrowError(
+    '@apply is not supported within nested at-rules like @screen'
+  )
+})
+
+test('@apply error with nested @anyatrulehere', async () => {
+  let config = {
+    darkMode: 'class',
+    purge: [path.resolve(__dirname, './10-apply.test.html')],
+    corePlugins: { preflight: false },
+    plugins: [],
+  }
+
+  let css = `
+  @tailwind components;
+  @tailwind utilities;
+
+  @layer components {
+    .foo {
+      @genie {
+        @apply text-black;
+      }
+    }
+  }
+`
+
+  await expect(run(css, config)).rejects.toThrowError(
+    '@apply is not supported within nested at-rules like @genie'
+  )
+})

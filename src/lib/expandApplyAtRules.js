@@ -153,6 +153,22 @@ function processApply(root, context) {
 
       let [applyCandidates, important] = extractApplyCandidates(apply.params)
 
+      if (apply.parent.type === 'atrule') {
+        if (apply.parent.name === 'screen') {
+          const screenType = apply.parent.params
+
+          throw apply.error(
+            `@apply is not supported within nested at-rules like @screen. We suggest you write this as @apply ${applyCandidates
+              .map((c) => `${screenType}:${c}`)
+              .join(' ')} instead.`
+          )
+        }
+
+        throw apply.error(
+          `@apply is not supported within nested at-rules like @${apply.parent.name}. You can fix this by un-nesting @${apply.parent.name}.`
+        )
+      }
+
       for (let applyCandidate of applyCandidates) {
         if (!applyClassCache.has(applyCandidate)) {
           throw apply.error(
