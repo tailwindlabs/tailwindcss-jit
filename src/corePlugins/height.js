@@ -1,19 +1,15 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
-const { asLength } = require('../pluginUtils')
+const { asValue, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    h: [
-      (modifier, { theme }) => {
-        let value = asLength(modifier, theme['height'])
+module.exports = function ({ matchUtilities }) {
+  matchUtilities({
+    h: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['height'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[nameClass('h', modifier), { height: value }]]
-      },
-    ],
+      return { [nameClass('h', modifier)]: { height: value } }
+    },
   })
 }

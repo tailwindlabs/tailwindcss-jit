@@ -1,25 +1,19 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const { asValue } = require('../pluginUtils')
+const { asValue, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    'ring-opacity': [
-      (modifier, { theme }) => {
-        let value = asValue(modifier, theme['ringOpacity'])
+module.exports = function ({ matchUtilities, jit: { theme } }) {
+  matchUtilities({
+    'ring-opacity': (modifier, { theme }) => {
+      let value = asValue(modifier, theme['ringOpacity'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [
-          [
-            nameClass('ring-opacity', modifier),
-            {
-              '--tw-ring-opacity': value,
-            },
-          ],
-        ]
-      },
-    ],
+      return {
+        [nameClass('ring-opacity', modifier)]: {
+          '--tw-ring-opacity': value,
+        },
+      }
+    },
   })
 }

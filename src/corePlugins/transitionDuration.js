@@ -1,21 +1,15 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { nameClass, asValue } = require('../pluginUtils')
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    duration: [
-      (modifier, { theme }) => {
-        if (modifier === '' || theme.transitionDuration[modifier] === undefined) {
-          return []
-        }
+module.exports = function ({ matchUtilities, jit: { theme } }) {
+  matchUtilities({
+    duration: (modifier, { theme }) => {
+      let value = asValue(modifier, theme.transitionDuration)
 
-        return [
-          [
-            nameClass('duration', modifier),
-            { 'transition-duration': theme.transitionDuration[modifier] },
-          ],
-        ]
-      },
-    ],
+      if (value === undefined) {
+        return []
+      }
+
+      return { [nameClass('duration', modifier)]: { 'transition-duration': value } }
+    },
   })
 }

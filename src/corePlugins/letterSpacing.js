@@ -1,18 +1,15 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const { asLength } = require('../pluginUtils')
+const { asLength, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    tracking: [
-      (modifier, { theme }) => {
-        let value = asLength(modifier, theme['letterSpacing'])
+module.exports = function ({ matchUtilities, jit: { theme } }) {
+  matchUtilities({
+    tracking: (modifier, { theme }) => {
+      let value = asLength(modifier, theme['letterSpacing'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[nameClass('tracking', modifier), { 'letter-spacing': value }]]
-      },
-    ],
+      return { [nameClass('tracking', modifier)]: { 'letter-spacing': value } }
+    },
   })
 }

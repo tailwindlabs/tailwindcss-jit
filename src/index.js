@@ -3,6 +3,7 @@ const postcss = require('postcss')
 const evaluateTailwindFunctions = require('tailwindcss/lib/lib/evaluateTailwindFunctions').default
 const substituteScreenAtRules = require('tailwindcss/lib/lib/substituteScreenAtRules').default
 
+const rewriteTailwindImports = require('./lib/rewriteTailwindImports')
 const setupContext = require('./lib/setupContext')
 const removeLayerAtRules = require('./lib/removeLayerAtRules')
 const expandTailwindAtRules = require('./lib/expandTailwindAtRules')
@@ -30,6 +31,8 @@ module.exports = (configOrPath = {}) => {
             file: fileName,
           })
         }
+
+        rewriteTailwindImports(root)
 
         let context = setupContext(configOrPath)(result, root)
 

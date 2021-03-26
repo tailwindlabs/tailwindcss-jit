@@ -1,16 +1,16 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
+const { nameClass } = require('../pluginUtils')
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    flex: [
-      (modifier, { theme }) => {
-        if (modifier === undefined || modifier === '' || theme.flex[modifier] === undefined) {
-          return []
-        }
+module.exports = function ({ matchUtilities, jit: { theme } }) {
+  matchUtilities({
+    flex: (modifier, { theme }) => {
+      let value = theme.flex[modifier]
 
-        return [[nameClass('flex', modifier), { flex: theme.flex[modifier] }]]
-      },
-    ],
+      if (value === undefined) {
+        return []
+      }
+
+      return { [nameClass('flex', modifier)]: { flex: theme.flex[modifier] } }
+    },
   })
 }

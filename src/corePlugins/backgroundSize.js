@@ -1,20 +1,15 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const { nameClass } = require('../pluginUtils')
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    bg: [
-      (modifier, { theme }) => {
-        if (
-          modifier === undefined ||
-          modifier === '' ||
-          theme.backgroundSize[modifier] === undefined
-        ) {
-          return []
-        }
+module.exports = function ({ matchUtilities, jit: { theme } }) {
+  matchUtilities({
+    bg: (modifier, { theme }) => {
+      let value = theme.backgroundSize[modifier]
 
-        return [[nameClass('bg', modifier), { 'background-size': theme.backgroundSize[modifier] }]]
-      },
-    ],
+      if (value === undefined) {
+        return []
+      }
+
+      return { [nameClass('bg', modifier)]: { 'background-size': value } }
+    },
   })
 }

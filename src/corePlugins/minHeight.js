@@ -1,19 +1,15 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
-const { asLength } = require('../pluginUtils')
+const { asValue, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    'min-h': [
-      (modifier, { theme }) => {
-        let value = asLength(modifier, theme['minHeight'])
+module.exports = function ({ matchUtilities }) {
+  matchUtilities({
+    'min-h': (modifier, { theme }) => {
+      let value = asValue(modifier, theme['minHeight'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[nameClass('min-h', modifier), { 'min-height': value }]]
-      },
-    ],
+      return { [nameClass('min-h', modifier)]: { 'min-height': value } }
+    },
   })
 }

@@ -1,21 +1,59 @@
-const { toPostCssNode } = require('./utils')
+const postcss = require('postcss')
+const parseObjectStyles = require('tailwindcss/lib/util/parseObjectStyles').default
+const { isPlainObject, bigSign } = require('./utils')
+const selectorParser = require('postcss-selector-parser')
+const prefixSelector = require('tailwindcss/lib/util/prefixSelector').default
+
+let classNameParser = selectorParser((selectors) => {
+  return selectors.first.filter(({ type }) => type === 'class').pop().value
+})
+
+function getClassNameFromSelector(selector) {
+  return classNameParser.transformSync(selector)
+}
 
 // Generate match permutations for a class candidate, like:
 // ['ring-offset-blue', '100']
 // ['ring-offset', 'blue-100']
 // ['ring', 'offset-blue-100']
 function* candidatePermutations(prefix, modifier = '') {
-  yield [prefix, modifier]
+  let dashIdx
 
-  let dashIdx = prefix.lastIndexOf('-')
-  if (dashIdx === -1) {
+  if (modifier.endsWith(']')) {
+    dashIdx = prefix.lastIndexOf('[') - 1
+  } else {
+    dashIdx = prefix.lastIndexOf('-')
+  }
+
+  if (dashIdx < 0) {
     return
   }
 
-  yield* candidatePermutations(
-    prefix.slice(0, dashIdx),
-    [prefix.slice(dashIdx + 1), modifier].filter(Boolean).join('-')
-  )
+  modifier = [prefix.slice(dashIdx + 1), modifier].filter(Boolean).join('-')
+  prefix = prefix.slice(0, dashIdx)
+
+  yield [prefix, modifier]
+
+  yield* candidatePermutations(prefix, modifier)
+}
+
+function applyPrefix(matches, context) {
+  if (matches.length === 0 || context.tailwindConfig.prefix === '') {
+    return matches
+  }
+
+  for (let match of matches) {
+    let [meta] = match
+    if (meta.options.respectPrefix) {
+      let container = postcss.root({ nodes: [match[1]] })
+      container.walkRules((r) => {
+        r.selector = prefixSelector(context.tailwindConfig.prefix, r.selector)
+      })
+      match[1] = container.nodes[0]
+    }
+  }
+
+  return matches
 }
 
 // Takes a list of rule tuples and applies a variant like `hover`, sm`,
@@ -27,30 +65,52 @@ function* candidatePermutations(prefix, modifier = '') {
 // and `focus:hover:text-center` in the same project, but it doesn't feel
 // worth the complexity for that case.
 
-function applyVariant(variant, matches, { variantMap }) {
+function applyVariant(variant, matches, context) {
   if (matches.length === 0) {
     return matches
   }
 
-  if (variantMap.has(variant)) {
-    let [variantSort, applyThisVariant] = variantMap.get(variant)
+  if (context.variantMap.has(variant)) {
+    let [variantSort, applyThisVariant] = context.variantMap.get(variant)
     let result = []
 
-    for (let [{ sort, layer }, rule] of matches) {
-      let [, , options = {}] = rule
-
+    for (let [{ sort, layer, options }, rule] of matches) {
       if (options.respectVariants === false) {
-        result.push([{ sort, layer }, rule])
+        result.push([{ sort, layer, options }, rule])
         continue
       }
 
-      let ruleWithVariant = applyThisVariant(rule)
+      let container = postcss.root({ nodes: [rule] })
+
+      function modifySelectors(modifierFunction) {
+        container.each((rule) => {
+          if (rule.type !== 'rule') {
+            return
+          }
+
+          rule.selectors = rule.selectors.map((selector) => {
+            return modifierFunction({
+              get className() {
+                return getClassNameFromSelector(selector)
+              },
+              selector,
+            })
+          })
+        })
+        return container
+      }
+
+      let ruleWithVariant = applyThisVariant({
+        container,
+        separator: context.tailwindConfig.separator,
+        modifySelectors,
+      })
 
       if (ruleWithVariant === null) {
         continue
       }
 
-      let withOffset = [{ sort: variantSort | sort, layer }, ruleWithVariant]
+      let withOffset = [{ sort: variantSort | sort, layer, options }, container.nodes[0]]
       result.push(withOffset)
     }
 
@@ -60,79 +120,155 @@ function applyVariant(variant, matches, { variantMap }) {
   return []
 }
 
-function generateRules(tailwindConfig, candidates, context) {
-  let { candidateRuleMap, classCache, notClassCache, postCssNodeCache } = context
-  let allRules = []
+function parseRules(rule, cache, options = {}) {
+  // PostCSS node
+  if (!isPlainObject(rule) && !Array.isArray(rule)) {
+    return [[rule], options]
+  }
 
-  for (let candidate of candidates) {
-    if (notClassCache.has(candidate)) {
-      continue
+  // Tuple
+  if (Array.isArray(rule)) {
+    return parseRules(rule[0], cache, rule[1])
+  }
+
+  // Simple object
+  if (!cache.has(rule)) {
+    cache.set(rule, parseObjectStyles(rule))
+  }
+
+  return [cache.get(rule), options]
+}
+
+function* resolveMatchedPlugins(classCandidate, context) {
+  if (context.candidateRuleMap.has(classCandidate)) {
+    yield [context.candidateRuleMap.get(classCandidate), 'DEFAULT']
+  }
+
+  let candidatePrefix = classCandidate
+  let negative = false
+
+  const twConfigPrefix = context.tailwindConfig.prefix || ''
+  const twConfigPrefixLen = twConfigPrefix.length
+  if (candidatePrefix[twConfigPrefixLen] === '-') {
+    negative = true
+    candidatePrefix = twConfigPrefix + candidatePrefix.slice(twConfigPrefixLen + 1)
+  }
+
+  for (let [prefix, modifier] of candidatePermutations(candidatePrefix)) {
+    if (context.candidateRuleMap.has(prefix)) {
+      yield [context.candidateRuleMap.get(prefix), negative ? `-${modifier}` : modifier]
+      return
     }
+  }
+}
 
-    if (classCache.has(candidate)) {
-      allRules.push(classCache.get(candidate))
-      continue
-    }
+function sortAgainst(toSort, against) {
+  return toSort.slice().sort((a, z) => {
+    return bigSign(against.get(a)[0] - against.get(z)[0])
+  })
+}
 
-    let [classCandidate, ...variants] = candidate.split(':').reverse()
-    let matchedPlugins = null
+function* resolveMatches(candidate, context) {
+  let separator = context.tailwindConfig.separator
+  let [classCandidate, ...variants] = candidate.split(separator).reverse()
 
-    if (candidateRuleMap.has(classCandidate)) {
-      matchedPlugins = [candidateRuleMap.get(classCandidate), 'DEFAULT']
-    } else {
-      let candidatePrefix = classCandidate
-      let negative = false
+  // Strip prefix
+  // md:hover:tw-bg-black
 
-      if (candidatePrefix[0] === '-') {
-        negative = true
-        candidatePrefix = candidatePrefix.slice(1)
-      }
+  // TODO: Reintroduce this in ways that doesn't break on false positives
+  // let sorted = sortAgainst(variants, context.variantMap)
+  // if (sorted.toString() !== variants.toString()) {
+  //   let corrected = sorted.reverse().concat(classCandidate).join(':')
+  //   throw new Error(`Class ${candidate} should be written as ${corrected}`)
+  // }
 
-      for (let [prefix, modifier] of candidatePermutations(candidatePrefix)) {
-        if (candidateRuleMap.has(prefix)) {
-          matchedPlugins = [candidateRuleMap.get(prefix), negative ? `-${modifier}` : modifier]
-          break
-        }
-      }
-    }
-
-    if (matchedPlugins === null) {
-      notClassCache.add(candidate)
-      continue
-    }
-
+  for (let matchedPlugins of resolveMatchedPlugins(classCandidate, context)) {
     let pluginHelpers = {
       candidate: classCandidate,
-      theme: tailwindConfig.theme,
+      theme: context.tailwindConfig.theme,
     }
 
     let matches = []
     let [plugins, modifier] = matchedPlugins
 
     for (let [sort, plugin] of plugins) {
-      if (Array.isArray(plugin)) {
-        matches.push([sort, plugin])
-      } else {
-        for (let result of plugin(modifier, pluginHelpers)) {
-          matches.push([sort, result])
+      if (typeof plugin === 'function') {
+        for (let ruleSet of [].concat(plugin(modifier, pluginHelpers))) {
+          let [rules, options] = parseRules(ruleSet, context.postCssNodeCache)
+          for (let rule of rules) {
+            matches.push([{ ...sort, options: { ...sort.options, ...options } }, rule])
+          }
+        }
+      }
+      // Only process static plugins on exact matches
+      else if (modifier === 'DEFAULT') {
+        let ruleSet = plugin
+        let [rules, options] = parseRules(ruleSet, context.postCssNodeCache)
+        for (let rule of rules) {
+          matches.push([{ ...sort, options: { ...sort.options, ...options } }, rule])
         }
       }
     }
+
+    matches = applyPrefix(matches, context)
 
     for (let variant of variants) {
       matches = applyVariant(variant, matches, context)
     }
 
-    classCache.set(candidate, matches)
+    for (let match of matches) {
+      yield match
+    }
+  }
+}
+
+function inKeyframes(d) {
+  return (
+    d.parent.parent && d.parent.parent.type === 'atrule' && d.parent.parent.name === 'keyframes'
+  )
+}
+
+function makeImportant(rule) {
+  rule.walkDecls((d) => {
+    if (d.parent.type === 'rule' && !inKeyframes(d)) {
+      d.important = true
+    }
+  })
+}
+
+function generateRules(candidates, context) {
+  let allRules = []
+
+  for (let candidate of candidates) {
+    if (context.notClassCache.has(candidate)) {
+      continue
+    }
+
+    if (context.classCache.has(candidate)) {
+      allRules.push(context.classCache.get(candidate))
+      continue
+    }
+
+    let matches = Array.from(resolveMatches(candidate, context))
+
+    if (matches.length === 0) {
+      context.notClassCache.add(candidate)
+      continue
+    }
+
+    context.classCache.set(candidate, matches)
     allRules.push(matches)
   }
 
-  return allRules
-    .flat(1)
-    .map(([{ sort, layer }, rule]) => [
-      sort | context.layerOrder[layer],
-      toPostCssNode(rule, postCssNodeCache),
-    ])
+  return allRules.flat(1).map(([{ sort, layer, options }, rule]) => {
+    if (context.tailwindConfig.important === true && options.respectImportant) {
+      makeImportant(rule)
+    }
+    return [sort | context.layerOrder[layer], rule]
+  })
 }
 
-module.exports = generateRules
+module.exports = {
+  resolveMatches,
+  generateRules,
+}

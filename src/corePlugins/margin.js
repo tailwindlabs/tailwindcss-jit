@@ -1,87 +1,73 @@
-const { asLength } = require('../pluginUtils')
+const { asValue, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    m: [
-      (modifier, { theme, candidate }) => {
-        let value = asLength(modifier, theme['margin'])
+module.exports = function ({ matchUtilities }) {
+  matchUtilities({
+    m: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[`.${candidate}`, { margin: value }]]
-      },
-    ],
+      return { [nameClass('m', modifier)]: { margin: value } }
+    },
   })
-  addUtilities({
-    mx: [
-      (modifier, { theme, candidate }) => {
-        let value = asLength(modifier, theme['margin'])
+  matchUtilities({
+    mx: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[`.${candidate}`, { 'margin-left': value, 'margin-right': value }]]
-      },
-    ],
-    my: [
-      (modifier, { theme, candidate }) => {
-        let value = asLength(modifier, theme['margin'])
+      return { [nameClass('mx', modifier)]: { 'margin-left': value, 'margin-right': value } }
+    },
+    my: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[`.${candidate}`, { 'margin-top': value, 'margin-bottom': value }]]
-      },
-    ],
+      return { [nameClass('my', modifier)]: { 'margin-top': value, 'margin-bottom': value } }
+    },
   })
-  addUtilities({
-    mt: [
-      (modifier, { theme, candidate }) => {
-        let value = asLength(modifier, theme['margin'])
+  matchUtilities({
+    mt: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[`.${candidate}`, { 'margin-top': value }]]
-      },
-    ],
-    mr: [
-      (modifier, { theme, candidate }) => {
-        let value = asLength(modifier, theme['margin'])
+      return { [nameClass('mt', modifier)]: { 'margin-top': value } }
+    },
+    mr: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[`.${candidate}`, { 'margin-right': value }]]
-      },
-    ],
-    mb: [
-      (modifier, { theme, candidate }) => {
-        let value = asLength(modifier, theme['margin'])
+      return { [nameClass('mr', modifier)]: { 'margin-right': value } }
+    },
+    mb: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[`.${candidate}`, { 'margin-bottom': value }]]
-      },
-    ],
-    ml: [
-      (modifier, { theme, candidate }) => {
-        let value = asLength(modifier, theme['margin'])
+      return { [nameClass('mb', modifier)]: { 'margin-bottom': value } }
+    },
+    ml: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[`.${candidate}`, { 'margin-left': value }]]
-      },
-    ],
+      return { [nameClass('ml', modifier)]: { 'margin-left': value } }
+    },
   })
 }

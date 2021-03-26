@@ -1,23 +1,28 @@
 const fs = require('fs')
+const url = require('url')
 const path = require('path')
 const postcss = require('postcss')
+const hash = require('object-hash')
 const dlv = require('dlv')
 const selectorParser = require('postcss-selector-parser')
 const LRU = require('quick-lru')
+const normalizePath = require('normalize-path')
 
 const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const parseObjectStyles = require('tailwindcss/lib/util/parseObjectStyles').default
 const getModuleDependencies = require('tailwindcss/lib/lib/getModuleDependencies').default
-const escapeClassName = require('tailwindcss/lib/util/escapeClassName').default
+const prefixSelector = require('tailwindcss/lib/util/prefixSelector').default
 
 const resolveConfig = require('tailwindcss/resolveConfig')
 
 const sharedState = require('./sharedState')
 const corePlugins = require('../corePlugins')
-const { isPlainObject, toPostCssNode } = require('./utils')
+const { isPlainObject, escapeClassName } = require('./utils')
 const { isBuffer } = require('util')
 
 let contextMap = sharedState.contextMap
+let configContextMap = sharedState.configContextMap
+let contextSourcesMap = sharedState.contextSourcesMap
 let env = sharedState.env
 
 function isObject(value) {
@@ -118,19 +123,21 @@ function getTailwindConfig(configOrPath) {
   let userConfigPath = resolveConfigPath(configOrPath)
 
   if (userConfigPath !== null) {
-    let [prevConfig, prevModified = -Infinity] = configPathCache.get(userConfigPath) ?? []
+    let [prevConfig, prevModified = -Infinity, prevConfigHash] =
+      configPathCache.get(userConfigPath) || []
     let modified = fs.statSync(userConfigPath).mtimeMs
 
     // It hasn't changed (based on timestamp)
     if (modified <= prevModified) {
-      return [prevConfig, userConfigPath]
+      return [prevConfig, userConfigPath, prevConfigHash]
     }
 
     // It has changed (based on timestamp), or first run
     delete require.cache[userConfigPath]
     let newConfig = resolveConfig(require(userConfigPath))
-    configPathCache.set(userConfigPath, [newConfig, modified])
-    return [newConfig, userConfigPath]
+    let newHash = hash(newConfig)
+    configPathCache.set(userConfigPath, [newConfig, modified, newHash])
+    return [newConfig, userConfigPath, newHash]
   }
 
   // It's a plain object, not a path
@@ -138,14 +145,15 @@ function getTailwindConfig(configOrPath) {
     configOrPath.config === undefined ? configOrPath : configOrPath.config
   )
 
-  return [newConfig, null]
+  return [newConfig, null, hash(newConfig)]
 }
 
 function trackModified(files) {
   let changed = false
 
   for (let file of files) {
-    let newModified = fs.statSync(file).mtimeMs
+    let pathname = url.parse(file).pathname
+    let newModified = fs.statSync(decodeURIComponent(pathname)).mtimeMs
 
     if (
       !sharedState.fileModifiedCache.has(file) ||
@@ -161,6 +169,8 @@ function trackModified(files) {
 }
 
 function insertInto(list, value, { before = [] } = {}) {
+  before = [].concat(before)
+
   if (before.length <= 0) {
     list.push(value)
     return
@@ -176,9 +186,9 @@ function insertInto(list, value, { before = [] } = {}) {
   list.splice(idx, 0, value)
 }
 
-function parseLegacyStyles(styles) {
+function parseStyles(styles) {
   if (!Array.isArray(styles)) {
-    return parseLegacyStyles([styles])
+    return parseStyles([styles])
   }
 
   return styles.flatMap((style) => {
@@ -198,21 +208,6 @@ function getClasses(selector) {
   return parser.transformSync(selector)
 }
 
-function toRuleTuple(node) {
-  if (node.type === 'atrule') {
-    return [`@${node.name} ${node.params}`, node.nodes.map(toRuleTuple)]
-  }
-
-  if (node.type === 'rule') {
-    let decls = Object.fromEntries(
-      node.nodes.map(({ prop, value }) => {
-        return [prop, value]
-      })
-    )
-    return [node.selector, decls]
-  }
-}
-
 function extractCandidates(node) {
   let classes = node.type === 'rule' ? getClasses(node.selector) : []
 
@@ -225,21 +220,19 @@ function extractCandidates(node) {
   return classes
 }
 
-// { .foo { color: black } }
-// => [ ['foo', ['.foo', { color: 'black' }] ]
-function toStaticRuleArray(legacyStyles) {
-  return parseLegacyStyles(legacyStyles).flatMap((node) => {
+function withIdentifiers(styles) {
+  return parseStyles(styles).flatMap((node) => {
     let nodeMap = new Map()
     let candidates = extractCandidates(node)
 
     // If this isn't "on-demandable", assign it a universal candidate.
     if (candidates.length === 0) {
-      return [['*', toRuleTuple(node)]]
+      return [['*', node]]
     }
 
     return candidates.map((c) => {
       if (!nodeMap.has(node)) {
-        nodeMap.set(node, toRuleTuple(node))
+        nodeMap.set(node, node)
       }
       return [c, nodeMap.get(node)]
     })
@@ -255,10 +248,18 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
     return prefixSelector(tailwindConfig.prefix, selector)
   }
 
+  function prefixIdentifier(identifier, options) {
+    if (identifier === '*') {
+      return '*'
+    }
+
+    return options.respectPrefix ? context.tailwindConfig.prefix + identifier : identifier
+  }
+
   return {
-    // Classic plugin API
-    addVariant() {
-      throw new Error(`Variant plugins aren't supported yet`)
+    addVariant(variantName, applyThisVariant, options = {}) {
+      insertInto(variantList, variantName, options)
+      variantMap.set(variantName, applyThisVariant)
     },
     postcss,
     prefix: applyConfiguredPrefix,
@@ -283,10 +284,18 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
 
       return getConfigValue(['variants', path], defaultValue)
     },
-    addBase(styles) {
-      let nodes = parseLegacyStyles(styles)
-      for (let node of nodes) {
-        context.baseRules.add(node)
+    addBase(base) {
+      for (let [identifier, rule] of withIdentifiers(base)) {
+        let prefixedIdentifier = prefixIdentifier(identifier, {})
+        let offset = offsets.base++
+
+        if (!context.candidateRuleMap.has(prefixedIdentifier)) {
+          context.candidateRuleMap.set(prefixedIdentifier, [])
+        }
+
+        context.candidateRuleMap
+          .get(prefixedIdentifier)
+          .push([{ sort: offset, layer: 'base' }, rule])
       }
     },
     addComponents(components, options) {
@@ -303,16 +312,17 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         Array.isArray(options) ? { variants: options } : options
       )
 
-      for (let [identifier, tuple] of toStaticRuleArray(components)) {
+      for (let [identifier, rule] of withIdentifiers(components)) {
+        let prefixedIdentifier = prefixIdentifier(identifier, options)
         let offset = offsets.components++
 
-        if (!context.candidateRuleMap.has(identifier)) {
-          context.candidateRuleMap.set(identifier, [])
+        if (!context.candidateRuleMap.has(prefixedIdentifier)) {
+          context.candidateRuleMap.set(prefixedIdentifier, [])
         }
 
         context.candidateRuleMap
-          .get(identifier)
-          .push([{ sort: offset, layer: 'components' }, tuple])
+          .get(prefixedIdentifier)
+          .push([{ sort: offset, layer: 'components', options }, rule])
       }
     },
     addUtilities(utilities, options) {
@@ -329,14 +339,58 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         Array.isArray(options) ? { variants: options } : options
       )
 
-      for (let [identifier, tuple] of toStaticRuleArray(utilities)) {
+      for (let [identifier, rule] of withIdentifiers(utilities)) {
+        let prefixedIdentifier = prefixIdentifier(identifier, options)
         let offset = offsets.utilities++
 
-        if (!context.candidateRuleMap.has(identifier)) {
-          context.candidateRuleMap.set(identifier, [])
+        if (!context.candidateRuleMap.has(prefixedIdentifier)) {
+          context.candidateRuleMap.set(prefixedIdentifier, [])
         }
 
-        context.candidateRuleMap.get(identifier).push([{ sort: offset, layer: 'utilities' }, tuple])
+        context.candidateRuleMap
+          .get(prefixedIdentifier)
+          .push([{ sort: offset, layer: 'utilities', options }, rule])
+      }
+    },
+    matchBase: function (base) {
+      let offset = offsets.base++
+
+      for (let identifier in base) {
+        let prefixedIdentifier = prefixIdentifier(identifier, options)
+        let value = [].concat(base[identifier])
+
+        let withOffsets = value.map((rule) => [{ sort: offset, layer: 'base' }, rule])
+
+        if (!context.candidateRuleMap.has(prefixedIdentifier)) {
+          context.candidateRuleMap.set(prefixedIdentifier, [])
+        }
+
+        context.candidateRuleMap.get(prefixedIdentifier).push(...withOffsets)
+      }
+    },
+    matchUtilities: function (utilities, options) {
+      let defaultOptions = {
+        variants: [],
+        respectPrefix: true,
+        respectImportant: true,
+        respectVariants: true,
+      }
+
+      options = { ...defaultOptions, ...options }
+
+      let offset = offsets.utilities++
+
+      for (let identifier in utilities) {
+        let prefixedIdentifier = prefixIdentifier(identifier, options)
+        let value = [].concat(utilities[identifier])
+
+        let withOffsets = value.map((rule) => [{ sort: offset, layer: 'utilities', options }, rule])
+
+        if (!context.candidateRuleMap.has(prefixedIdentifier)) {
+          context.candidateRuleMap.set(prefixedIdentifier, [])
+        }
+
+        context.candidateRuleMap.get(prefixedIdentifier).push(...withOffsets)
       }
     },
     // ---
@@ -348,44 +402,63 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         insertInto(variantList, variantName, options)
         variantMap.set(variantName, applyVariant)
       },
-      addComponents(components) {
-        let offset = offsets.components++
-
-        for (let identifier in components) {
-          let value = [].concat(components[identifier])
-
-          let withOffsets = value.map((tuple) => [{ sort: offset, layer: 'components' }, tuple])
-
-          if (!context.candidateRuleMap.has(identifier)) {
-            context.candidateRuleMap.set(identifier, [])
-          }
-
-          context.candidateRuleMap.get(identifier).push(...withOffsets)
-        }
-      },
-      addUtilities(utilities) {
-        let offset = offsets.utilities++
-
-        for (let identifier in utilities) {
-          let value = [].concat(utilities[identifier])
-
-          let withOffsets = value.map((tuple) => [{ sort: offset, layer: 'utilities' }, tuple])
-
-          if (!context.candidateRuleMap.has(identifier)) {
-            context.candidateRuleMap.set(identifier, [])
-          }
-
-          context.candidateRuleMap.get(identifier).push(...withOffsets)
-        }
-      },
     },
   }
+}
+
+function extractVariantAtRules(node) {
+  node.walkAtRules((atRule) => {
+    if (['responsive', 'variants'].includes(atRule.name)) {
+      extractVariantAtRules(atRule)
+      atRule.before(atRule.nodes)
+      atRule.remove()
+    }
+  })
+}
+
+function collectLayerPlugins(root) {
+  let layerPlugins = []
+
+  root.each((node) => {
+    if (node.type === 'atrule' && ['responsive', 'variants'].includes(node.name)) {
+      node.name = 'layer'
+      node.params = 'utilities'
+    }
+  })
+
+  // Walk @layer rules and treat them like plugins
+  root.walkAtRules('layer', (layerNode) => {
+    extractVariantAtRules(layerNode)
+
+    if (layerNode.params === 'base') {
+      for (let node of layerNode.nodes) {
+        layerPlugins.push(function ({ addBase }) {
+          addBase(node, { respectPrefix: false })
+        })
+      }
+    } else if (layerNode.params === 'components') {
+      for (let node of layerNode.nodes) {
+        layerPlugins.push(function ({ addComponents }) {
+          addComponents(node, { respectPrefix: false })
+        })
+      }
+    } else if (layerNode.params === 'utilities') {
+      for (let node of layerNode.nodes) {
+        layerPlugins.push(function ({ addUtilities }) {
+          addUtilities(node, { respectPrefix: false })
+        })
+      }
+    }
+  })
+
+  return layerPlugins
 }
 
 function registerPlugins(tailwindConfig, plugins, context) {
   let variantList = []
   let variantMap = new Map()
   let offsets = {
+    base: 0n,
     components: 0n,
     utilities: 0n,
   }
@@ -406,8 +479,11 @@ function registerPlugins(tailwindConfig, plugins, context) {
     }
   }
 
-  let highestOffset =
-    offsets.utilities > offsets.components ? offsets.utilities : offsets.components
+  let highestOffset = ((args) => args.reduce((m, e) => (e > m ? e : m)))([
+    offsets.base,
+    offsets.components,
+    offsets.utilities,
+  ])
   let reservedBits = BigInt(highestOffset.toString(2).length)
 
   context.layerOrder = {
@@ -436,20 +512,34 @@ function registerPlugins(tailwindConfig, plugins, context) {
 // plugins) then return it
 function setupContext(configOrPath) {
   return (result, root) => {
+    let foundTailwind = false
+
+    root.walkAtRules('tailwind', (rule) => {
+      foundTailwind = true
+    })
+
     let sourcePath = result.opts.from
-    let [tailwindConfig, userConfigPath] = getTailwindConfig(configOrPath)
+    let [tailwindConfig, userConfigPath, tailwindConfigHash] = getTailwindConfig(configOrPath)
+    let isConfigFile = userConfigPath !== null
 
     let contextDependencies = new Set()
-    contextDependencies.add(sourcePath)
 
-    if (userConfigPath !== null) {
-      contextDependencies.add(userConfigPath)
+    // If there are no @tailwind rules, we don't consider this CSS file or it's dependencies
+    // to be dependencies of the context. Can reuse the context even if they change.
+    // We may want to think about `@layer` being part of this trigger too, but it's tough
+    // because it's impossible for a layer in one file to end up in the actual @tailwind rule
+    // in another file since independent sources are effectively isolated.
+    if (foundTailwind) {
+      contextDependencies.add(sourcePath)
+      for (let message of result.messages) {
+        if (message.type === 'dependency') {
+          contextDependencies.add(message.file)
+        }
+      }
     }
 
-    for (let message of result.messages) {
-      if (message.type === 'dependency') {
-        contextDependencies.add(message.file)
-      }
+    if (isConfigFile) {
+      contextDependencies.add(userConfigPath)
     }
 
     if (contextMap.has(sourcePath)) {
@@ -458,12 +548,39 @@ function setupContext(configOrPath) {
       }
     }
 
-    let contextDependenciesChanged =
-      trackModified([...contextDependencies]) || userConfigPath === null
+    let contextDependenciesChanged = trackModified([...contextDependencies])
 
     process.env.DEBUG && console.log('Source path:', sourcePath)
-    if (contextMap.has(sourcePath) && !contextDependenciesChanged) {
-      return contextMap.get(sourcePath)
+
+    if (!contextDependenciesChanged) {
+      // If this file already has a context in the cache and we don't need to
+      // reset the context, return the cached context.
+      if (isConfigFile && contextMap.has(sourcePath)) {
+        return contextMap.get(sourcePath)
+      }
+
+      // If the config used already exists in the cache, return that.
+      if (configContextMap.has(tailwindConfigHash)) {
+        let context = configContextMap.get(tailwindConfigHash)
+        contextSourcesMap.get(context).add(sourcePath)
+        contextMap.set(sourcePath, context)
+        return context
+      }
+    }
+
+    // If this source is in the context map, get the old context.
+    // Remove this source from the context sources for the old context,
+    // and clean up that context if no one else is using it. This can be
+    // called by many processes in rapid succession, so we check for presence
+    // first because the first process to run this code will wipe it out first.
+    if (contextMap.has(sourcePath)) {
+      let oldContext = contextMap.get(sourcePath)
+      if (contextSourcesMap.has(oldContext)) {
+        contextSourcesMap.get(oldContext).delete(sourcePath)
+        if (contextSourcesMap.get(oldContext).size === 0) {
+          contextSourcesMap.delete(oldContext)
+        }
+      }
     }
 
     process.env.DEBUG && console.log('Setting up new context...')
@@ -473,23 +590,37 @@ function setupContext(configOrPath) {
       ruleCache: new Set(),
       scannedContent: false,
       classCache: new Map(),
+      applyClassCache: new Map(),
       notClassCache: new Set(),
       postCssNodeCache: new Map(),
       candidateRuleMap: new Map(),
-      baseRules: new Set(),
       configPath: userConfigPath,
-      sourcePath: sourcePath,
       tailwindConfig: tailwindConfig,
       configDependencies: new Set(),
-      candidateFiles: Array.isArray(tailwindConfig.purge)
+      candidateFiles: (Array.isArray(tailwindConfig.purge)
         ? tailwindConfig.purge
-        : tailwindConfig.purge.content,
+        : tailwindConfig.purge.content
+      ).map((path) => normalizePath(path)),
       variantMap: new Map(),
       stylesheetCache: null,
     }
+
+    // ---
+
+    // Update all context tracking state
+
+    configContextMap.set(tailwindConfigHash, context)
     contextMap.set(sourcePath, context)
 
-    if (userConfigPath !== null) {
+    if (!contextSourcesMap.has(context)) {
+      contextSourcesMap.set(context, new Set())
+    }
+
+    contextSourcesMap.get(context).add(sourcePath)
+
+    // ---
+
+    if (isConfigFile) {
       for (let dependency of getModuleDependencies(userConfigPath)) {
         if (dependency.file === userConfigPath) {
           continue
@@ -510,11 +641,6 @@ function setupContext(configOrPath) {
 
     let corePluginList = Object.entries(corePlugins)
       .map(([name, plugin]) => {
-        // TODO: Make variants a real core plugin so we don't special case it
-        if (name === 'variants') {
-          return plugin
-        }
-
         if (!tailwindConfig.corePlugins.includes(name)) {
           return null
         }
@@ -531,36 +657,21 @@ function setupContext(configOrPath) {
       return typeof plugin === 'function' ? plugin : plugin.handler
     })
 
-    let layerPlugins = []
+    let layerPlugins = collectLayerPlugins(root)
 
-    // Walk @layer rules and treat them like plugins
-    root.walkAtRules('layer', (layerNode) => {
-      if (layerNode.params === 'base') {
-        for (let node of layerNode.nodes) {
-          layerPlugins.push(function ({ addBase }) {
-            addBase(node)
-          })
-        }
-      }
-      if (layerNode.params === 'components') {
-        for (let node of layerNode.nodes) {
-          layerPlugins.push(function ({ addComponents }) {
-            addComponents(node)
-          })
-        }
-      }
-      if (layerNode.params === 'utilities') {
-        for (let node of layerNode.nodes) {
-          layerPlugins.push(function ({ addUtilities }) {
-            addUtilities(node)
-          })
-        }
-      }
-    })
+    // TODO: This is a workaround for backwards compatibility, since custom variants
+    // were historically sorted before screen/stackable variants.
+    let beforeVariants = [corePlugins['pseudoClassVariants']]
+    let afterVariants = [
+      corePlugins['directionVariants'],
+      corePlugins['reducedMotionVariants'],
+      corePlugins['darkVariants'],
+      corePlugins['screenVariants'],
+    ]
 
     registerPlugins(
       context.tailwindConfig,
-      [...corePluginList, ...userPlugins, ...layerPlugins],
+      [...corePluginList, ...beforeVariants, ...userPlugins, ...afterVariants, ...layerPlugins],
       context
     )
 

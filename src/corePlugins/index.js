@@ -1,17 +1,16 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
+const postcss = require('postcss')
 const buildMediaQuery = require('tailwindcss/lib/util/buildMediaQuery').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
+const prefixSelector = require('tailwindcss/lib/util/prefixSelector').default
 const {
   updateLastClasses,
   updateAllClasses,
-  transformRule,
   transformAllSelectors,
   transformAllClasses,
   transformLastClasses,
 } = require('../pluginUtils')
 
 module.exports = {
-  variants: function ({ jit: { config, theme, addUtilities, addVariant, e } }) {
+  pseudoClassVariants: function ({ config, theme, addVariant }) {
     let pseudoVariants = [
       ['first', 'first-child'],
       ['last', 'last-child'],
@@ -33,7 +32,7 @@ module.exports = {
       addVariant(
         variantName,
         transformAllClasses((className, { withPseudo }) => {
-          return withPseudo(`${variantName}:${className}`, state)
+          return withPseudo(`${variantName}${config('separator')}${className}`, state)
         })
       )
     }
@@ -46,84 +45,114 @@ module.exports = {
         groupVariantName,
         transformAllSelectors((selector) => {
           let variantSelector = updateAllClasses(selector, (className) => {
-            return `${groupVariantName}:${className}`
+            return `${groupVariantName}${config('separator')}${className}`
           })
 
           if (variantSelector === selector) {
             return null
           }
 
-          return `.group:${state} ${variantSelector}`
+          let groupSelector = prefixSelector(
+            config('prefix'),
+            `.group${config('separator')}${state}`
+          )
+
+          return `${groupSelector} ${variantSelector}`
         })
       )
     }
-
-    addVariant(
-      'motion-safe',
-      transformLastClasses((className) => {
-        return `motion-safe:${className}`
-      }, '@media (prefers-reduced-motion: no-preference)')
-    )
-
-    addVariant(
-      'motion-reduce',
-      transformLastClasses((className) => {
-        return `motion-reduce:${className}`
-      }, '@media (prefers-reduced-motion: reduce)')
-    )
-
+  },
+  directionVariants: function ({ config, theme, addVariant }) {
     addVariant(
       'ltr',
       transformAllSelectors(
-        (selector) => `[dir="ltr"] ${updateAllClasses(selector, (className) => `ltr:${className}`)}`
+        (selector) =>
+          `[dir="ltr"] ${updateAllClasses(
+            selector,
+            (className) => `ltr${config('separator')}${className}`
+          )}`
       )
     )
 
     addVariant(
       'rtl',
       transformAllSelectors(
-        (selector) => `[dir="rtl"] ${updateAllClasses(selector, (className) => `rtl:${className}`)}`
+        (selector) =>
+          `[dir="rtl"] ${updateAllClasses(
+            selector,
+            (className) => `rtl${config('separator')}${className}`
+          )}`
+      )
+    )
+  },
+  reducedMotionVariants: function ({ config, theme, addVariant }) {
+    addVariant(
+      'motion-safe',
+      transformLastClasses(
+        (className) => {
+          return `motion-safe${config('separator')}${className}`
+        },
+        () => postcss.atRule({ name: 'media', params: '(prefers-reduced-motion: no-preference)' })
       )
     )
 
-    if (config.darkMode === 'class') {
+    addVariant(
+      'motion-reduce',
+      transformLastClasses(
+        (className) => {
+          return `motion-reduce${config('separator')}${className}`
+        },
+        () => postcss.atRule({ name: 'media', params: '(prefers-reduced-motion: reduce)' })
+      )
+    )
+  },
+  darkVariants: function ({ config, theme, addVariant }) {
+    if (config('darkMode') === 'class') {
       addVariant(
         'dark',
         transformAllSelectors((selector) => {
-          let variantSelector = updateAllClasses(selector, (className) => {
-            return `dark:${className}`
+          let variantSelector = updateLastClasses(selector, (className) => {
+            return `dark${config('separator')}${className}`
           })
 
           if (variantSelector === selector) {
             return null
           }
 
-          return `.dark ${variantSelector}`
+          let darkSelector = prefixSelector(config('prefix'), `.dark`)
+
+          return `${darkSelector} ${variantSelector}`
         })
       )
-    } else if (config.darkMode === 'media') {
+    } else if (config('darkMode') === 'media') {
       addVariant(
         'dark',
-        transformLastClasses((className) => {
-          return `dark:${className}`
-        }, '@media (prefers-color-scheme: dark)')
+        transformLastClasses(
+          (className) => {
+            return `dark${config('separator')}${className}`
+          },
+          () => postcss.atRule({ name: 'media', params: '(prefers-color-scheme: dark)' })
+        )
       )
     }
-
-    for (let screen in theme.screens) {
-      let size = theme.screens[screen]
+  },
+  screenVariants: function ({ config, theme, addVariant }) {
+    for (let screen in theme('screens')) {
+      let size = theme('screens')[screen]
       let query = buildMediaQuery(size)
 
       addVariant(
         screen,
-        transformLastClasses((className) => {
-          return `${screen}:${className}`
-        }, `@media ${query}`)
+        transformLastClasses(
+          (className) => {
+            return `${screen}${config('separator')}${className}`
+          },
+          () => postcss.atRule({ name: 'media', params: query })
+        )
       )
     }
   },
 
-  // Sorted
   // Base
   preflight: require('./preflight'),
 
@@ -131,8 +160,9 @@ module.exports = {
   container: require('./container'),
 
   // Utilitiles
-  // External
   accessibility: require('./accessibility'),
+  pointerEvents: require('./pointerEvents'),
+  visibility: require('./visibility'),
   position: require('./position'),
   inset: require('./inset'),
   zIndex: require('./zIndex'),
@@ -143,6 +173,8 @@ module.exports = {
   gridRow: require('./gridRow'),
   gridRowEnd: require('./gridRowEnd'),
   gridRowStart: require('./gridRowStart'),
+  float: require('./float'),
+  clear: require('./clear'),
   margin: require('./margin'),
   boxSizing: require('./boxSizing'),
   display: require('./display'),
@@ -153,8 +185,27 @@ module.exports = {
   minWidth: require('./minWidth'),
   maxWidth: require('./maxWidth'),
   flex: require('./flex'),
+  flexShrink: require('./flexShrink'),
+  flexGrow: require('./flexGrow'),
+  tableLayout: require('./tableLayout'),
+  borderCollapse: require('./borderCollapse'),
 
-  // Internal
+  transform: require('./transform'),
+  transformOrigin: require('./transformOrigin'),
+  translate: require('./translate'),
+  rotate: require('./rotate'),
+  skew: require('./skew'),
+  scale: require('./scale'),
+
+  animation: require('./animation'),
+
+  cursor: require('./cursor'),
+  userSelect: require('./userSelect'),
+  resize: require('./resize'),
+
+  listStylePosition: require('./listStylePosition'),
+  listStyleType: require('./listStyleType'),
+
   appearance: require('./appearance'),
   gridAutoColumns: require('./gridAutoColumns'),
   gridAutoFlow: require('./gridAutoFlow'),
@@ -163,94 +214,82 @@ module.exports = {
   gridTemplateRows: require('./gridTemplateRows'),
   flexDirection: require('./flexDirection'),
   flexWrap: require('./flexWrap'),
-  flexShrink: require('./flexShrink'),
-  flexGrow: require('./flexGrow'),
+  placeContent: require('./placeContent'),
   placeItems: require('./placeItems'),
-  placeSelf: require('./placeSelf'),
   alignContent: require('./alignContent'),
   alignItems: require('./alignItems'),
-  alignSelf: require('./alignSelf'),
   justifyContent: require('./justifyContent'),
   justifyItems: require('./justifyItems'),
-  justifySelf: require('./justifySelf'),
-  float: require('./float'),
-
-  // To be sorted
-  transform: require('./transform'),
-  translate: require('./translate'),
-  rotate: require('./rotate'),
-  skew: require('./skew'),
-  scale: require('./scale'),
-  animation: require('./animation'),
-  backgroundAttachment: require('./backgroundAttachment'),
-  backgroundClip: require('./backgroundClip'),
-  backgroundColor: require('./backgroundColor'),
-  backgroundImage: require('./backgroundImage'),
-  backgroundOpacity: require('./backgroundOpacity'),
-  backgroundPosition: require('./backgroundPosition'),
-  backgroundRepeat: require('./backgroundRepeat'),
-  backgroundSize: require('./backgroundSize'),
-  borderCollapse: require('./borderCollapse'),
-  borderColor: require('./borderColor'),
-  borderOpacity: require('./borderOpacity'),
-  borderRadius: require('./borderRadius'),
-  borderStyle: require('./borderStyle'),
-  borderWidth: require('./borderWidth'),
-  boxShadow: require('./boxShadow'),
-  clear: require('./clear'),
-  cursor: require('./cursor'),
+  gap: require('./gap'),
+  space: require('./space'),
+  divideWidth: require('./divideWidth'),
+  divideStyle: require('./divideStyle'),
   divideColor: require('./divideColor'),
   divideOpacity: require('./divideOpacity'),
-  divideStyle: require('./divideStyle'),
-  divideWidth: require('./divideWidth'),
-  fill: require('./fill'),
-  fontFamily: require('./fontFamily'),
-  fontSize: require('./fontSize'),
-  fontSmoothing: require('./fontSmoothing'),
-  fontStyle: require('./fontStyle'),
-  fontVariantNumeric: require('./fontVariantNumeric'),
-  fontWeight: require('./fontWeight'),
-  gap: require('./gap'),
-  gradientColorStops: require('./gradientColorStops'),
-  letterSpacing: require('./letterSpacing'),
-  lineHeight: require('./lineHeight'),
-  listStylePosition: require('./listStylePosition'),
-  listStyleType: require('./listStyleType'),
-  objectFit: require('./objectFit'),
-  objectPosition: require('./objectPosition'),
-  opacity: require('./opacity'),
-  outline: require('./outline'),
+
+  placeSelf: require('./placeSelf'),
+  alignSelf: require('./alignSelf'),
+  justifySelf: require('./justifySelf'),
+
   overflow: require('./overflow'),
   overscrollBehavior: require('./overscrollBehavior'),
-  padding: require('./padding'),
-  placeContent: require('./placeContent'),
-  placeholderColor: require('./placeholderColor'),
-  placeholderOpacity: require('./placeholderOpacity'),
-  pointerEvents: require('./pointerEvents'),
-  resize: require('./resize'),
-  ringWidth: require('./ringWidth'),
-  ringOffsetWidth: require('./ringOffsetWidth'),
-  ringColor: require('./ringColor'),
-  ringOffsetColor: require('./ringOffsetColor'),
-  ringOpacity: require('./ringOpacity'),
-  space: require('./space'),
-  stroke: require('./stroke'),
-  strokeWidth: require('./strokeWidth'),
-  tableLayout: require('./tableLayout'),
-  textAlign: require('./textAlign'),
-  textColor: require('./textColor'),
-  textDecoration: require('./textDecoration'),
-  textOpacity: require('./textOpacity'),
   textOverflow: require('./textOverflow'),
-  textTransform: require('./textTransform'),
-  transformOrigin: require('./transformOrigin'),
-  transitionDelay: require('./transitionDelay'),
-  transitionDuration: require('./transitionDuration'),
-  transitionProperty: require('./transitionProperty'),
-  transitionTimingFunction: require('./transitionTimingFunction'),
-  userSelect: require('./userSelect'),
-  verticalAlign: require('./verticalAlign'),
-  visibility: require('./visibility'),
   whitespace: require('./whitespace'),
   wordBreak: require('./wordBreak'),
+
+  borderRadius: require('./borderRadius'),
+  borderWidth: require('./borderWidth'),
+  borderStyle: require('./borderStyle'),
+  borderColor: require('./borderColor'),
+  borderOpacity: require('./borderOpacity'),
+
+  backgroundColor: require('./backgroundColor'),
+  backgroundOpacity: require('./backgroundOpacity'),
+  backgroundImage: require('./backgroundImage'),
+  gradientColorStops: require('./gradientColorStops'),
+  backgroundSize: require('./backgroundSize'),
+  backgroundAttachment: require('./backgroundAttachment'),
+  backgroundClip: require('./backgroundClip'),
+  backgroundPosition: require('./backgroundPosition'),
+  backgroundRepeat: require('./backgroundRepeat'),
+
+  fill: require('./fill'),
+  stroke: require('./stroke'),
+  strokeWidth: require('./strokeWidth'),
+
+  objectFit: require('./objectFit'),
+  objectPosition: require('./objectPosition'),
+
+  padding: require('./padding'),
+
+  textAlign: require('./textAlign'),
+  verticalAlign: require('./verticalAlign'),
+  fontFamily: require('./fontFamily'),
+  fontSize: require('./fontSize'),
+  fontWeight: require('./fontWeight'),
+  textTransform: require('./textTransform'),
+  fontStyle: require('./fontStyle'),
+  fontVariantNumeric: require('./fontVariantNumeric'),
+  lineHeight: require('./lineHeight'),
+  letterSpacing: require('./letterSpacing'),
+  textColor: require('./textColor'),
+  textOpacity: require('./textOpacity'),
+  textDecoration: require('./textDecoration'),
+  fontSmoothing: require('./fontSmoothing'),
+  placeholderColor: require('./placeholderColor'),
+  placeholderOpacity: require('./placeholderOpacity'),
+
+  opacity: require('./opacity'),
+  boxShadow: require('./boxShadow'),
+  outline: require('./outline'),
+  ringWidth: require('./ringWidth'),
+  ringColor: require('./ringColor'),
+  ringOpacity: require('./ringOpacity'),
+  ringOffsetWidth: require('./ringOffsetWidth'),
+  ringOffsetColor: require('./ringOffsetColor'),
+
+  transitionProperty: require('./transitionProperty'),
+  transitionDelay: require('./transitionDelay'),
+  transitionDuration: require('./transitionDuration'),
+  transitionTimingFunction: require('./transitionTimingFunction'),
 }

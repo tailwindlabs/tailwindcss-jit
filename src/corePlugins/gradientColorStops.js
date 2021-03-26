@@ -1,9 +1,7 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
 const flattenColorPalette = require('tailwindcss/lib/util/flattenColorPalette').default
 const toColorValue = require('tailwindcss/lib/util/toColorValue').default
 const toRgba = require('tailwindcss/lib/util/withAlphaVariable').toRgba
-const { asColor } = require('../pluginUtils')
+const { asColor, nameClass } = require('../pluginUtils')
 
 function transparentTo(value) {
   if (typeof value === 'function') {
@@ -18,75 +16,60 @@ function transparentTo(value) {
   }
 }
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  let colorPalette = flattenColorPalette(theme.backgroundColor)
+module.exports = function ({ matchUtilities, theme }) {
+  let colorPalette = flattenColorPalette(theme('gradientColorStops'))
 
-  addUtilities({
-    from: [
-      (modifier, { theme }) => {
-        let value = asColor(modifier, colorPalette)
+  matchUtilities({
+    from: (modifier) => {
+      let value = asColor(modifier, colorPalette)
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        let transparentToValue = transparentTo(value)
+      let transparentToValue = transparentTo(value)
 
-        return [
-          [
-            nameClass('from', modifier),
-            {
-              '--tw-gradient-from': toColorValue(value, 'from'),
-              '--tw-gradient-stops': `var(--tw-gradient-from), var(--tw-gradient-to, ${transparentToValue})`,
-            },
-          ],
-        ]
-      },
-    ],
+      return {
+        [nameClass('from', modifier)]: {
+          '--tw-gradient-from': toColorValue(value, 'from'),
+          '--tw-gradient-stops': `var(--tw-gradient-from), var(--tw-gradient-to, ${transparentToValue})`,
+        },
+      }
+    },
   })
-  addUtilities({
-    via: [
-      (modifier, { theme }) => {
-        let value = asColor(modifier, colorPalette)
+  matchUtilities({
+    via: (modifier) => {
+      let value = asColor(modifier, colorPalette)
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        let transparentToValue = transparentTo(value)
+      let transparentToValue = transparentTo(value)
 
-        return [
-          [
-            nameClass('via', modifier),
-            {
-              '--tw-gradient-stops': `var(--tw-gradient-from), ${toColorValue(
-                value,
-                'via'
-              )}, var(--tw-gradient-to, ${transparentToValue})`,
-            },
-          ],
-        ]
-      },
-    ],
+      return {
+        [nameClass('via', modifier)]: {
+          '--tw-gradient-stops': `var(--tw-gradient-from), ${toColorValue(
+            value,
+            'via'
+          )}, var(--tw-gradient-to, ${transparentToValue})`,
+        },
+      }
+    },
   })
-  addUtilities({
-    to: [
-      (modifier, { theme }) => {
-        let value = asColor(modifier, colorPalette)
+  matchUtilities({
+    to: (modifier) => {
+      let value = asColor(modifier, colorPalette)
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [
-          [
-            nameClass('to', modifier),
-            {
-              '--tw-gradient-to': toColorValue(value, 'to'),
-            },
-          ],
-        ]
-      },
-    ],
+      return {
+        [nameClass('to', modifier)]: {
+          '--tw-gradient-to': toColorValue(value, 'to'),
+        },
+      }
+    },
   })
 }

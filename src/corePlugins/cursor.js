@@ -1,19 +1,15 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const transformThemeValue = require('tailwindcss/lib/util/transformThemeValue').default
-const { asValue } = require('../pluginUtils')
+const { asValue, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ jit: { theme, addUtilities, addVariant, e } }) {
-  addUtilities({
-    cursor: [
-      (modifier, { theme }) => {
-        let value = asValue(modifier, theme.cursor)
+module.exports = function ({ matchUtilities, jit: { theme } }) {
+  matchUtilities({
+    cursor: (modifier, { theme }) => {
+      let value = asValue(modifier, theme.cursor)
 
-        if (value === undefined) {
-          return []
-        }
+      if (value === undefined) {
+        return []
+      }
 
-        return [[nameClass('cursor', modifier), { cursor: value }]]
-      },
-    ],
+      return { [nameClass('cursor', modifier)]: { cursor: value } }
+    },
   })
 }

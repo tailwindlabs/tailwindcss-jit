@@ -3,16 +3,45 @@ const path = require('path')
 const fastGlob = require('fast-glob')
 const parseGlob = require('parse-glob')
 const sharedState = require('./sharedState')
-const generateRules = require('./generateRules')
-const { bigSign, toPostCssNode } = require('./utils')
+const { generateRules } = require('./generateRules')
+const { bigSign, cloneNodes } = require('./utils')
 
 let env = sharedState.env
 let contentMatchCache = sharedState.contentMatchCache
 
+const BROAD_MATCH_GLOBAL_REGEXP = /[^<>"'`\s]*[^<>"'`\s:]/g
+const INNER_MATCH_GLOBAL_REGEXP = /[^<>"'`\s.(){}[\]#=%]*[^<>"'`\s.(){}[\]#=%:]/g
+
+function defaultJitExtractor(content) {
+  let broadMatches = content.match(BROAD_MATCH_GLOBAL_REGEXP) || []
+  let innerMatches = content.match(INNER_MATCH_GLOBAL_REGEXP) || []
+
+  return [...broadMatches, ...innerMatches]
+}
+
+function getExtractor(fileName, tailwindConfig) {
+  const purgeOptions = tailwindConfig && tailwindConfig.purge && tailwindConfig.purge.options
+
+  if (!purgeOptions) {
+    return defaultJitExtractor
+  }
+
+  const fileExtension = path.extname(fileName).slice(1)
+  const fileSpecificExtractor = (purgeOptions.extractors || []).find((extractor) =>
+    extractor.extensions.includes(fileExtension)
+  )
+
+  if (fileSpecificExtractor) {
+    return fileSpecificExtractor.extractor
+  }
+
+  return purgeOptions.defaultExtractor || defaultJitExtractor
+}
+
 // Scans template contents for possible classes. This is a hot path on initial build but
 // not too important for subsequent builds. The faster the better though — if we can speed
 // up these regexes by 50% that could cut initial build time by like 20%.
-function getClassCandidates(content, contentMatchCache, candidates, seen) {
+function getClassCandidates(content, extractor, contentMatchCache, candidates, seen) {
   for (let line of content.split('\n')) {
     line = line.trim()
 
@@ -26,20 +55,14 @@ function getClassCandidates(content, contentMatchCache, candidates, seen) {
         candidates.add(match)
       }
     } else {
-      let allMatches = new Set()
-      let broadMatches = line.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || []
-      let innerMatches = line.match(/[^<>"'`\s.(){}[\]#=%]*[^<>"'`\s.(){}[\]#=%:]/g) || []
+      let extractorMatches = extractor(line)
+      let lineMatchesSet = new Set(extractorMatches)
 
-      for (let match of broadMatches) {
-        allMatches.add(match)
-        candidates.add(match)
-      }
-      for (let match of innerMatches) {
-        allMatches.add(match)
+      for (let match of lineMatchesSet) {
         candidates.add(match)
       }
 
-      contentMatchCache.set(line, allMatches)
+      contentMatchCache.set(line, lineMatchesSet)
     }
   }
 }
@@ -48,6 +71,7 @@ function buildStylesheet(rules, context) {
   let sortedRules = rules.sort(([a], [z]) => bigSign(a - z))
 
   let returnValue = {
+    base: new Set(),
     components: new Set(),
     utilities: new Set(),
     screens: new Set(),
@@ -56,6 +80,11 @@ function buildStylesheet(rules, context) {
   for (let [sort, rule] of sortedRules) {
     if (sort >= context.minimumScreen) {
       returnValue.screens.add(rule)
+      continue
+    }
+
+    if (sort & context.layerOrder.base) {
+      returnValue.base.add(rule)
       continue
     }
 
@@ -151,32 +180,33 @@ function expandTailwindAtRules(context, registerDependency) {
     env.DEBUG && console.time('Reading changed files')
     for (let file of context.changedFiles) {
       let content = fs.readFileSync(file, 'utf8')
-      getClassCandidates(content, contentMatchCache, candidates, seen)
+      let extractor = getExtractor(file, context.tailwindConfig)
+      getClassCandidates(content, extractor, contentMatchCache, candidates, seen)
     }
     env.DEBUG && console.timeEnd('Reading changed files')
 
     // ---
 
     // Generate the actual CSS
-
     let classCacheCount = context.classCache.size
 
     env.DEBUG && console.time('Generate rules')
-    let rules = generateRules(context.tailwindConfig, candidates, context)
+    let rules = generateRules(candidates, context)
     env.DEBUG && console.timeEnd('Generate rules')
 
     // We only ever add to the classCache, so if it didn't grow, there is nothing new.
+    env.DEBUG && console.time('Build stylesheet')
     if (context.stylesheetCache === null || context.classCache.size !== classCacheCount) {
-      env.DEBUG && console.time('Build stylesheet')
       for (let rule of rules) {
         context.ruleCache.add(rule)
       }
 
       context.stylesheetCache = buildStylesheet([...context.ruleCache], context)
-      env.DEBUG && console.timeEnd('Build stylesheet')
     }
+    env.DEBUG && console.timeEnd('Build stylesheet')
 
     let {
+      base: baseNodes,
       components: componentNodes,
       utilities: utilityNodes,
       screens: screenNodes,
@@ -187,25 +217,25 @@ function expandTailwindAtRules(context, registerDependency) {
     // Replace any Tailwind directives with generated CSS
 
     if (layerNodes.base) {
-      layerNodes.base.before([...context.baseRules])
+      layerNodes.base.before(cloneNodes([...baseNodes]))
       layerNodes.base.remove()
     }
 
     if (layerNodes.components) {
-      layerNodes.components.before([...componentNodes])
+      layerNodes.components.before(cloneNodes([...componentNodes]))
       layerNodes.components.remove()
     }
 
     if (layerNodes.utilities) {
-      layerNodes.utilities.before([...utilityNodes])
+      layerNodes.utilities.before(cloneNodes([...utilityNodes]))
       layerNodes.utilities.remove()
     }
 
     if (layerNodes.screens) {
-      layerNodes.screens.before([...screenNodes])
+      layerNodes.screens.before(cloneNodes([...screenNodes]))
       layerNodes.screens.remove()
     } else {
-      root.append([...screenNodes])
+      root.append(cloneNodes([...screenNodes]))
     }
 
     // ---
@@ -213,7 +243,7 @@ function expandTailwindAtRules(context, registerDependency) {
     if (env.DEBUG) {
       console.log('Changed files: ', context.changedFiles.size)
       console.log('Potential classes: ', candidates.size)
-      console.log('Active contexts: ', sharedState.contextMap.size)
+      console.log('Active contexts: ', sharedState.contextSourcesMap.size)
       console.log('Content match entries', contentMatchCache.size)
     }
 
