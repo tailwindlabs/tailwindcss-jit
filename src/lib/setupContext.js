@@ -259,6 +259,10 @@ function generateTouchFileName() {
 }
 
 function rebootWatcher(context) {
+  if (env.TAILWIND_DISABLE_TOUCH) {
+    return
+  }
+
   if (context.touchFile === null) {
     context.touchFile = generateTouchFileName()
     touch(context.touchFile)
