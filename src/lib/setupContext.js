@@ -34,7 +34,7 @@ let env = sharedState.env
 
 const touchDir = path.join(os.homedir() || os.tmpdir(), '.tailwindcss', 'touch')
 
-if (sharedState.env.TAILWIND_DISABLE_TOUCH) {
+if (!sharedState.env.TAILWIND_DISABLE_TOUCH) {
   if (fs.existsSync(touchDir)) {
     for (let file of fs.readdirSync(touchDir)) {
       fs.unlinkSync(path.join(touchDir, file))
