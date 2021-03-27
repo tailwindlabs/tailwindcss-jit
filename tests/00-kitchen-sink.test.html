@@ -65,6 +65,8 @@
     },
     setup: () => {
       const count = ref(0)
+      // Weird regex-looking stuff that once caused a stack overflow in candidatePermutations
+      const pattern = ' ]-[] '
       return {
         count,
         stuff: [] /* string[] | undefined */,

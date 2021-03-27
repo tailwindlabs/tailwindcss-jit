@@ -23,7 +23,7 @@ function* candidatePermutations(candidate, lastIndex = Infinity) {
 
   let dashIdx
 
-  if (candidate.endsWith(']', lastIndex + 1)) {
+  if (lastIndex === Infinity && candidate.endsWith(']')) {
     let bracketIdx = candidate.lastIndexOf('[')
 
     // If character before `[` isn't a dash, this isn't a dynamic class
