@@ -3,6 +3,7 @@ const parseObjectStyles = require('tailwindcss/lib/util/parseObjectStyles').defa
 const { isPlainObject, bigSign } = require('./utils')
 const selectorParser = require('postcss-selector-parser')
 const prefixSelector = require('tailwindcss/lib/util/prefixSelector').default
+const { updateAllClasses } = require('../pluginUtils')
 
 let classNameParser = selectorParser((selectors) => {
   return selectors.first.filter(({ type }) => type === 'class').pop().value
@@ -62,6 +63,26 @@ function applyPrefix(matches, context) {
   }
 
   return matches
+}
+
+function applyImportant(matches) {
+  if (matches.length === 0) {
+    return matches
+  }
+  let result = []
+
+  for (let [meta, rule] of matches) {
+    let container = postcss.root({ nodes: [rule] })
+    container.walkRules((r) => {
+      r.selector = updateAllClasses(r.selector, (className) => {
+        return `!${className}`
+      })
+      r.walkDecls((d) => (d.important = true))
+    })
+    result.push([meta, container.nodes[0]])
+  }
+
+  return result
 }
 
 // Takes a list of rule tuples and applies a variant like `hover`, sm`,
@@ -179,6 +200,12 @@ function sortAgainst(toSort, against) {
 function* resolveMatches(candidate, context) {
   let separator = context.tailwindConfig.separator
   let [classCandidate, ...variants] = candidate.split(separator).reverse()
+  let important = false
+
+  if (classCandidate.startsWith('!')) {
+    important = true
+    classCandidate = classCandidate.slice(1)
+  }
 
   // Strip prefix
   // md:hover:tw-bg-black
@@ -219,6 +246,10 @@ function* resolveMatches(candidate, context) {
     }
 
     matches = applyPrefix(matches, context)
+
+    if (important) {
+      matches = applyImportant(matches, context)
+    }
 
     for (let variant of variants) {
       matches = applyVariant(variant, matches, context)
