@@ -16,25 +16,29 @@ function getClassNameFromSelector(selector) {
 // ['ring-offset-blue', '100']
 // ['ring-offset', 'blue-100']
 // ['ring', 'offset-blue-100']
-function* candidatePermutations(prefix, modifier = '') {
+function* candidatePermutations(candidate, lastIndex = Infinity) {
+  if (lastIndex < 0) {
+    return
+  }
+
   let dashIdx
 
-  if (modifier.endsWith(']')) {
-    dashIdx = prefix.lastIndexOf('[') - 1
+  if (candidate.endsWith(']')) {
+    dashIdx = candidate.lastIndexOf('[') - 1
   } else {
-    dashIdx = prefix.lastIndexOf('-')
+    dashIdx = candidate.lastIndexOf('-', lastIndex)
   }
 
   if (dashIdx < 0) {
     return
   }
 
-  modifier = [prefix.slice(dashIdx + 1), modifier].filter(Boolean).join('-')
-  prefix = prefix.slice(0, dashIdx)
+  let prefix = candidate.slice(0, dashIdx)
+  let modifier = candidate.slice(dashIdx + 1)
 
   yield [prefix, modifier]
 
-  yield* candidatePermutations(prefix, modifier)
+  yield* candidatePermutations(candidate, dashIdx - 1)
 }
 
 function applyPrefix(matches, context) {
