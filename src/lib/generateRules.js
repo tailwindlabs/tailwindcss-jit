@@ -71,7 +71,7 @@ function applyImportant(matches) {
   }
   let result = []
 
-  for (let [{ sort, layer, options }, rule] of matches) {
+  for (let [meta, rule] of matches) {
     let container = postcss.root({ nodes: [rule] })
     container.walkRules((r) => {
       r.selector = updateAllClasses(r.selector, (className) => {
@@ -79,8 +79,7 @@ function applyImportant(matches) {
       })
       r.walkDecls((d) => (d.important = true))
     })
-    let withOffset = [{ sort: sort, layer, options }, container.nodes[0]]
-    result.push(withOffset)
+    result.push([meta, container.nodes[0]])
   }
 
   return result
@@ -177,9 +176,8 @@ function* resolveMatchedPlugins(classCandidate, context) {
   let candidatePrefix = classCandidate
   let negative = false
 
-  let twConfigPrefix = context.tailwindConfig.prefix || ''
-  let twConfigPrefixLen = twConfigPrefix.length
-
+  const twConfigPrefix = context.tailwindConfig.prefix || ''
+  const twConfigPrefixLen = twConfigPrefix.length
   if (candidatePrefix[twConfigPrefixLen] === '-') {
     negative = true
     candidatePrefix = twConfigPrefix + candidatePrefix.slice(twConfigPrefixLen + 1)
