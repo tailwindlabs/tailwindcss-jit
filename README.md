@@ -5,6 +5,7 @@
 
 <p align="center">
     <a href="https://github.com/tailwindlabs/tailwindcss-jit/releases"><img src="https://img.shields.io/npm/v/@tailwindcss/jit" alt="Latest Release"></a>
+    <a href="https://github.com/tailwindlabs/tailwindcss-jit/actions/workflows/main.yml"><img src="https://github.com/tailwindlabs/tailwindcss-jit/actions/workflows/main.yml/badge.svg"></a>
     <a href="https://github.com/tailwindlabs/tailwindcss-jit/blob/master/LICENSE"><img src="https://img.shields.io/npm/l/@tailwindcss/jit.svg" alt="License"></a>
 </p>
 
