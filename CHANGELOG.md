@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet!
 
+## [0.1.15] - 2021-03-27
+
+### Added
+
+- Add `!font-bold`-style important modifier #([#174](https://github.com/tailwindlabs/tailwindcss-jit/issues/174))
+
 ## [0.1.14] - 2021-03-27
 
 ### Fixed
@@ -120,7 +126,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Everything!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.14...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.15...HEAD
+[0.1.15]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.14...v0.1.15
 [0.1.14]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.13...v0.1.14
 [0.1.13]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.12...v0.1.13
 [0.1.12]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.11...v0.1.12
