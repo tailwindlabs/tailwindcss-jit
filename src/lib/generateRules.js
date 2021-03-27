@@ -24,7 +24,11 @@ function* candidatePermutations(candidate, lastIndex = Infinity) {
   let dashIdx
 
   if (candidate.endsWith(']', lastIndex + 1)) {
-    dashIdx = candidate.lastIndexOf('[') - 1
+    let bracketIdx = candidate.lastIndexOf('[')
+
+    // If character before `[` isn't a dash, this isn't a dynamic class
+    // eg. string[]
+    dashIdx = candidate[bracketIdx - 1] === '-' ? bracketIdx - 1 : -1
   } else {
     dashIdx = candidate.lastIndexOf('-', lastIndex)
   }
@@ -40,6 +44,9 @@ function* candidatePermutations(candidate, lastIndex = Infinity) {
 
   yield* candidatePermutations(candidate, dashIdx - 1)
 }
+
+// console.log(Array.from(candidatePermutations('string[]')))
+// process.exit()
 
 function applyPrefix(matches, context) {
   if (matches.length === 0 || context.tailwindConfig.prefix === '') {
