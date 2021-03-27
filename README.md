@@ -68,7 +68,7 @@ Now start your dev server or build tool as you normally would and you're good to
 > Make sure you set `NODE_ENV=development` if you are running a watcher, or Tailwind won't watch your template files for changes. Set `NODE_ENV=production` for one-off builds.
 >
 > If you want to control whether Tailwind watches files or not more explicitly, set `TAILWIND_MODE=watch` or `TAILWIND_MODE=build` to override the default `NODE_ENV`-based behavior.
-> 
+>
 > For example if you want to do one-off builds with `NODE_ENV=development`, explicitly set `TAILWIND_MODE=build` so that Tailwind knows you are just doing a one-off build and doesn't hang.
 
 ## Documentation
@@ -115,6 +115,25 @@ Many utilities support arbitrary values using a new square bracket notation to i
 This is very useful for building pixel-perfect designs where there are a few elements that need hyper-specific styles, like a carefully positioned background image on a marketing site.
 
 We'll likely add some form of "strict mode" in the future for power-hungry team leads who don't trust their colleagues to use this feature responsibly.
+
+### Built-in important modifier
+
+You can make any utility important by adding a `!` character to the beginning:
+
+```html
+<p class="font-bold !font-medium">
+  This will be medium even though bold comes later in the CSS.
+</p>
+```
+
+The `!` always goes at the beginning of the utility name, after any variants, but before any prefix:
+
+```diff
+- !sm:hover:tw-font-bold
++ sm:hover:!tw-font-bold
+```
+
+This can be useful in rare situations where you need to increase specificity because you're at war with some styles you don't control.
 
 ## Known limitations
 
