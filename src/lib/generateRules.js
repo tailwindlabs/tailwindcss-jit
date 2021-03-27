@@ -45,9 +45,6 @@ function* candidatePermutations(candidate, lastIndex = Infinity) {
   yield* candidatePermutations(candidate, dashIdx - 1)
 }
 
-// console.log(Array.from(candidatePermutations('string[]')))
-// process.exit()
-
 function applyPrefix(matches, context) {
   if (matches.length === 0 || context.tailwindConfig.prefix === '') {
     return matches
