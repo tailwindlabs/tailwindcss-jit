@@ -23,7 +23,7 @@ function* candidatePermutations(candidate, lastIndex = Infinity) {
 
   let dashIdx
 
-  if (candidate.endsWith(']', /*length*/ lastIndex + 1)) {
+  if (candidate.endsWith(']', lastIndex + 1)) {
     dashIdx = candidate.lastIndexOf('[') - 1
   } else {
     dashIdx = candidate.lastIndexOf('-', lastIndex)
@@ -33,7 +33,7 @@ function* candidatePermutations(candidate, lastIndex = Infinity) {
     return
   }
 
-  let prefix = candidate.slice(0, candidate.charAt(dashIdx) === '-' ? dashIdx : dashIdx + 1)
+  let prefix = candidate.slice(0, dashIdx)
   let modifier = candidate.slice(dashIdx + 1)
 
   yield [prefix, modifier]

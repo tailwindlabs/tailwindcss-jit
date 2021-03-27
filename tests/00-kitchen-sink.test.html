@@ -52,3 +52,23 @@
     <div class="text-center shadow-md hover:shadow-lg transform scale-50 hover:scale-75"></div>
   </body>
 </html>
+
+<script>
+  defineComponent({
+    name: 'HelloWorld',
+    props: {
+      msg: {
+        type: String,
+        required: true,
+      },
+      things: Array /* PropType<string[]> */,
+    },
+    setup: () => {
+      const count = ref(0)
+      return {
+        count,
+        stuff: [] /* string[] | undefined */,
+      }
+    },
+  })
+</script>
