@@ -47,6 +47,9 @@
 .tw-dark .tw-group:hover .custom-component {
   font-weight: 400;
 }
+.tw--ml-4 {
+  margin-left: -1rem;
+}
 .tw-font-bold {
   font-weight: 700;
 }
@@ -71,6 +74,12 @@
   text-align: left;
 }
 @media (min-width: 768px) {
+  .md\:tw--ml-5 {
+    margin-left: -1.25rem;
+  }
+  .md\:hover\:tw--ml-6:hover {
+    margin-left: -1.5rem;
+  }
   .md\:hover\:tw-text-right:hover {
     text-align: right;
   }

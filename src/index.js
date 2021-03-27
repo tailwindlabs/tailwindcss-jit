@@ -3,6 +3,7 @@ const postcss = require('postcss')
 const evaluateTailwindFunctions = require('tailwindcss/lib/lib/evaluateTailwindFunctions').default
 const substituteScreenAtRules = require('tailwindcss/lib/lib/substituteScreenAtRules').default
 
+const rewriteTailwindImports = require('./lib/rewriteTailwindImports')
 const setupContext = require('./lib/setupContext')
 const removeLayerAtRules = require('./lib/removeLayerAtRules')
 const expandTailwindAtRules = require('./lib/expandTailwindAtRules')
@@ -22,19 +23,23 @@ module.exports = (configOrPath = {}) => {
           return root
         },
       function (root, result) {
-        function registerDependency(fileName) {
+        function registerDependency(fileName, type = 'dependency') {
           result.messages.push({
-            type: 'dependency',
+            type,
             plugin: 'tailwindcss-jit',
             parent: result.opts.from,
             file: fileName,
           })
         }
 
+        rewriteTailwindImports(root)
+
         let context = setupContext(configOrPath)(result, root)
 
-        if (context.configPath !== null) {
-          registerDependency(context.configPath)
+        if (!env.TAILWIND_DISABLE_TOUCH) {
+          if (context.configPath !== null) {
+            registerDependency(context.configPath)
+          }
         }
 
         return postcss([

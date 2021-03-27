@@ -1,6 +1,6 @@
 let comparisonMap = {
-  atrule: 'params',
-  rule: 'selector',
+  atrule: ['name', 'params'],
+  rule: ['selector'],
 }
 let types = new Set(Object.keys(comparisonMap))
 
@@ -18,8 +18,11 @@ function collapseAdjacentRules(context) {
         return
       }
 
-      let property = comparisonMap[node.type]
-      if (node[property] === currentRule[property]) {
+      let properties = comparisonMap[node.type]
+
+      if (node.type === 'atrule' && node.name === 'font-face') {
+        currentRule = node
+      } else if (properties.every((property) => node[property] === currentRule[property])) {
         currentRule.append(node.nodes)
         node.remove()
       } else {

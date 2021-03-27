@@ -10,7 +10,7 @@ function run(input, config = {}) {
 test('it works', () => {
   let config = {
     darkMode: 'class',
-    purge: [path.resolve(__dirname, './00-sanity.test.html')],
+    purge: [path.resolve(__dirname, './00-kitchen-sink.test.html')],
     corePlugins: { preflight: false },
     theme: {
       extend: {
@@ -18,6 +18,12 @@ test('it works', () => {
           portrait: { raw: '(orientation: portrait)' },
           range: { min: '1280px', max: '1535px' },
           multi: [{ min: '640px', max: '767px' }, { max: '868px' }],
+        },
+        gradientColorStops: {
+          foo: '#bada55',
+        },
+        backgroundImage: {
+          'hero--home-1': "url('/images/homepage-1.jpg')",
         },
       },
     },
@@ -152,7 +158,7 @@ test('it works', () => {
 `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './00-sanity.test.css')
+    let expectedPath = path.resolve(__dirname, './00-kitchen-sink.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)

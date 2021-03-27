@@ -1,10 +1,9 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const { asLength } = require('../pluginUtils')
+const { asValue, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
+module.exports = function ({ matchUtilities }) {
   matchUtilities({
     w: (modifier, { theme }) => {
-      let value = asLength(modifier, theme['width'])
+      let value = asValue(modifier, theme['width'])
 
       if (value === undefined) {
         return []

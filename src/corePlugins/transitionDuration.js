@@ -1,9 +1,9 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
+const { nameClass, asValue } = require('../pluginUtils')
 
 module.exports = function ({ matchUtilities, jit: { theme } }) {
   matchUtilities({
     duration: (modifier, { theme }) => {
-      let value = theme.transitionDuration[modifier]
+      let value = asValue(modifier, theme.transitionDuration)
 
       if (value === undefined) {
         return []

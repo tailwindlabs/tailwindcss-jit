@@ -30,6 +30,7 @@
     <div class="filter-none filter-grayscale"></div>
     <div class="focus:font-normal"></div>
     <div class="font-medium"></div>
+    <div class="bg-gradient-to-r from-foo"></div>
     <div class="custom-component custom-util"></div>
     <div class="bg-opacity-50"></div>
     <div class="focus:ring-2 focus:ring-blue-500"></div>
@@ -38,6 +39,7 @@
     <div class="focus:hover:font-light"></div>
     <div class="first:pt-0"></div>
     <div class="container"></div>
+    <div class="bg-hero--home-1"></div>
     <div class="group-hover:opacity-100"></div>
     <div class="group-active:opacity-10"></div>
     <div class="sm:motion-safe:group-active:focus:opacity-10"></div>
@@ -50,3 +52,23 @@
     <div class="text-center shadow-md hover:shadow-lg transform scale-50 hover:scale-75"></div>
   </body>
 </html>
+
+<script>
+  defineComponent({
+    name: 'HelloWorld',
+    props: {
+      msg: {
+        type: String,
+        required: true,
+      },
+      things: Array /* PropType<string[]> */,
+    },
+    setup: () => {
+      const count = ref(0)
+      return {
+        count,
+        stuff: [] /* string[] | undefined */,
+      }
+    },
+  })
+</script>

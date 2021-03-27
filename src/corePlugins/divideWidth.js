@@ -1,5 +1,4 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const { asLength } = require('../pluginUtils')
+const { asLength, nameClass } = require('../pluginUtils')
 
 module.exports = function ({ addUtilities, matchUtilities, jit: { theme } }) {
   matchUtilities({
@@ -9,6 +8,8 @@ module.exports = function ({ addUtilities, matchUtilities, jit: { theme } }) {
       if (value === undefined) {
         return []
       }
+
+      value = value === '0' ? '0px' : value
 
       return {
         [`${nameClass('divide-x', modifier)} > :not([hidden]) ~ :not([hidden])`]: {
@@ -24,6 +25,8 @@ module.exports = function ({ addUtilities, matchUtilities, jit: { theme } }) {
       if (value === undefined) {
         return []
       }
+
+      value = value === '0' ? '0px' : value
 
       return {
         [`${nameClass('divide-y', modifier)} > :not([hidden]) ~ :not([hidden])`]: {

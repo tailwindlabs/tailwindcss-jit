@@ -243,8 +243,8 @@ div {
   --tw-numeric-fraction: var(--tw-empty, /*!*/ /*!*/);
   font-variant-numeric: var(--tw-ordinal) var(--tw-slashed-zero) var(--tw-numeric-figure)
     var(--tw-numeric-spacing) var(--tw-numeric-fraction);
-  --tw-numeric-spacing: tabular-nums;
   --tw-ordinal: ordinal;
+  --tw-numeric-spacing: tabular-nums;
 }
 .custom-component {
   background: #123456;
@@ -274,7 +274,7 @@ div {
   --tw-scale-x: 0.5;
   --tw-scale-y: 0.5;
 }
-.grid-cols-\[200px\,repeat\(auto-fill\,minmax\(15\%\,100px\)\)\,300px\] {
+.grid-cols-\[200px\2c repeat\(auto-fill\2c minmax\(15\%\2c 100px\)\)\2c 300px\] {
   grid-template-columns: 200px repeat(auto-fill, minmax(15%, 100px)) 300px;
 }
 .bg-black {
@@ -287,6 +287,16 @@ div {
 }
 .bg-opacity-50 {
   --tw-bg-opacity: 0.5;
+}
+.bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+.bg-hero--home-1 {
+  background-image: url('/images/homepage-1.jpg');
+}
+.from-foo {
+  --tw-gradient-from: #bada55;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(186, 218, 85, 0));
 }
 .text-center {
   text-align: center;

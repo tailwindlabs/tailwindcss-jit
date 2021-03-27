@@ -16,19 +16,37 @@ function getClassNameFromSelector(selector) {
 // ['ring-offset-blue', '100']
 // ['ring-offset', 'blue-100']
 // ['ring', 'offset-blue-100']
-function* candidatePermutations(prefix, modifier = '') {
-  let dashIdx = prefix.lastIndexOf('-')
-  if (dashIdx === -1) {
+function* candidatePermutations(candidate, lastIndex = Infinity) {
+  if (lastIndex < 0) {
     return
   }
 
-  modifier = [prefix.slice(dashIdx + 1), modifier].filter(Boolean).join('-')
-  prefix = prefix.slice(0, dashIdx)
+  let dashIdx
+
+  if (candidate.endsWith(']', lastIndex + 1)) {
+    let bracketIdx = candidate.lastIndexOf('[')
+
+    // If character before `[` isn't a dash, this isn't a dynamic class
+    // eg. string[]
+    dashIdx = candidate[bracketIdx - 1] === '-' ? bracketIdx - 1 : -1
+  } else {
+    dashIdx = candidate.lastIndexOf('-', lastIndex)
+  }
+
+  if (dashIdx < 0) {
+    return
+  }
+
+  let prefix = candidate.slice(0, dashIdx)
+  let modifier = candidate.slice(dashIdx + 1)
 
   yield [prefix, modifier]
 
-  yield* candidatePermutations(prefix, modifier)
+  yield* candidatePermutations(candidate, dashIdx - 1)
 }
+
+// console.log(Array.from(candidatePermutations('string[]')))
+// process.exit()
 
 function applyPrefix(matches, context) {
   if (matches.length === 0 || context.tailwindConfig.prefix === '') {
@@ -140,9 +158,11 @@ function* resolveMatchedPlugins(classCandidate, context) {
   let candidatePrefix = classCandidate
   let negative = false
 
-  if (candidatePrefix[0] === '-') {
+  const twConfigPrefix = context.tailwindConfig.prefix || ''
+  const twConfigPrefixLen = twConfigPrefix.length
+  if (candidatePrefix[twConfigPrefixLen] === '-') {
     negative = true
-    candidatePrefix = candidatePrefix.slice(1)
+    candidatePrefix = twConfigPrefix + candidatePrefix.slice(twConfigPrefixLen + 1)
   }
 
   for (let [prefix, modifier] of candidatePermutations(candidatePrefix)) {
@@ -213,6 +233,20 @@ function* resolveMatches(candidate, context) {
   }
 }
 
+function inKeyframes(d) {
+  return (
+    d.parent.parent && d.parent.parent.type === 'atrule' && d.parent.parent.name === 'keyframes'
+  )
+}
+
+function makeImportant(rule) {
+  rule.walkDecls((d) => {
+    if (d.parent.type === 'rule' && !inKeyframes(d)) {
+      d.important = true
+    }
+  })
+}
+
 function generateRules(candidates, context) {
   let allRules = []
 
@@ -239,9 +273,7 @@ function generateRules(candidates, context) {
 
   return allRules.flat(1).map(([{ sort, layer, options }, rule]) => {
     if (context.tailwindConfig.important === true && options.respectImportant) {
-      rule.walkDecls((d) => {
-        d.important = true
-      })
+      makeImportant(rule)
     }
     return [sort | context.layerOrder[layer], rule]
   })

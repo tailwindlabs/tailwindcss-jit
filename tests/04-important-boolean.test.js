@@ -24,6 +24,17 @@ test('important boolean', () => {
           },
           { respectImportant: true }
         )
+        addComponents(
+          {
+            '@font-face': {
+              'font-family': 'Inter',
+            },
+            '@page': {
+              margin: '1cm',
+            },
+          },
+          { respectImportant: true }
+        )
         addUtilities(
           {
             '.custom-util': {

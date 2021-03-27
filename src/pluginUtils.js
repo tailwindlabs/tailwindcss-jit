@@ -1,6 +1,7 @@
 const selectorParser = require('postcss-selector-parser')
 const postcss = require('postcss')
 const { toRgba } = require('tailwindcss/lib/util/withAlphaVariable')
+const { nameClass, escapeCommas } = require('./lib/utils')
 
 function updateAllClasses(selectors, updateClass) {
   let parser = selectorParser((selectors) => {
@@ -12,6 +13,9 @@ function updateAllClasses(selectors, updateClass) {
         },
       })
       sel.value = updatedClass
+      if (sel.raws && sel.raws.value) {
+        sel.raws.value = escapeCommas(sel.raws.value)
+      }
     })
   })
 
@@ -36,6 +40,9 @@ function updateLastClasses(selectors, updateClass) {
         },
       })
       lastClass.value = updatedClass
+      if (lastClass.raws && lastClass.raws.value) {
+        lastClass.raws.value = escapeCommas(lastClass.raws.value)
+      }
     })
   })
   let result = parser.processSync(selectors)
@@ -104,19 +111,27 @@ function asValue(modifier, lookup = {}, { validate = () => true, transform = (v)
     return undefined
   }
 
-  return transform(value)
+  // add spaces around operators inside calc() that do not follow an operator or (
+  return transform(value).replace(/(?<=^calc\(.+?)(?<![-+*/(])([-+*/])/g, ' $1 ')
 }
 
 function asUnit(modifier, units, lookup = {}) {
   return asValue(modifier, lookup, {
     validate: (value) => {
-      let pattern = new RegExp(`.+(${units.join('|')})$`, 'g')
-      return value.match(pattern) !== null
+      let unitsPattern = `(?:${units.join('|')})`
+      return (
+        new RegExp(`${unitsPattern}$`).test(value) ||
+        new RegExp(`^calc\\(.+?${unitsPattern}`).test(value)
+      )
+    },
+    transform: (value) => {
+      return value
     },
   })
 }
 
 module.exports = {
+  nameClass,
   updateAllClasses,
   updateLastClasses,
   transformAllSelectors,

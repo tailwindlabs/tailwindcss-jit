@@ -1,16 +1,47 @@
 const fs = require('fs')
+const path = require('path')
 const fastGlob = require('fast-glob')
+const parseGlob = require('parse-glob')
 const sharedState = require('./sharedState')
 const { generateRules } = require('./generateRules')
-const { bigSign } = require('./utils')
+const { bigSign, cloneNodes } = require('./utils')
 
 let env = sharedState.env
 let contentMatchCache = sharedState.contentMatchCache
 
+const BROAD_MATCH_GLOBAL_REGEXP = /[^<>"'`\s]*[^<>"'`\s:]/g
+const INNER_MATCH_GLOBAL_REGEXP = /[^<>"'`\s.(){}[\]#=%]*[^<>"'`\s.(){}[\]#=%:]/g
+
+function defaultJitExtractor(content) {
+  let broadMatches = content.match(BROAD_MATCH_GLOBAL_REGEXP) || []
+  let innerMatches = content.match(INNER_MATCH_GLOBAL_REGEXP) || []
+
+  return [...broadMatches, ...innerMatches]
+}
+
+function getExtractor(fileName, tailwindConfig) {
+  const purgeOptions = tailwindConfig && tailwindConfig.purge && tailwindConfig.purge.options
+
+  if (!purgeOptions) {
+    return defaultJitExtractor
+  }
+
+  const fileExtension = path.extname(fileName).slice(1)
+  const fileSpecificExtractor = (purgeOptions.extractors || []).find((extractor) =>
+    extractor.extensions.includes(fileExtension)
+  )
+
+  if (fileSpecificExtractor) {
+    return fileSpecificExtractor.extractor
+  }
+
+  return purgeOptions.defaultExtractor || defaultJitExtractor
+}
+
 // Scans template contents for possible classes. This is a hot path on initial build but
 // not too important for subsequent builds. The faster the better though — if we can speed
 // up these regexes by 50% that could cut initial build time by like 20%.
-function getClassCandidates(content, contentMatchCache, candidates, seen) {
+function getClassCandidates(content, extractor, contentMatchCache, candidates, seen) {
   for (let line of content.split('\n')) {
     line = line.trim()
 
@@ -24,20 +55,14 @@ function getClassCandidates(content, contentMatchCache, candidates, seen) {
         candidates.add(match)
       }
     } else {
-      let allMatches = new Set()
-      let broadMatches = line.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || []
-      let innerMatches = line.match(/[^<>"'`\s.(){}[\]#=%]*[^<>"'`\s.(){}[\]#=%:]/g) || []
+      let extractorMatches = extractor(line)
+      let lineMatchesSet = new Set(extractorMatches)
 
-      for (let match of broadMatches) {
-        allMatches.add(match)
-        candidates.add(match)
-      }
-      for (let match of innerMatches) {
-        allMatches.add(match)
+      for (let match of lineMatchesSet) {
         candidates.add(match)
       }
 
-      contentMatchCache.set(line, allMatches)
+      contentMatchCache.set(line, lineMatchesSet)
     }
   }
 }
@@ -117,21 +142,55 @@ function expandTailwindAtRules(context, registerDependency) {
 
     // ---
 
-    // Register our temp file as a dependency — we write to this file
-    // to trigger rebuilds.
-    if (context.touchFile) {
-      registerDependency(context.touchFile)
-    }
+    if (sharedState.env.TAILWIND_DISABLE_TOUCH) {
+      for (let maybeGlob of context.candidateFiles) {
+        let {
+          is: { glob: isGlob },
+          base,
+        } = parseGlob(maybeGlob)
 
-    // If we're not set up and watching files ourselves, we need to do
-    // the work of grabbing all of the template files for candidate
-    // detection.
-    if (!context.scannedContent) {
+        if (isGlob) {
+          // register base dir as `dependency` _and_ `context-dependency` for
+          // increased compatibility
+          registerDependency(path.resolve(base))
+          registerDependency(path.resolve(base), 'context-dependency')
+        } else {
+          registerDependency(path.resolve(maybeGlob))
+        }
+      }
+
+      env.DEBUG && console.time('Finding changed files')
       let files = fastGlob.sync(context.candidateFiles)
       for (let file of files) {
-        context.changedFiles.add(file)
+        let prevModified = context.fileModifiedMap.has(file)
+          ? context.fileModifiedMap.get(file)
+          : -Infinity
+        let modified = fs.statSync(file).mtimeMs
+
+        if (!context.scannedContent || modified > prevModified) {
+          context.changedFiles.add(file)
+          context.fileModifiedMap.set(file, modified)
+        }
       }
       context.scannedContent = true
+      env.DEBUG && console.timeEnd('Finding changed files')
+    } else {
+      // Register our temp file as a dependency — we write to this file
+      // to trigger rebuilds.
+      if (context.touchFile) {
+        registerDependency(context.touchFile)
+      }
+
+      // If we're not set up and watching files ourselves, we need to do
+      // the work of grabbing all of the template files for candidate
+      // detection.
+      if (!context.scannedContent) {
+        let files = fastGlob.sync(context.candidateFiles)
+        for (let file of files) {
+          context.changedFiles.add(file)
+        }
+        context.scannedContent = true
+      }
     }
 
     // ---
@@ -143,7 +202,8 @@ function expandTailwindAtRules(context, registerDependency) {
     env.DEBUG && console.time('Reading changed files')
     for (let file of context.changedFiles) {
       let content = fs.readFileSync(file, 'utf8')
-      getClassCandidates(content, contentMatchCache, candidates, seen)
+      let extractor = getExtractor(file, context.tailwindConfig)
+      getClassCandidates(content, extractor, contentMatchCache, candidates, seen)
     }
     env.DEBUG && console.timeEnd('Reading changed files')
 
@@ -179,25 +239,25 @@ function expandTailwindAtRules(context, registerDependency) {
     // Replace any Tailwind directives with generated CSS
 
     if (layerNodes.base) {
-      layerNodes.base.before([...baseNodes])
+      layerNodes.base.before(cloneNodes([...baseNodes]))
       layerNodes.base.remove()
     }
 
     if (layerNodes.components) {
-      layerNodes.components.before([...componentNodes])
+      layerNodes.components.before(cloneNodes([...componentNodes]))
       layerNodes.components.remove()
     }
 
     if (layerNodes.utilities) {
-      layerNodes.utilities.before([...utilityNodes])
+      layerNodes.utilities.before(cloneNodes([...utilityNodes]))
       layerNodes.utilities.remove()
     }
 
     if (layerNodes.screens) {
-      layerNodes.screens.before([...screenNodes])
+      layerNodes.screens.before(cloneNodes([...screenNodes]))
       layerNodes.screens.remove()
     } else {
-      root.append([...screenNodes])
+      root.append(cloneNodes([...screenNodes]))
     }
 
     // ---

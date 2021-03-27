@@ -1,10 +1,9 @@
-const nameClass = require('tailwindcss/lib/util/nameClass').default
-const { asLength } = require('../pluginUtils')
+const { asValue, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
+module.exports = function ({ matchUtilities }) {
   matchUtilities({
-    m: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+    m: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
@@ -14,8 +13,8 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
     },
   })
   matchUtilities({
-    mx: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+    mx: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
@@ -23,8 +22,8 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
 
       return { [nameClass('mx', modifier)]: { 'margin-left': value, 'margin-right': value } }
     },
-    my: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+    my: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
@@ -34,8 +33,8 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
     },
   })
   matchUtilities({
-    mt: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+    mt: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
@@ -43,8 +42,8 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
 
       return { [nameClass('mt', modifier)]: { 'margin-top': value } }
     },
-    mr: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+    mr: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
@@ -52,8 +51,8 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
 
       return { [nameClass('mr', modifier)]: { 'margin-right': value } }
     },
-    mb: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+    mb: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []
@@ -61,8 +60,8 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
 
       return { [nameClass('mb', modifier)]: { 'margin-bottom': value } }
     },
-    ml: (modifier, { theme, candidate }) => {
-      let value = asLength(modifier, theme['margin'])
+    ml: (modifier, { theme }) => {
+      let value = asValue(modifier, theme['margin'])
 
       if (value === undefined) {
         return []

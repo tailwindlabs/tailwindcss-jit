@@ -1,4 +1,8 @@
 const postcss = require('postcss')
+const tailwindUtils = {
+  escapeClassName: require('tailwindcss/lib/util/escapeClassName').default,
+  nameClass: require('tailwindcss/lib/util/nameClass').default,
+}
 
 // Takes our lightweight rule structure and turns it into a PostCSS node.
 // This is likely a hot path and should be as optimized as possible. We
@@ -66,8 +70,36 @@ function isPlainObject(value) {
   return prototype === null || prototype === Object.prototype
 }
 
+// workaround for minifier bug which splits selectors by commas,
+// even when they are escaped (e.g. \,)
+function escapeCommas(className) {
+  return className.replace(/\\,/g, '\\2c ')
+}
+
+function escapeClassName(...args) {
+  return escapeCommas(tailwindUtils.escapeClassName(...args))
+}
+
+function nameClass(...args) {
+  return escapeCommas(tailwindUtils.nameClass(...args))
+}
+
+/**
+ * Clone generated and/or cached nodes to ensure no future
+ * postcss plugins can mutate the rules and mess up our cache
+ *
+ * @param {import('postcss').Node[]} nodes
+ * */
+function cloneNodes(nodes) {
+  return nodes.map((node) => node.clone())
+}
+
 module.exports = {
   toPostCssNode,
   bigSign,
   isPlainObject,
+  escapeClassName,
+  escapeCommas,
+  nameClass,
+  cloneNodes,
 }
