@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet!
 
+## [0.1.12] - 2021-03-26
+
+### Fixed
+
+- Support custom modifiers with double dashes ([#164](https://github.com/tailwindlabs/tailwindcss-jit/pull/164))
+
 ## [0.1.11] - 2021-03-26
 
 ### Added
