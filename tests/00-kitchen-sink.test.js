@@ -22,6 +22,9 @@ test('it works', () => {
         gradientColorStops: {
           foo: '#bada55',
         },
+        backgroundImage: {
+          'hero--home-1': "url('/images/homepage-1.jpg')",
+        },
       },
     },
     plugins: [
