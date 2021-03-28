@@ -1,6 +1,16 @@
 const { asValue, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
+module.exports = function ({ matchUtilities, matchWildcards, jit: { theme } }) {
+  matchWildcards({
+    p: Object.keys(theme['padding']),
+    px: Object.keys(theme['padding']),
+    py: Object.keys(theme['padding']),
+    pt: Object.keys(theme['padding']),
+    pr: Object.keys(theme['padding']),
+    pb: Object.keys(theme['padding']),
+    pl: Object.keys(theme['padding']),
+  })
+
   matchUtilities({
     p: (modifier, { theme }) => {
       let value = asValue(modifier, theme['padding'])
