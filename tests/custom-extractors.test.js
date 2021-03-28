@@ -18,13 +18,13 @@ const css = `
   @tailwind components;
   @tailwind utilities;
 `
-const expectedPath = path.resolve(__dirname, './13-custom-extractors.test.css')
+const expectedPath = path.resolve(__dirname, './custom-extractors.test.css')
 const expected = fs.readFileSync(expectedPath, 'utf8')
 
 test('defaultExtractor', () => {
   let config = {
     purge: {
-      content: [path.resolve(__dirname, './13-custom-extractors.test.html')],
+      content: [path.resolve(__dirname, './custom-extractors.test.html')],
       options: {
         defaultExtractor: customExtractor,
       },
@@ -42,7 +42,7 @@ test('defaultExtractor', () => {
 test('extractors array', () => {
   let config = {
     purge: {
-      content: [path.resolve(__dirname, './13-custom-extractors.test.html')],
+      content: [path.resolve(__dirname, './custom-extractors.test.html')],
       options: {
         extractors: [
           {

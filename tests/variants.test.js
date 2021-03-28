@@ -7,9 +7,10 @@ function run(input, config = {}) {
   return postcss([tailwind(config)]).process(input, { from: path.resolve(__filename) })
 }
 
-test('basic usage', () => {
+test('variants', () => {
   let config = {
-    purge: [path.resolve(__dirname, './01-basic-usage.test.html')],
+    darkMode: 'class',
+    purge: [path.resolve(__dirname, './variants.test.html')],
     corePlugins: { preflight: false },
     theme: {},
     plugins: [],
@@ -22,7 +23,7 @@ test('basic usage', () => {
   `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './01-basic-usage.test.css')
+    let expectedPath = path.resolve(__dirname, './variants.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)

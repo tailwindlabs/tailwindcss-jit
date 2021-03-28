@@ -6,9 +6,11 @@ const path = require('path')
 function pluginThatMutatesRules() {
   return (root) => {
     root.walkRules((rule) => {
-      rule.nodes.filter(node => node.prop === 'background-image').forEach(node => {
-        node.value = 'url("./bar.png")'
-      })
+      rule.nodes
+        .filter((node) => node.prop === 'background-image')
+        .forEach((node) => {
+          node.value = 'url("./bar.png")'
+        })
 
       return rule
     })
@@ -21,11 +23,11 @@ function run(input, config = {}) {
 
 test.only('plugins mutating rules after tailwind doesnt break it', async () => {
   let config = {
-    purge: [path.resolve(__dirname, './11-mutable.test.html')],
+    purge: [path.resolve(__dirname, './mutable.test.html')],
     theme: {
       backgroundImage: {
-        'foo': 'url("./foo.png")',
-      }
+        foo: 'url("./foo.png")',
+      },
     },
     plugins: [],
   }
@@ -33,7 +35,7 @@ test.only('plugins mutating rules after tailwind doesnt break it', async () => {
   let css = `@tailwind utilities;`
 
   function checkResult(result) {
-    let expectedPath = path.resolve(__dirname, './11-mutable.test.css')
+    let expectedPath = path.resolve(__dirname, './mutable.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)
@@ -45,7 +47,7 @@ test.only('plugins mutating rules after tailwind doesnt break it', async () => {
 
   // Outside of the context of tailwind jit more postcss plugins may operate on the AST:
   // In this case we have a plugin that mutates rules directly
-  await postcss([ pluginThatMutatesRules() ]).process(firstRun, { from: path.resolve(__filename) })
+  await postcss([pluginThatMutatesRules()]).process(firstRun, { from: path.resolve(__filename) })
 
   // Verify subsequent runs don't produce mutated rules
   let secondRun = await run(css, config)

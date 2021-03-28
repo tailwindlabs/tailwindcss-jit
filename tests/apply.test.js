@@ -14,7 +14,7 @@ function run(input, config = {}) {
 test('@apply', () => {
   let config = {
     darkMode: 'class',
-    purge: [path.resolve(__dirname, './10-apply.test.html')],
+    purge: [path.resolve(__dirname, './apply.test.html')],
     corePlugins: { preflight: false },
     theme: {},
     plugins: [],
@@ -136,7 +136,7 @@ test('@apply', () => {
 `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './10-apply.test.css')
+    let expectedPath = path.resolve(__dirname, './apply.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)
@@ -146,7 +146,7 @@ test('@apply', () => {
 test('@apply error with unknown utility', async () => {
   let config = {
     darkMode: 'class',
-    purge: [path.resolve(__dirname, './10-apply.test.html')],
+    purge: [path.resolve(__dirname, './apply.test.html')],
     corePlugins: { preflight: false },
     plugins: [],
   }
@@ -168,7 +168,7 @@ test('@apply error with unknown utility', async () => {
 test('@apply error with nested @screen', async () => {
   let config = {
     darkMode: 'class',
-    purge: [path.resolve(__dirname, './10-apply.test.html')],
+    purge: [path.resolve(__dirname, './apply.test.html')],
     corePlugins: { preflight: false },
     plugins: [],
   }
@@ -194,7 +194,7 @@ test('@apply error with nested @screen', async () => {
 test('@apply error with nested @anyatrulehere', async () => {
   let config = {
     darkMode: 'class',
-    purge: [path.resolve(__dirname, './10-apply.test.html')],
+    purge: [path.resolve(__dirname, './apply.test.html')],
     corePlugins: { preflight: false },
     plugins: [],
   }

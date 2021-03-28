@@ -7,11 +7,9 @@ function run(input, config = {}) {
   return postcss([tailwind(config)]).process(input, { from: path.resolve(__filename) })
 }
 
-test('important modifier', () => {
+test('basic usage', () => {
   let config = {
-    important: false,
-    darkMode: 'class',
-    purge: [path.resolve(__dirname, './14-important-modifier.test.html')],
+    purge: [path.resolve(__dirname, './basic-usage.test.html')],
     corePlugins: { preflight: false },
     theme: {},
     plugins: [],
@@ -24,7 +22,7 @@ test('important modifier', () => {
   `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './14-important-modifier.test.css')
+    let expectedPath = path.resolve(__dirname, './basic-usage.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)

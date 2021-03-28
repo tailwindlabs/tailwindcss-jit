@@ -9,7 +9,7 @@ function run(input, config = {}) {
 
 test('using @import instead of @tailwind', () => {
   let config = {
-    purge: [path.resolve(__dirname, './12-import-syntax.test.html')],
+    purge: [path.resolve(__dirname, './import-syntax.test.html')],
     corePlugins: { preflight: false },
     theme: {},
     plugins: [
@@ -30,7 +30,7 @@ test('using @import instead of @tailwind', () => {
   `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './12-import-syntax.test.css')
+    let expectedPath = path.resolve(__dirname, './import-syntax.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)

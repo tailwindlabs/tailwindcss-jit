@@ -10,7 +10,7 @@ function run(input, config = {}) {
 test('it works', () => {
   let config = {
     darkMode: 'class',
-    purge: [path.resolve(__dirname, './00-kitchen-sink.test.html')],
+    purge: [path.resolve(__dirname, './kitchen-sink.test.html')],
     corePlugins: { preflight: false },
     theme: {
       extend: {
@@ -158,7 +158,7 @@ test('it works', () => {
 `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './00-kitchen-sink.test.css')
+    let expectedPath = path.resolve(__dirname, './kitchen-sink.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)

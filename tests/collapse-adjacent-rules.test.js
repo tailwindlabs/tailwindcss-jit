@@ -9,7 +9,7 @@ function run(input, config = {}) {
 
 test('collapse adjacent rules', () => {
   let config = {
-    purge: [path.resolve(__dirname, './09-collapse-adjacent-rules.test.html')],
+    purge: [path.resolve(__dirname, './collapse-adjacent-rules.test.html')],
     corePlugins: { preflight: false },
     theme: {},
     plugins: [],
@@ -47,7 +47,7 @@ test('collapse adjacent rules', () => {
   `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './09-collapse-adjacent-rules.test.css')
+    let expectedPath = path.resolve(__dirname, './collapse-adjacent-rules.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)

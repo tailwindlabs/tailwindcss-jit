@@ -7,12 +7,9 @@ function run(input, config = {}) {
   return postcss([tailwind(config)]).process(input, { from: path.resolve(__filename) })
 }
 
-test('important modifier with prefix', () => {
+test('arbitrary values', () => {
   let config = {
-    important: false,
-    prefix: 'tw-',
-    darkMode: 'class',
-    purge: [path.resolve(__dirname, './15-important-modifier-prefix.test.html')],
+    purge: [path.resolve(__dirname, './arbitrary-values.test.html')],
     corePlugins: { preflight: false },
     theme: {},
     plugins: [],
@@ -25,7 +22,7 @@ test('important modifier with prefix', () => {
   `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './15-important-modifier-prefix.test.css')
+    let expectedPath = path.resolve(__dirname, './arbitrary-values.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)

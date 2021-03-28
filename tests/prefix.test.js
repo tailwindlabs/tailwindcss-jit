@@ -11,7 +11,7 @@ test('prefix', () => {
   let config = {
     prefix: 'tw-',
     darkMode: 'class',
-    purge: [path.resolve(__dirname, './05-prefix.test.html')],
+    purge: [path.resolve(__dirname, './prefix.test.html')],
     corePlugins: { preflight: false },
     theme: {},
     plugins: [
@@ -63,7 +63,7 @@ test('prefix', () => {
   `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './05-prefix.test.css')
+    let expectedPath = path.resolve(__dirname, './prefix.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)

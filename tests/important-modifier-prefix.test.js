@@ -7,20 +7,25 @@ function run(input, config = {}) {
   return postcss([tailwind(config)]).process(input, { from: path.resolve(__filename) })
 }
 
-test('custom separator', () => {
+test('important modifier with prefix', () => {
   let config = {
+    important: false,
+    prefix: 'tw-',
     darkMode: 'class',
-    purge: [path.resolve(__dirname, './03-custom-separator.test.html')],
-    separator: '_',
-    corePlugins: {},
+    purge: [path.resolve(__dirname, './important-modifier-prefix.test.html')],
+    corePlugins: { preflight: false },
     theme: {},
     plugins: [],
   }
 
-  let css = `@tailwind utilities`
+  let css = `
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+  `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './03-custom-separator.test.css')
+    let expectedPath = path.resolve(__dirname, './important-modifier-prefix.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)

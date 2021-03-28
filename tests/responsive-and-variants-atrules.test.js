@@ -9,7 +9,7 @@ function run(input, config = {}) {
 
 test('responsive and variants atrules', () => {
   let config = {
-    purge: [path.resolve(__dirname, './07-responsive-and-variants-atrules.test.html')],
+    purge: [path.resolve(__dirname, './responsive-and-variants-atrules.test.html')],
     corePlugins: { preflight: false },
     theme: {},
     plugins: [],
@@ -80,7 +80,7 @@ test('responsive and variants atrules', () => {
   `
 
   return run(css, config).then((result) => {
-    let expectedPath = path.resolve(__dirname, './07-responsive-and-variants-atrules.test.css')
+    let expectedPath = path.resolve(__dirname, './responsive-and-variants-atrules.test.css')
     let expected = fs.readFileSync(expectedPath, 'utf8')
 
     expect(result.css).toMatchCss(expected)

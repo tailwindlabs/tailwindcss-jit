@@ -40,7 +40,7 @@
   },
   "jest": {
     "setupFilesAfterEnv": [
-      "<rootDir>/tests/customMatchers.js"
+      "<rootDir>/tests/_customMatchers.js"
     ]
   },
   "browserslist": [
