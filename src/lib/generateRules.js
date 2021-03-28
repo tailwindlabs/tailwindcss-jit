@@ -261,18 +261,8 @@ function* resolveMatches(candidate, context) {
   }
 }
 
-function inKeyframes(d) {
-  return (
-    d.parent.parent && d.parent.parent.type === 'atrule' && d.parent.parent.name === 'keyframes'
-  )
-}
-
-function makeImportant(rule) {
-  rule.walkDecls((d) => {
-    if (d.parent.type === 'rule' && !inKeyframes(d)) {
-      d.important = true
-    }
-  })
+function inKeyframes(rule) {
+  return rule.parent && rule.parent.type === 'atrule' && rule.parent.name === 'keyframes'
 }
 
 function generateRules(candidates, context) {
@@ -300,8 +290,26 @@ function generateRules(candidates, context) {
   }
 
   return allRules.flat(1).map(([{ sort, layer, options }, rule]) => {
-    if (context.tailwindConfig.important === true && options.respectImportant) {
-      makeImportant(rule)
+    if (options.respectImportant) {
+      if (context.tailwindConfig.important === true) {
+        rule.walkDecls((d) => {
+          if (d.parent.type === 'rule' && !inKeyframes(d.parent)) {
+            d.important = true
+          }
+        })
+      } else if (typeof context.tailwindConfig.important === 'string') {
+        let container = postcss.root({ nodes: [rule] })
+        container.walkRules((r) => {
+          if (inKeyframes(r)) {
+            return
+          }
+
+          r.selectors = r.selectors.map((selector) => {
+            return `${context.tailwindConfig.important} ${selector}`
+          })
+        })
+        rule = container.nodes[0]
+      }
     }
     return [sort | context.layerOrder[layer], rule]
   })
