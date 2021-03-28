@@ -401,7 +401,11 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       return '*'
     }
 
-    return options.respectPrefix ? context.tailwindConfig.prefix + identifier : identifier
+    if (! options.respectPrefix) {
+      return identifier
+    }
+
+    return context.tailwindConfig.prefix + identifier
   }
 
   return {
