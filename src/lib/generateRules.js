@@ -274,7 +274,7 @@ function generateRules(candidates, context) {
     }
 
     if (context.classCache.has(candidate)) {
-      allRules.push(context.classCache.get(candidate))
+      allRules.push(...context.classCache.get(candidate))
       continue
     }
 
@@ -286,10 +286,10 @@ function generateRules(candidates, context) {
     }
 
     context.classCache.set(candidate, matches)
-    allRules.push(matches)
+    allRules.push(...matches)
   }
 
-  return allRules.flat(1).map(([{ sort, layer, options }, rule]) => {
+  return allRules.map(([{ sort, layer, options }, rule]) => {
     if (options.respectImportant) {
       if (context.tailwindConfig.important === true) {
         rule.walkDecls((d) => {
