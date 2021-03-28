@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet!
 
+## [0.1.17] - 2021-03-28
+
+### Added
+
+- Add support for prefix as a function ([#177](https://github.com/tailwindlabs/tailwindcss-jit/issues/177))
+
 ## [0.1.16] - 2021-03-28
 
 ### Added
@@ -132,7 +138,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Everything!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.16...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.17...HEAD
+[0.1.17]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.16...v0.1.17
 [0.1.16]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.15...v0.1.16
 [0.1.15]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.14...v0.1.15
 [0.1.14]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.13...v0.1.14
