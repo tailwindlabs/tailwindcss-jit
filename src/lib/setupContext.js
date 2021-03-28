@@ -724,6 +724,12 @@ function setupContext(configOrPath) {
 
     let contextDependenciesChanged = trackModified([...contextDependencies])
 
+    let oldConfigHash = sharedState.sourceConfigHashMap.get(sourcePath)
+    if (tailwindConfigHash !== oldConfigHash) {
+      contextDependenciesChanged = contextDependenciesChanged || true
+      sharedState.sourceConfigHashMap.set(sourcePath, tailwindConfigHash)
+    }
+
     process.env.DEBUG && console.log('Source path:', sourcePath)
 
     if (!contextDependenciesChanged) {
