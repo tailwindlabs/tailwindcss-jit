@@ -267,6 +267,7 @@ function inKeyframes(rule) {
 
 function generateRules(candidates, context) {
   let allRules = []
+  let allSelectors = new Set()
 
   for (let candidate of candidates) {
     if (context.notClassCache.has(candidate)) {
@@ -285,8 +286,19 @@ function generateRules(candidates, context) {
       continue
     }
 
+    matches = matches.filter(([_, rule]) => {
+      return !rule.selector
+          || !allSelectors.has(rule.selector)
+    })
+
     context.classCache.set(candidate, matches)
     allRules.push(...matches)
+
+    matches.forEach(([_, rule]) => {
+      if (rule.selector) {
+        allSelectors.add(rule.selector)
+      }
+    })
   }
 
   return allRules.map(([{ sort, layer, options }, rule]) => {
