@@ -146,7 +146,7 @@ function applyVariant(variant, matches, context) {
     return result
   }
 
-  return []
+  return matches
 }
 
 function parseRules(rule, cache, options = {}) {
