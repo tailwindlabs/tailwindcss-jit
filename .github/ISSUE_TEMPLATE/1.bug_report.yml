@@ -18,6 +18,12 @@ body:
       required: true
   - type: input
     attributes:
+      label: What build tool (or framework if it abstracts the build tool) are you using?
+      description: 'For example: postcss-cli 8.3.1, Next.js 10.0.9, webpack 5.28.0'
+    validations:
+      required: true      
+  - type: input
+    attributes:
       label: What browser are you using?
       description: 'For example: Chrome, Safari, or N/A'
     validations:
