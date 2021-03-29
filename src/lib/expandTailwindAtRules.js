@@ -12,21 +12,26 @@ let contentMatchCache = sharedState.contentMatchCache
 const BROAD_MATCH_GLOBAL_REGEXP = /[^<>"'`\s]*[^<>"'`\s:]/g
 const INNER_MATCH_GLOBAL_REGEXP = /[^<>"'`\s.(){}[\]#=%]*[^<>"'`\s.(){}[\]#=%:]/g
 
-function defaultJitExtractor(content) {
-  let broadMatches = content.match(BROAD_MATCH_GLOBAL_REGEXP) || []
-  let innerMatches = content.match(INNER_MATCH_GLOBAL_REGEXP) || []
+function getDefaultExtractor(fileExtension) {
+  return function (content) {
+    if (fileExtension === 'svelte') {
+      content = content.replace(/\sclass:/g, ' ')
+    }
+    let broadMatches = content.match(BROAD_MATCH_GLOBAL_REGEXP) || []
+    let innerMatches = content.match(INNER_MATCH_GLOBAL_REGEXP) || []
 
-  return [...broadMatches, ...innerMatches]
+    return [...broadMatches, ...innerMatches]
+  }
 }
 
 function getExtractor(fileName, tailwindConfig) {
   const purgeOptions = tailwindConfig && tailwindConfig.purge && tailwindConfig.purge.options
+  const fileExtension = path.extname(fileName).slice(1)
 
   if (!purgeOptions) {
-    return defaultJitExtractor
+    return getDefaultExtractor(fileExtension)
   }
 
-  const fileExtension = path.extname(fileName).slice(1)
   const fileSpecificExtractor = (purgeOptions.extractors || []).find((extractor) =>
     extractor.extensions.includes(fileExtension)
   )
@@ -35,7 +40,7 @@ function getExtractor(fileName, tailwindConfig) {
     return fileSpecificExtractor.extractor
   }
 
-  return purgeOptions.defaultExtractor || defaultJitExtractor
+  return purgeOptions.defaultExtractor || getDefaultExtractor(fileExtension)
 }
 
 // Scans template contents for possible classes. This is a hot path on initial build but
