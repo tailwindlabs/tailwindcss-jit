@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet!
 
+## [0.1.18] - 2021-03-31
+
+### Added
+
+- Add support Svelte's `class:` syntax ([#183](https://github.com/tailwindlabs/tailwindcss-jit/issues/183))
+
 ## [0.1.17] - 2021-03-28
 
 ### Added
@@ -138,7 +144,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Everything!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.17...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.18...HEAD
+[0.1.18]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.17...v0.1.18
 [0.1.17]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.16...v0.1.17
 [0.1.16]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.15...v0.1.16
 [0.1.15]: https://github.com/tailwindlabs/tailwindcss-jit/compare/v0.1.14...v0.1.15
