@@ -57,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add explicit errors for unsupported `@apply` in nested CSS ([#161](https://github.com/tailwindlabs/tailwindcss-jit/pull/161))
 - Add `TAILWIND_DISABLE_TOUCH` environment flag for using native bundler dependency tracking for template files (very experimental/unstable, only works in webpack 5) ([#162](https://github.com/tailwindlabs/tailwindcss-jit/pull/162))
-- Add `TAILWIND_TOUCH_ROOT` environment variable for overriding default touch file location (advanced) ([#152](https://github.com/tailwindlabs/tailwindcss-jit/pull/152))
+- Add `TAILWIND_TOUCH_DIR` environment variable for overriding default touch file location (advanced) ([#152](https://github.com/tailwindlabs/tailwindcss-jit/pull/152))
 
 ## [0.1.10] - 2021-03-25
 
