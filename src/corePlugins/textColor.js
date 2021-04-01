@@ -3,7 +3,7 @@ const withAlphaVariable = require('tailwindcss/lib/util/withAlphaVariable').defa
 const toColorValue = require('tailwindcss/lib/util/toColorValue').default
 const { asColor, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
+module.exports = function ({ corePlugins, matchUtilities, jit: { theme } }) {
   let colorPalette = flattenColorPalette(theme.textColor)
 
   matchUtilities({
@@ -14,12 +14,18 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
         return []
       }
 
+      if (corePlugins('textOpacity')) {
+        return {
+          [nameClass('text', modifier)]: withAlphaVariable({
+            color: value,
+            property: 'color',
+            variable: '--tw-text-opacity',
+          }),
+        }
+      }
+
       return {
-        [nameClass('text', modifier)]: withAlphaVariable({
-          color: value,
-          property: 'color',
-          variable: '--tw-text-opacity',
-        }),
+        [nameClass('text', modifier)]: { color: value },
       }
     },
   })

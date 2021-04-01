@@ -3,7 +3,7 @@ const withAlphaVariable = require('tailwindcss/lib/util/withAlphaVariable').defa
 const toColorValue = require('tailwindcss/lib/util/toColorValue').default
 const { asColor, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
+module.exports = function ({ corePlugins, matchUtilities, jit: { theme } }) {
   let colorPalette = flattenColorPalette(theme.placeholderColor)
 
   matchUtilities({
@@ -14,12 +14,18 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
         return []
       }
 
+      if (corePlugins('placeholderOpacity')) {
+        return {
+          [`${nameClass('placeholder', modifier)}::placeholder`]: withAlphaVariable({
+            color: value,
+            property: 'color',
+            variable: '--tw-placeholder-opacity',
+          }),
+        }
+      }
+
       return {
-        [`${nameClass('placeholder', modifier)}::placeholder`]: withAlphaVariable({
-          color: value,
-          property: 'color',
-          variable: '--tw-placeholder-opacity',
-        }),
+        [`${nameClass('placeholder', modifier)}::placeholder`]: { color: value },
       }
     },
   })
