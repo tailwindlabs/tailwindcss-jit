@@ -1,3 +1,6 @@
+**This project has been merged with Tailwind CSS core and all future development will happen there.**
+
+---
 
 <p align="center">
     <img src="https://raw.githubusercontent.com/tailwindlabs/tailwindcss-jit/main/.github/logo.svg" alt="Tailwind CSS Just-In-Time">
