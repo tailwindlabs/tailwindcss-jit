@@ -1,4 +1,4 @@
-**This project has been merged with Tailwind CSS core and all future development will happen there.**
+**This project has been merged with [Tailwind CSS core](https://github.com/tailwindlabs/tailwindcss) and all future development will happen there.**
 
 ---
 
