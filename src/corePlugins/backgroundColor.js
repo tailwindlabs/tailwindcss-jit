@@ -4,7 +4,7 @@ const withAlphaVariable = require('tailwindcss/lib/util/withAlphaVariable').defa
 const toColorValue = require('tailwindcss/lib/util/toColorValue').default
 const { asColor, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
+module.exports = function ({ corePlugins, matchUtilities, jit: { theme } }) {
   let colorPalette = flattenColorPalette(theme.backgroundColor)
 
   matchUtilities({
@@ -15,13 +15,17 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
         return []
       }
 
-      return {
-        [nameClass('bg', modifier)]: withAlphaVariable({
-          color: value,
-          property: 'background-color',
-          variable: '--tw-bg-opacity',
-        }),
+      if (corePlugins('backgroundOpacity')) {
+        return {
+          [nameClass('bg', modifier)]: withAlphaVariable({
+            color: value,
+            property: 'background-color',
+            variable: '--tw-bg-opacity',
+          }),
+        }
       }
+
+      return { [nameClass('bg', modifier)]: { 'background-color': value } }
     },
   })
 }

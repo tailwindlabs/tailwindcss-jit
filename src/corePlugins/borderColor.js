@@ -3,7 +3,7 @@ const withAlphaVariable = require('tailwindcss/lib/util/withAlphaVariable').defa
 const toColorValue = require('tailwindcss/lib/util/toColorValue').default
 const { asColor, nameClass } = require('../pluginUtils')
 
-module.exports = function ({ matchUtilities, jit: { theme } }) {
+module.exports = function ({ corePlugins, matchUtilities, jit: { theme } }) {
   let colorPalette = flattenColorPalette(theme.borderColor)
 
   matchUtilities({
@@ -18,12 +18,18 @@ module.exports = function ({ matchUtilities, jit: { theme } }) {
         return []
       }
 
+      if (corePlugins('borderOpacity')) {
+        return {
+          [nameClass('border', modifier)]: withAlphaVariable({
+            color: value,
+            property: 'border-color',
+            variable: '--tw-border-opacity',
+          }),
+        }
+      }
+
       return {
-        [nameClass('border', modifier)]: withAlphaVariable({
-          color: value,
-          property: 'border-color',
-          variable: '--tw-border-opacity',
-        }),
+        [nameClass('border', modifier)]: { 'border-color': value },
       }
     },
   })
