@@ -26,6 +26,7 @@ const { isBuffer } = require('util')
 let contextMap = sharedState.contextMap
 let configContextMap = sharedState.configContextMap
 let contextSourcesMap = sharedState.contextSourcesMap
+let configHashMap = sharedState.configHashMap
 let env = sharedState.env
 
 // Earmarks a directory for our touch files.
@@ -149,6 +150,7 @@ function resolveConfigPath(pathOrConfig) {
 }
 
 let configPathCache = new LRU({ maxSize: 100 })
+let configObjCache = new LRU({ maxSize: 100 })
 
 // Get the config object based on a path
 function getTailwindConfig(configOrPath) {
@@ -213,11 +215,22 @@ function getTailwindConfig(configOrPath) {
   }
 
   // It's a plain object, not a path
-  let newConfig = resolveConfig(
-    configOrPath.config === undefined ? configOrPath : configOrPath.config
-  )
+  const inputConfig = configOrPath.config === undefined ? configOrPath : configOrPath.config
+  const { _cacheKey, _cacheVersion } = inputConfig
 
-  return [newConfig, null, hash(newConfig)]
+  if (_cacheKey && _cacheVersion) {
+    const cached = configObjCache.get(_cacheKey)
+    if (cached && cached[0] === _cacheVersion) {
+      return cached[1]
+    }
+  }
+
+  let newConfig = resolveConfig(inputConfig)
+  const res = [newConfig, null, hash(newConfig)]
+  if (_cacheKey && _cacheVersion) {
+    configObjCache.set(_cacheKey, [_cacheVersion, res])
+  }
+  return res
 }
 
 let fileModifiedMap = new Map()
@@ -689,6 +702,8 @@ function setupContext(configOrPath) {
     ] = getTailwindConfig(configOrPath)
     let isConfigFile = userConfigPath !== null
 
+    const { _cacheKey, _cacheVersion } = tailwindConfig
+
     let contextDependencies = new Set(
       sharedState.env.TAILWIND_DISABLE_TOUCH ? configDependencies : []
     )
@@ -729,8 +744,13 @@ function setupContext(configOrPath) {
     if (!contextDependenciesChanged) {
       // If this file already has a context in the cache and we don't need to
       // reset the context, return the cached context.
-      if (isConfigFile && contextMap.has(sourcePath)) {
-        return contextMap.get(sourcePath)
+      if (contextMap.has(sourcePath)) {
+        if (
+          isConfigFile ||
+          (_cacheKey && configHashMap.get(_cacheKey) === _cacheVersion)
+        ) {
+          return contextMap.get(sourcePath)
+        }
       }
 
       // If the config used already exists in the cache, return that.
@@ -740,6 +760,10 @@ function setupContext(configOrPath) {
         contextMap.set(sourcePath, context)
         return context
       }
+    }
+
+    if (_cacheKey && _cacheVersion) {
+      configHashMap.set(_cacheKey, _cacheVersion)
     }
 
     // If this source is in the context map, get the old context.

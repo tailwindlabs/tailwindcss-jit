@@ -11,5 +11,6 @@ module.exports = {
   contextMap: new Map(),
   configContextMap: new Map(),
   contextSourcesMap: new Map(),
+  configHashMap: new Map(),
   contentMatchCache: new LRU({ maxSize: 25000 }),
 }
