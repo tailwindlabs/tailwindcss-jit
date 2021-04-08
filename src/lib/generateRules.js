@@ -173,6 +173,7 @@ function* resolveMatchedPlugins(classCandidate, context) {
     yield [context.candidateRuleMap.get(classCandidate), 'DEFAULT']
   }
 
+  let wildcards = /^\{\*\}$/g
   let candidatePrefix = classCandidate
   let negative = false
 
@@ -184,8 +185,19 @@ function* resolveMatchedPlugins(classCandidate, context) {
   }
 
   for (let [prefix, modifier] of candidatePermutations(candidatePrefix)) {
+    let modifiers = [modifier]
+
     if (context.candidateRuleMap.has(prefix)) {
-      yield [context.candidateRuleMap.get(prefix), negative ? `-${modifier}` : modifier]
+      let rules = context.candidateRuleMap.get(prefix)
+
+      if (wildcards.test(modifier) && context.wildcardModifierList.has(prefix)) {
+        modifiers = context.wildcardModifierList.get(prefix)
+      }
+
+      for (const modifier of modifiers) {
+        yield [rules, negative ? `-${modifier}` : modifier]
+      }
+
       return
     }
   }

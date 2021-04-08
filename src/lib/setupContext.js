@@ -524,6 +524,13 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
         context.candidateRuleMap.get(prefixedIdentifier).push(...withOffsets)
       }
     },
+
+    matchWildcards: function (modifierMap) {
+      for (const [prefix, modifiers] of Object.entries(modifierMap)) {
+        context.wildcardModifierList.set(prefix, modifiers)
+      }
+    },
+
     matchUtilities: function (utilities, options) {
       let defaultOptions = {
         variants: [],
@@ -781,6 +788,7 @@ function setupContext(configOrPath) {
       variantMap: new Map(),
       stylesheetCache: null,
       fileModifiedMap: new Map(),
+      wildcardModifierList: new Map(),
     }
 
     // ---
